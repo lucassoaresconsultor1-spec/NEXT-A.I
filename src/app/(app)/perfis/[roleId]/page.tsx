@@ -83,7 +83,7 @@ export default async function RoleDetailPage({ params, searchParams }: { params:
       {query.criado ? <Notice tone="success" title="Perfil criado." /> : null}
       {role.isSystem ? (
         <Notice tone="info" title="Perfil do sistema">
-          As permissões deste perfil são definidas pelo Varejo Inteligente e atualizadas automaticamente. Ele não pode ser
+          As permissões deste perfil são definidas pela NEXT A.I e atualizadas automaticamente. Ele não pode ser
           alterado nem excluído; para um conjunto diferente, crie um perfil personalizado.
         </Notice>
       ) : null}

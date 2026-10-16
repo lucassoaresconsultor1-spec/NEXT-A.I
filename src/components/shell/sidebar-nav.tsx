@@ -28,8 +28,10 @@ export function SidebarNav({ allowed, onNavigate }: { allowed: string[]; onNavig
                       onClick={onNavigate}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm text-sidebar-ink hover:bg-sidebar-hover hover:text-white",
-                        active && "bg-sidebar-active font-medium text-white",
+                        "flex items-center gap-3 rounded-full px-3 py-2 text-sm",
+                        active
+                          ? "bg-accent font-medium text-sidebar"
+                          : "text-sidebar-ink hover:bg-sidebar-hover hover:text-white",
                       )}
                     >
                       <Icon className="size-4 shrink-0" aria-hidden />

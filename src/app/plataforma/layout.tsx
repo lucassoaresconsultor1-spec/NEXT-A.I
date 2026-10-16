@@ -1,6 +1,7 @@
 import { Building2, LogOut } from "lucide-react";
 import type { ReactNode } from "react";
 import { signOutAction } from "@/app/session-actions";
+import { Logo } from "@/components/brand/logo";
 import { Button, LinkButton } from "@/components/ui/button";
 import { requirePlatformAdmin } from "@/server/platform/service";
 
@@ -14,9 +15,9 @@ export default async function PlatformLayout({ children }: { children: ReactNode
       </a>
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">Varejo Inteligente</p>
-            <p className="text-sm font-semibold text-ink">Administração da plataforma</p>
+          <div className="flex items-center gap-3">
+            <Logo className="h-7" />
+            <p className="border-l border-line pl-3 text-sm font-semibold text-ink">Administração da plataforma</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="hidden max-w-48 truncate text-sm text-ink-muted sm:inline" title={admin.email}>

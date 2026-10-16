@@ -83,6 +83,8 @@ Pedido do usuário: demo funcional da visão completa (PRD com Escritório Virtu
 
 **Novo visual da demo (16/10/2026):** referência visual enviada pelo usuário em capturas (Behance bloqueado na rede do ambiente: `www.behance.net` e `mir-s3-cdn-cf.behance.net` recusados). Aplicados paleta, tipografia (Urbanist e Plus Jakarta Sans via Google Fonts), sidebar clara com ícones, card de destaque, colunas, rosca, medidor, pontos de progresso e orbe; escritório 2D recolorido. Validado de novo: `pnpm lint`, `node demo/selfcheck.mjs` e os 11 roteiros no Chromium sem erros de console. O validador de paleta de gráficos reprova a paleta da marca em luminosidade e croma; compensado com legenda com valores, rótulos e tabela.
 
+**Identidade NEXT A.I no app e na demo (16/10/2026):** logo 01B (geometria idêntica a `brand/next-ai/svg/`), tokens de `src/app/globals.css` trocados para a paleta da marca, Inter substituída por Plus Jakarta Sans e Urbanist (`next/font/google`, conforme `01-app/01-getting-started/13-fonts.md` da documentação empacotada), ícones pelas convenções `icon`/`apple-icon`/`favicon` (`03-file-conventions/01-metadata/app-icons.md`). Validado: `pnpm lint`, `pnpm lint:rules`, `pnpm typecheck`, `pnpm test` (77), `pnpm test:integration` (95), `pnpm test:e2e` (6, com `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/opt/pw-browsers/chromium`), `node demo/selfcheck.mjs`, os 11 roteiros da demo sem erros de console e inspeção de capturas (login, painel, perfis, menu do celular).
+
 Semente 276 escolhida por busca para a história se manter estável nos dias seguintes: lojas no ritmo da meta, uma em atenção e uma em risco, rupturas, caixa pendente e divergência.
 
 ## Pendências e próxima entrega

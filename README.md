@@ -1,6 +1,6 @@
-# Varejo Inteligente
+# NEXT A.I
 
-Plataforma SaaS multiempresa para gestão de varejo: lojas, equipes, PDV, estoque, atendimento, metas, indicadores e um agente de IA que trabalha somente sobre dados calculados pelo sistema. Escopo e público em [PRODUCT.md](PRODUCT.md).
+Plataforma SaaS multiempresa para gestão de varejo: lojas, equipes, PDV, estoque, atendimento, metas, indicadores e um agente de IA que trabalha somente sobre dados calculados pelo sistema. Escopo e público em [PRODUCT.md](PRODUCT.md); identidade visual (logo, cores, tipografia) em [brand/next-ai/](brand/next-ai/README.md).
 
 **Estado atual: Fase 1 (fundação) concluída** — autenticação, isolamento entre empresas no banco (RLS), perfis e permissões com escopo de lojas, layout corporativo, cadastros de lojas, regiões, departamentos e equipe, perfis personalizados, auditoria, planos com limites e administração da plataforma. Vendas, estoque, fila, BI e IA seguem o [plano por fases](docs/roadmap.md).
 

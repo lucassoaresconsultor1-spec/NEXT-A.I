@@ -18,7 +18,7 @@ export type ButtonVariant = keyof typeof VARIANTS;
 
 export function buttonClasses(variant: ButtonVariant = "primary", size: keyof typeof SIZES = "md", className?: string) {
   return cn(
-    "inline-flex items-center justify-center gap-2 rounded-md font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed",
+    "inline-flex items-center justify-center gap-2 rounded-full font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed",
     VARIANTS[variant],
     SIZES[size],
     className,

@@ -34,7 +34,7 @@ export default async function RolesPage({ searchParams }: { searchParams: Search
       <Breadcrumbs items={[{ label: "Painel", href: "/painel" }, { label: "Perfis de acesso" }]} />
       <PageHeader
         title="Perfis de acesso"
-        description="Cada membro tem um perfil, que define o que ele pode ver e fazer. Perfis do sistema são mantidos pelo Varejo Inteligente; perfis personalizados ficam sempre abaixo do nível de quem os cria."
+        description="Cada membro tem um perfil, que define o que ele pode ver e fazer. Perfis do sistema são mantidos pela NEXT A.I; perfis personalizados ficam sempre abaixo do nível de quem os cria."
         actions={newRoleButton}
       />
       {query.excluido ? <Notice tone="success" title="Perfil excluído." /> : null}

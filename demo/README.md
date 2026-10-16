@@ -21,7 +21,7 @@ As etapas dos agentes têm duração mínima de 0,9 s só para a animação ser 
 
 ## Visual
 
-Direção visual de referência enviada pelo usuário (case "AI Finance Management SaaS", Behance), usada **só como inspiração de estilo**: lima `#9FE870` como destaque sobre verde-floresta `#062F28`, cinza `#7B7B7B` e branco; fontes Urbanist (títulos e números) e Plus Jakarta Sans (texto); sidebar clara, cards muito arredondados, botões em pílula, card de destaque lima, colunas, rosca, medidor, progresso em dez pontos e orbe do assistente. Nenhuma imagem, marca, logotipo ou texto do case foi copiado. A paleta da marca falha nas faixas de luminosidade e croma do validador de gráficos; por isso os gráficos levam legenda com valores, rótulos diretos, espaço entre fatias e visão em tabela.
+Direção visual de referência enviada pelo usuário (case "AI Finance Management SaaS", Behance), usada **só como inspiração de estilo**: lima `#9FE870` como destaque sobre verde-floresta `#062F28`, cinza `#7B7B7B` e branco; fontes Urbanist (títulos e números) e Plus Jakarta Sans (texto); sidebar clara, cards muito arredondados, botões em pílula, card de destaque lima, colunas, rosca, medidor, progresso em dez pontos e orbe do assistente. Nenhuma imagem, marca, logotipo ou texto do case foi copiado. O logo na sidebar é o NEXT A.I (conceito 01B), copiado de `brand/next-ai/svg/logo-horizontal.svg` sem alteração. A paleta da marca falha nas faixas de luminosidade e croma do validador de gráficos; por isso os gráficos levam legenda com valores, rótulos diretos, espaço entre fatias e visão em tabela.
 
 ## Estrutura
 

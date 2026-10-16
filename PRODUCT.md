@@ -1,6 +1,6 @@
-# Varejo Inteligente — plataforma SaaS de gestão para varejo
+# NEXT A.I — plataforma SaaS de gestão para varejo
 
-> Nome de trabalho. Fontes: "Prompt mestre — plataforma SaaS inteligente de gestão para varejo" e "Documento mestre do produto — PRD + especificação técnica" (outubro de 2026), que acrescenta o Escritório Virtual 2D de agentes. Este documento guarda escopo, regras e aceite; estrutura técnica fica em [docs/architecture.md](docs/architecture.md), o plano por fases em [docs/roadmap.md](docs/roadmap.md).
+> Nome do sistema escolhido pelo usuário (antes "Varejo Inteligente", nome de trabalho); identidade visual em [brand/next-ai/](brand/next-ai/README.md). Fontes: "Prompt mestre — plataforma SaaS inteligente de gestão para varejo" e "Documento mestre do produto — PRD + especificação técnica" (outubro de 2026), que acrescenta o Escritório Virtual 2D de agentes. Este documento guarda escopo, regras e aceite; estrutura técnica fica em [docs/architecture.md](docs/architecture.md), o plano por fases em [docs/roadmap.md](docs/roadmap.md).
 
 ## Problema e objetivo
 
@@ -67,7 +67,7 @@ Ordem de entrega (detalhe e critérios em [docs/roadmap.md](docs/roadmap.md)):
 
 **Dinheiro:** valores monetários em centavos inteiros (sem ponto flutuante binário). Formatação em `src/lib/format.ts`.
 
-**Interface:** visual corporativo (sidebar azul-marinho, destaque azul, verde/vermelho/âmbar para estados), tabelas com filtro, ordenação e paginação no servidor, estados de vazio, carregamento e erro, modais acessíveis, responsivo de celular a desktop. O PDV terá interface própria, orientada a teclado e leitor de código de barras (Fase 2).
+**Interface:** identidade NEXT A.I (sidebar verde-floresta, destaque lima, verde/vermelho/âmbar para estados), tabelas com filtro, ordenação e paginação no servidor, estados de vazio, carregamento e erro, modais acessíveis, responsivo de celular a desktop. O PDV terá interface própria, orientada a teclado e leitor de código de barras (Fase 2).
 
 **Segurança e LGPD:** senhas com scrypt, sessões com token aleatório guardado só como hash, cookies `HttpOnly`/`Secure`/`SameSite=Lax` com prefixo `__Host-` em produção, limitação de tentativas no banco, e-mail/IP de eventos de autenticação guardados como HMAC, logs sem segredos. Detalhes em [docs/security.md](docs/security.md).
 

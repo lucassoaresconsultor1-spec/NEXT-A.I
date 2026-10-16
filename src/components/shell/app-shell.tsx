@@ -1,6 +1,7 @@
 import { Search } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Logo } from "@/components/brand/logo";
 import { MobileNav } from "./mobile-nav";
 import { SidebarNav } from "./sidebar-nav";
 import { StoreSwitcher } from "./store-switcher";
@@ -25,8 +26,8 @@ export function AppShell({ organizationName, planName, allowedNav, stores, activ
       <aside className="hidden w-64 shrink-0 flex-col bg-sidebar lg:flex">
         <div className="border-b border-white/10 px-5 py-5">
           <Link href="/painel" className="block">
-            <span className="block text-xs font-semibold uppercase tracking-wider text-sidebar-ink/70">Varejo Inteligente</span>
-            <span className="mt-1 block truncate text-sm font-semibold text-white">{organizationName}</span>
+            <Logo onDark className="h-9" />
+            <span className="mt-3 block truncate text-sm font-semibold text-white">{organizationName}</span>
           </Link>
           <span className="mt-1 inline-block rounded bg-white/10 px-1.5 py-0.5 text-[11px] text-sidebar-ink">Plano {planName}</span>
         </div>

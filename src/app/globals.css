@@ -2,34 +2,37 @@
 
 /* Design tokens: the source of truth referenced by docs/design.md. */
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-urbanist), var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
 
-  --color-canvas: #f4f6f9;
+  /* NEXT A.I identity (brand/next-ai): forest green #062F28, lime #9FE870. */
+  --color-canvas: #ebebea;
   --color-surface: #ffffff;
-  --color-line: #dfe3ea;
-  --color-line-strong: #c5ccd8;
-  --color-ink: #172033;
-  --color-ink-soft: #4a556b;
-  --color-ink-muted: #6b768a;
+  --color-line: #e3e4e1;
+  --color-line-strong: #cdd2cc;
+  --color-ink: #062f28;
+  --color-ink-soft: #43534e;
+  --color-ink-muted: #5f6a66;
 
-  --color-sidebar: #0f1d33;
-  --color-sidebar-hover: #1a2c49;
-  --color-sidebar-active: #22396080;
-  --color-sidebar-ink: #c9d3e3;
+  --color-sidebar: #062f28;
+  --color-sidebar-hover: #0e453a;
+  --color-sidebar-ink: #c7d9d1;
 
-  --color-brand: #1f5bd1;
-  --color-brand-strong: #1848a8;
-  --color-brand-soft: #e8effc;
+  --color-brand: #062f28;
+  --color-brand-strong: #0e453a;
+  --color-brand-soft: #e6eeeb;
+  /* Lime is a fill or highlight, never text on white (1.4:1). */
+  --color-accent: #9fe870;
 
-  --color-positive: #18794e;
-  --color-positive-soft: #e6f4ec;
-  --color-critical: #c22b2b;
-  --color-critical-soft: #fbeaea;
-  --color-attention: #a35a00;
-  --color-attention-soft: #fdf1df;
+  --color-positive: #2b6510;
+  --color-positive-soft: #e6f7da;
+  --color-critical: #b93526;
+  --color-critical-soft: #fbe8e5;
+  --color-attention: #8f5300;
+  --color-attention-soft: #fdf0da;
 
-  --radius-card: 0.625rem;
-  --shadow-card: 0 1px 2px rgb(15 29 51 / 0.06), 0 1px 3px rgb(15 29 51 / 0.04);
+  --radius-card: 1rem;
+  --shadow-card: 0 1px 2px rgb(6 47 40 / 0.04), 0 4px 16px rgb(6 47 40 / 0.05);
 }
 
 html {
@@ -41,6 +44,14 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
 }
 
 :focus-visible {

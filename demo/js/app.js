@@ -4,7 +4,7 @@ import { date } from "./lib.js";
 import { store } from "./app-store.js";
 import { runMonitoring } from "./orchestrator.js";
 import { VIEWERS } from "./store.js";
-import { Icon } from "./icons.js";
+import { Icon, Logo } from "./icons.js";
 import { html, useEffect, useState, useStore } from "./ui.js";
 import { Alertas, Auditoria } from "./views/alertas.js";
 import { Assistente } from "./views/assistente.js";
@@ -75,8 +75,8 @@ function App() {
     <a className="skip" href="#conteudo">Pular para o conteúdo</a>
     <aside className="sidebar" aria-label="Navegação principal">
       <div className="brand">
-        <span className="brand__mark" aria-hidden="true">VI</span>
-        <div><strong>Varejo Inteligente</strong><small>${ORGANIZATION.name}</small></div>
+        <${Logo} />
+        <small>${ORGANIZATION.name}</small>
       </div>
       <div className="user-card">
         <span className="avatar-initials" aria-hidden="true">${initials}</span>

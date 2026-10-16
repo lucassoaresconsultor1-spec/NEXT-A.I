@@ -6,7 +6,7 @@ Público: gestores e equipes de lojas brasileiras, de proprietários (desktop, a
 
 O **PDV** (Fase 2) terá layout próprio, focado em velocidade, teclado e leitor de código de barras; o layout de gestão é analítico. *(direção — ainda não implementado)*
 
-**Demonstração (`demo/`):** segue uma direção visual nova, escolhida pelo usuário a partir de uma referência: lima `#9FE870` sobre verde-floresta `#062F28`, Urbanist e Plus Jakarta Sans, sidebar clara e cards arredondados ([demo/README.md](../demo/README.md#visual)). O app em `src/` mantém os tokens abaixo até haver decisão de migrar; se migrar, os tokens mudam aqui e em `src/app/globals.css`.
+**Identidade NEXT A.I (conceito 01B, escolhido pelo usuário):** logo, cores e regras de uso em [brand/next-ai/](../brand/next-ai/README.md). Não redesenhe o logo: `src/components/brand/logo.tsx` e `demo/js/icons.js` copiam a geometria exata dos SVGs da marca. App e demonstração usam a mesma paleta (lima `#9FE870` sobre verde-floresta `#062F28`) e as mesmas fontes; a demo tem sidebar clara e cards mais arredondados ([demo/README.md](../demo/README.md#visual)). Ícones do app (`src/app/icon.svg`, `apple-icon.png`, `favicon.ico`) vêm de `brand/next-ai/`.
 
 ## Sistema existente
 
@@ -14,14 +14,15 @@ Fonte de verdade dos tokens: `@theme` em `src/app/globals.css`.
 
 | Papel | Token | Uso |
 |---|---|---|
-| Fundo | `canvas` (cinza muito claro), `surface` (branco) | Página e cartões |
+| Fundo | `canvas` (cinza quente `#EBEBEA`), `surface` (branco) | Página e cartões |
 | Linhas | `line`, `line-strong` | Bordas de cartões, tabelas e controles |
-| Texto | `ink`, `ink-soft`, `ink-muted` | Títulos, corpo, apoio |
-| Sidebar | `sidebar` (azul-marinho), `sidebar-hover`, `sidebar-active`, `sidebar-ink` | Navegação principal |
-| Destaque | `brand`, `brand-strong`, `brand-soft` | Ações primárias, links, foco |
+| Texto | `ink` (verde-floresta), `ink-soft`, `ink-muted` | Títulos, corpo, apoio (todos ≥ 4,5:1 sobre `canvas`) |
+| Sidebar | `sidebar` (verde-floresta), `sidebar-hover`, `sidebar-ink` | Navegação principal; item ativo em pílula `accent` com texto `sidebar` |
+| Marca | `brand` (verde-floresta), `brand-strong`, `brand-soft` (verde acinzentado) | Ações primárias, links, foco, avisos informativos |
+| Acento | `accent` (lima) | Preenchimento e destaque; nunca texto sobre branco (1,4:1) |
 | Estados | `positive`, `critical`, `attention` (+ `-soft`) | Sucesso/indicador positivo, erro/alerta crítico, atenção/pendência |
 
-Tipografia: Inter (`next/font/google`), tamanhos contidos (títulos `text-xl`, corpo `text-sm`), números com `tabular-nums`. Raio `--radius-card`, sombra sutil `--shadow-card`.
+Tipografia (`next/font/google`): Plus Jakarta Sans no texto (`font-sans`) e Urbanist em `h1`–`h3` (`font-display`); tamanhos contidos (títulos `text-xl`, corpo `text-sm`), números com `tabular-nums`. Botões em pílula, raio `--radius-card` (1 rem), sombra sutil `--shadow-card`.
 
 Componentes (`src/components/ui/`): `Button`/`LinkButton` (primário, secundário, fantasma, perigo), `Field` + `Input`/`Select`/`Textarea`/`Checkbox` + `SubmitButton` (estado de envio e bloqueio de duplo envio), `Notice` (sucesso, erro, atenção, info), `Badge`, `EmptyState`, `Card`/`CardHeader`/`CardBody`/`DetailList`, `PageHeader`, `Table`/`Th`/`Td`/`Tr`/`SortableTh`/`Pagination`, `Dialog` (Radix). Shell (`src/components/shell/`): sidebar com seções, navegação móvel em gaveta, cabeçalho com busca global, seletor de loja e menu do perfil, breadcrumbs, `AccessDenied`.
 

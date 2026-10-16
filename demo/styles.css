@@ -62,9 +62,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* Shell */
 .app { display: grid; grid-template-columns: 264px minmax(0, 1fr); min-height: 100%; }
 .sidebar { background: var(--surface-2); border-right: 1px solid var(--line); padding: 18px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
-.brand { display: flex; gap: 10px; align-items: center; padding: 2px 6px; }
-.brand__mark { width: 36px; height: 36px; border-radius: 12px; background: var(--accent); color: var(--deep); display: grid; place-items: center; font: 700 15px var(--font-display); letter-spacing: 0.02em; }
-.brand strong { display: block; font: 700 17px var(--font-display); color: var(--ink); }
+.brand { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; padding: 2px 6px; }
+.brand__logo { height: 34px; width: auto; }
 .brand small { color: var(--ink-muted); font-size: 12px; }
 .user-card { background: var(--surface); border-radius: var(--radius-md); padding: 10px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 10px; align-items: center; box-shadow: var(--shadow); }
 .user-card__text { min-width: 0; display: grid; }
