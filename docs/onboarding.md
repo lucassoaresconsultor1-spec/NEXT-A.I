@@ -55,13 +55,13 @@ Em hospedagem gerenciada, crie um papel de aplicação equivalente (sem `BYPASSR
 pnpm dev            # http://localhost:3000
 ```
 
-Crie a primeira empresa em `/criar-conta`. Para um administrador da plataforma:
+Crie seu acesso de administrador da plataforma (acesso geral do desenvolvedor):
 
 ```bash
 PLATFORM_ADMIN_PASSWORD='senha-provisoria-forte' pnpm platform:admin admin@exemplo.com.br
 ```
 
-Se o e-mail já existir, o usuário apenas recebe a permissão; caso contrário é criado com troca de senha obrigatória no primeiro acesso.
+Se o e-mail já existir, o usuário apenas recebe a permissão; caso contrário é criado com troca de senha obrigatória no primeiro acesso. Depois de entrar, cadastre empresas e o acesso do dono em **Plataforma → Nova empresa** (`/plataforma/nova-empresa`) e envie ao dono o e-mail e a senha provisória por um canal seguro. O cadastro público `/criar-conta` funciona enquanto `ALLOW_SIGNUP=true`; em produção, use `false`.
 
 ## Verificar
 

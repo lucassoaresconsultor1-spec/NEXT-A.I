@@ -11,12 +11,15 @@ Classificação do estado no produto (`src/`): **existente**, **parcial**, **aus
 | Identidade e sessão | Cadastro, login, sessões, troca de senha, limitação de tentativas | 1 | Existente |
 | Empresas e planos | Organizações, planos, limites, recursos por plano, situação | 1 | Existente |
 | Estrutura | Regiões, lojas, departamentos | 1 | Existente |
-| Pessoas e acesso | Vínculos, escopo de lojas, perfis do sistema e personalizados, permissões | 1 | Existente (perfis de diretor comercial, estoque e financeiro entram com seus módulos) |
+| Pessoas e acesso | Vínculos, escopo de lojas, perfis do sistema (Dono, Administrador, Financeiro, Coordenador, Gerente de loja, Supervisor, Vendedor, Operador de caixa) e personalizados, permissões | 1 | Existente (permissões financeiras e do vendedor entram com seus módulos) |
 | Auditoria | Trilha imutável de alterações | 1 | Existente |
-| Plataforma | Administração de empresas clientes e planos | 1 | Existente |
+| Plataforma | Cadastro de empresas com o acesso do dono, planos e situação | 1 | Existente |
 | Catálogo | Produtos, variações, categorias, marcas, fornecedores, histórico de preço/custo | 2 | Ausente · protótipo na demo (sem variações nem histórico de preço) |
 | Estoque | Livro de movimentações, saldo/reserva/trânsito por loja, inventário, transferências, recebimento, pedidos de compra | 2 | Ausente · protótipo na demo (livro, transferências; sem pedidos de compra) |
 | PDV e caixa | Venda, carrinho, descontos autorizados, suspensão, sessões de caixa, sangria/suprimento, fechamento e divergência | 2 | Ausente · protótipo na demo |
+| Compras e fornecedores | Fornecedores, pedidos de compra, recebimento contra pedido, custo de reposição | 2 (estrutura) · evolução | Ausente |
+| Financeiro | Faturamento, recebimentos, conciliação, fechamento de caixa, despesas, relatórios financeiros | 2–4 | Ausente (perfil Financeiro existe) |
+| Experiências e PWA | App instalável; app do vendedor (celular), fila (tablet) e PDV (desktop) sobre os mesmos serviços | 2–3 | Ausente · protótipo na demo |
 | Pagamentos | Adaptadores de provedor, confirmação por webhook autenticado/consulta, idempotência, estorno | 2 | Dependente de integração (demo: dinheiro local, cartão por NSU, PIX bloqueado) |
 | Fiscal | Camada desacoplada para NFC-e/NF-e via provedor especializado | 2–8 | Dependente de integração |
 | Atendimento | Fila, distribuição configurável, eventos, vínculo com venda, conversão | 3 | Ausente · protótipo na demo |
@@ -46,15 +49,17 @@ Incrementos, nesta ordem:
 5. **Cancelamentos e devoluções** com autorização, estorno de pagamento, retorno ao estoque e auditoria.
 6. **Fiscal (interface):** porta `FiscalProvider` com estados (pendente, autorizada, rejeitada, cancelada, contingência). Nenhuma autorização, número ou protocolo é inventado; emissão real depende de provedor, certificado, credenciamento e validação tributária profissional.
 
+O PDV tem layout próprio para desktop, não depende da IA para vender e trata falhas de conexão e de impressão sem perder a venda (estado pendente visível, reimpressão do comprovante). Cancelamentos, descontos e acréscimos exigem permissão específica. Contingência offline só entra se o negócio exigir, depois do PDV online testado.
+
 Aceite: venda com múltiplos pagamentos atualiza estoque e caixa atomicamente; retentativa não duplica; fechamento aponta divergência; tudo auditado e isolado por empresa/loja.
 
 ### Fase 3 — Pessoas e atendimento
 
-Vendedores (vínculo com membro), escalas para dias úteis, metas por escopo (rede, região, loja, equipe, pessoa) e período sem alteração silenciosa do histórico, regras de comissão versionadas com estados estimada → apurada → aprovada → paga e estorno por devolução. Fila (`service_tickets`, `service_events`) com status do prompt, distribuição por rodízio/especialidade/setor/manual com motivo registrado, e vínculo atendimento ↔ venda sem dupla contagem. Aceite: conversão com denominador documentado e reprodutível em teste.
+Vendedores (vínculo com membro), escalas para dias úteis, metas por escopo (rede, região, loja, equipe, pessoa) e período sem alteração silenciosa do histórico, regras de comissão versionadas com estados estimada → apurada → aprovada → paga e estorno por devolução. Fila (`service_tickets`, `service_events`) com status do prompt, distribuição por rodízio/especialidade/setor/manual com motivo registrado, e vínculo atendimento ↔ venda sem dupla contagem. Experiências móveis como PWA (`app/manifest.ts`): app do vendedor no celular (próprios dados por padrão; colegas, comissões de terceiros e relatórios gerenciais por permissão específica) e fila/vez no tablet da entrada da loja, integrada ao app do vendedor, ao PDV e ao dashboard sem cadastro duplicado. Como o tablet se identifica (aparelho vinculado à loja, PIN do vendedor) é proposta a validar com o usuário. Aceite: conversão com denominador documentado e reprodutível em teste.
 
 ### Fase 4 — BI e relatórios
 
-Camada `src/server/metrics/` com definições únicas (fórmula, período, filtros, origem) usada por dashboards, relatórios e IA. Faturamento bruto/líquido, recebimento, margem (com custos disponíveis) e lucro (somente com despesas cadastradas) são indicadores distintos. Dashboards executivo, gerente e vendedor; drill-down para os registros que compõem cada número; relatórios do prompt com exportação respeitando o escopo; agendamento e histórico de execuções. Aceite: o mesmo indicador produz o mesmo valor em todos os canais (teste de consistência com conjunto de dados conhecido).
+Camada `src/server/metrics/` com definições únicas (fórmula, período, filtros, origem) usada por dashboards, relatórios e IA. Faturamento bruto/líquido, recebimento, margem (com custos disponíveis) e lucro (somente com despesas cadastradas) são indicadores distintos. Dashboards executivo, coordenação, financeiro, gerente e vendedor, com comparação entre períodos e entre as lojas do escopo; drill-down para os registros que compõem cada número; relatórios do prompt com exportação respeitando o escopo; agendamento e histórico de execuções. Aceite: o mesmo indicador produz o mesmo valor em todos os canais (teste de consistência com conjunto de dados conhecido).
 
 ### Fase 5 — Inteligência artificial
 
@@ -82,7 +87,7 @@ Testes ampliados, testes de carga, observabilidade, limites e consumo por plano,
 |---|---|---|
 | Vazamento entre empresas por consulta sem filtro | Técnico, crítico | RLS forçado + FKs compostas + filtro explícito + testes de isolamento por módulo; app sem BYPASSRLS |
 | Aplicação conectada como superusuário (RLS ignorado) | Operacional | Papel dedicado documentado; teste de integração recusa papel com BYPASSRLS; checklist de implantação |
-| Escalada de privilégio por gerentes | Técnico | Hierarquia por nível, escopo ⊆ escopo do ator, sem autoalteração, invariante de proprietário; testes |
+| Escalada de privilégio por gerentes | Técnico | Hierarquia por nível, escopo ⊆ escopo do ator, sem autoalteração, invariante de dono; testes |
 | Duplicidade de venda/pagamento em falhas de rede | Técnico, financeiro | Idempotência, transações, confirmação de pagamento só por provedor, sem retry automático de operações financeiras |
 | Indicadores divergentes entre telas e IA | Técnico, confiança | Serviços de métricas únicos e testes de consistência |
 | IA inventando números ou agindo sem autorização | Técnico, reputacional | Ferramentas determinísticas, validação e autorização no backend, confirmação explícita para operações sensíveis |

@@ -22,7 +22,7 @@ interface PlanTarget {
   planKey: string;
 }
 
-function limits(plan: PlanOption) {
+export function limits(plan: PlanOption) {
   const stores = plan.maxStores === null ? "lojas sem limite" : `até ${plan.maxStores} ${plan.maxStores === 1 ? "loja" : "lojas"}`;
   const members =
     plan.maxMembers === null ? "membros sem limite" : `até ${plan.maxMembers} ${plan.maxMembers === 1 ? "membro" : "membros"}`;

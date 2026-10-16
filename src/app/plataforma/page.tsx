@@ -1,8 +1,8 @@
-import { Building2, SearchX } from "lucide-react";
+import { Building2, Plus, SearchX } from "lucide-react";
 import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/shell/breadcrumbs";
 import { LinkButton } from "@/components/ui/button";
-import { Badge, EmptyState } from "@/components/ui/feedback";
+import { Badge, EmptyState, Notice } from "@/components/ui/feedback";
 import { Card, PageHeader } from "@/components/ui/layout";
 import { Pagination, Table, Td, Th, Tr } from "@/components/ui/table";
 import { formatCnpj } from "@/lib/documents";
@@ -38,8 +38,18 @@ export default async function PlatformPage({ searchParams }: { searchParams: Sea
       <Breadcrumbs items={[{ label: "Plataforma" }, { label: "Empresas clientes" }]} />
       <PageHeader
         title="Empresas clientes"
-        description="Altere o plano e a situação das empresas. A administração da plataforma não acessa lojas, equipe nem dados comerciais dos clientes."
+        description="Cadastre empresas com o acesso do dono, altere o plano e a situação. A administração da plataforma não acessa lojas, equipe nem dados comerciais dos clientes."
+        actions={
+          <LinkButton href="/plataforma/nova-empresa">
+            <Plus className="size-4" aria-hidden /> Nova empresa
+          </LinkButton>
+        }
       />
+      {raw.criada === "1" ? (
+        <Notice tone="success" title="Empresa cadastrada.">
+          Envie ao dono o e-mail de acesso e a senha provisória por um canal seguro. A troca da senha é exigida no primeiro acesso.
+        </Notice>
+      ) : null}
       <Card>
         <PlatformFilters key={JSON.stringify(params)} values={params} />
         {result.rows.length === 0 ? (
@@ -47,7 +57,7 @@ export default async function PlatformPage({ searchParams }: { searchParams: Sea
             <EmptyState
               icon={Building2}
               title="Nenhuma empresa cadastrada"
-              description="As empresas criadas pelo cadastro aparecerão aqui."
+              description="Cadastre a primeira empresa em Nova empresa. Empresas criadas pelo cadastro público também aparecem aqui."
             />
           ) : (
             <EmptyState

@@ -1,10 +1,10 @@
-import { randomInt, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { and, asc, count, eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { getDb } from "@/db";
 import { auditLogs, organizationMemberships, organizations, regions, roles, stores, users } from "@/db/schema";
 import { withScope } from "@/db/tenant";
-import { formatCnpj, isValidCnpj } from "@/lib/documents";
+import { formatCnpj } from "@/lib/documents";
 import { auditFiltersSchema, listAuditLogs } from "@/server/audit/service";
 import { loadTenantContext, type TenantContext } from "@/server/authz/context";
 import { getOrganizationProfile, updateOrganizationProfile, type OrganizationProfileInput } from "@/server/organizations/service";
@@ -15,25 +15,16 @@ import {
   platformFiltersSchema,
   setOrganizationStatus,
 } from "@/server/platform/service";
-import { addMemberFixture, contextFor, createOrganizationFixture, createRegionFixture, createStoreFixture, uniqueEmail, uniqueSuffix } from "./fixtures";
-
-function cnpjDigit(base: string) {
-  let weight = 2;
-  let sum = 0;
-  for (let index = base.length - 1; index >= 0; index -= 1) {
-    sum += (base.charCodeAt(index) - 48) * weight;
-    weight = weight === 9 ? 2 : weight + 1;
-  }
-  return sum % 11 < 2 ? 0 : 11 - (sum % 11);
-}
-
-/** Fresh valid CNPJ per call: CNPJs are unique across the whole (shared) test database. */
-function randomCnpj(): string {
-  const base = Array.from({ length: 12 }, () => randomInt(10)).join("");
-  const first = cnpjDigit(base);
-  const cnpj = `${base}${first}${cnpjDigit(`${base}${first}`)}`;
-  return isValidCnpj(cnpj) ? cnpj : randomCnpj();
-}
+import {
+  addMemberFixture,
+  contextFor,
+  createOrganizationFixture,
+  createRegionFixture,
+  createStoreFixture,
+  randomCnpj,
+  uniqueEmail,
+  uniqueSuffix,
+} from "./fixtures";
 
 const profileInput = (values: Partial<OrganizationProfileInput> = {}): OrganizationProfileInput => ({
   name: `Empresa ${uniqueSuffix()}`,

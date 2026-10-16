@@ -1,8 +1,9 @@
-import { randomUUID } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { membershipRegions, membershipStores, organizationMemberships, regions, roles, stores, users } from "@/db/schema";
 import { withScope, type Tx } from "@/db/tenant";
+import { isValidCnpj } from "@/lib/documents";
 import { hashPassword } from "@/server/auth/password";
 import { loadTenantContext, type TenantContext } from "@/server/authz/context";
 import type { StoreAccess } from "@/server/authz/system-roles";
@@ -18,6 +19,24 @@ const FAST_HASH = { N: 2 ** 10, r: 8, p: 1 };
 
 export const uniqueSuffix = () => randomUUID().slice(0, 8);
 export const uniqueEmail = (label: string) => `${label}-${uniqueSuffix()}@example.test`;
+
+function cnpjDigit(base: string) {
+  let weight = 2;
+  let sum = 0;
+  for (let index = base.length - 1; index >= 0; index -= 1) {
+    sum += (base.charCodeAt(index) - 48) * weight;
+    weight = weight === 9 ? 2 : weight + 1;
+  }
+  return sum % 11 < 2 ? 0 : 11 - (sum % 11);
+}
+
+/** Fresh valid CNPJ per call: CNPJs are unique across the whole (shared) test database. */
+export function randomCnpj(): string {
+  const base = Array.from({ length: 12 }, () => randomInt(10)).join("");
+  const first = cnpjDigit(base);
+  const cnpj = `${base}${first}${cnpjDigit(`${base}${first}`)}`;
+  return isValidCnpj(cnpj) ? cnpj : randomCnpj();
+}
 
 async function insertUser(tx: Tx, userId: string, name: string, email: string, homeOrganizationId: string | null = null) {
   await tx

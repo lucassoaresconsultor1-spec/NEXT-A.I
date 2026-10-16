@@ -42,7 +42,7 @@ export function SignUpForm() {
         </Field>
       </fieldset>
       <fieldset className="space-y-4">
-        <legend className="text-sm font-semibold text-ink">Seu acesso (proprietário)</legend>
+        <legend className="text-sm font-semibold text-ink">Seu acesso (dono)</legend>
         <Field label="Seu nome" error={errors.name} required>
           {(props) => <Input {...props} name="name" autoComplete="name" required />}
         </Field>

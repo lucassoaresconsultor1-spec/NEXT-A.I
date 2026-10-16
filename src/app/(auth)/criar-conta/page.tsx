@@ -27,7 +27,7 @@ export default async function SignUpPage() {
       <div className="space-y-1">
         <h1 className="text-lg font-semibold text-ink">Criar conta da empresa</h1>
         <p className="text-sm text-ink-muted">
-          A empresa começa no plano Essencial (uma loja). Você entra como proprietário e cadastra lojas e equipe em seguida.
+          A empresa começa no plano Essencial (uma loja). Você entra como dono e cadastra lojas e equipe em seguida.
         </p>
       </div>
       <SignUpForm />

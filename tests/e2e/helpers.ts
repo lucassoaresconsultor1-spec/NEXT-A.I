@@ -32,3 +32,13 @@ export async function signOut(page: Page) {
   await page.getByRole("menuitem", { name: "Sair" }).or(page.getByRole("button", { name: "Sair" })).first().click();
   await expect(page).toHaveURL(/\/entrar/);
 }
+
+/** First access with a temporary password: the app forces the change to PASSWORD. */
+export async function changeTemporaryPassword(page: Page, temporary: string) {
+  await expect(page).toHaveURL(/\/alterar-senha/);
+  await page.getByLabel("Senha atual").fill(temporary);
+  await page.getByLabel(/^Nova senha/).fill(PASSWORD);
+  await page.getByLabel("Confirme a nova senha").fill(PASSWORD);
+  await page.getByRole("button", { name: "Salvar nova senha" }).click();
+  await expect(page).not.toHaveURL(/\/alterar-senha/);
+}

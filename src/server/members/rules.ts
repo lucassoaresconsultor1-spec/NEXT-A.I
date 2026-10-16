@@ -22,7 +22,7 @@ export const SELF_SERVICE_PASSWORD =
 
 export const SELF_CHANGE_MESSAGE = "Você não pode alterar o próprio acesso.";
 export const LAST_OWNER_MESSAGE =
-  "A empresa precisa de ao menos um proprietário ativo. Defina outro proprietário antes desta alteração.";
+  "A empresa precisa de ao menos um dono ativo. Defina outro dono antes desta alteração.";
 
 export interface RoleFacts {
   key: string;
@@ -100,7 +100,7 @@ export function assertCanManage(context: TenantContext, target: TargetFacts) {
 export function assertCanAssignRole(context: TenantContext, role: AssignableRoleFacts) {
   if (canAssignRole(context, role)) return;
   const message = isOwnerRole(role)
-    ? "Somente proprietários podem atribuir o perfil Proprietário."
+    ? "Somente donos podem atribuir o perfil Dono."
     : !canManageRank(context, role.rank)
       ? "Você só pode atribuir perfis de nível inferior ao seu."
       : "Este perfil inclui permissões que você não possui.";

@@ -25,7 +25,7 @@ Monólito modular: um app Next.js com módulos por domínio em `src/server/`. Se
 src/
 ├── proxy.ts                      # checagem otimista de cookie e renovação (não é autorização)
 ├── app/
-│   ├── layout.tsx, globals.css   # fonte Inter, tokens de design
+│   ├── layout.tsx, globals.css   # fontes Plus Jakarta Sans e Urbanist, tokens da marca NEXT A.I
 │   ├── page.tsx                  # redireciona para /painel ou /entrar
 │   ├── error.tsx, not-found.tsx  # erros genéricos, 404
 │   ├── session-actions.ts        # sair, trocar empresa, selecionar loja
@@ -37,7 +37,7 @@ src/
 │   │   ├── equipe/, perfis/
 │   │   ├── auditoria/, configuracoes/
 │   │   └── busca/                # busca global no escopo
-│   └── plataforma/               # administração da plataforma (somente is_platform_admin)
+│   └── plataforma/               # administração da plataforma (somente is_platform_admin): empresas, nova-empresa, planos
 ├── components/
 │   ├── ui/                       # botões, campos, tabelas, diálogos, avisos
 │   └── shell/                    # sidebar, cabeçalho, navegação móvel, breadcrumbs
@@ -79,6 +79,10 @@ Server Action ("use server") ─ Zod(pick) ───────────┤
 - **Ações** retornam `ActionState` (`src/lib/action-state.ts`); `runAction` converte erros de domínio em mensagens seguras e registra o resto no logger.
 - **Shell** (`src/server/shell.ts`) decide o menu pelas permissões; cada página reverifica.
 
+## Experiências sobre serviços compartilhados
+
+Um app Next.js e os serviços de `src/server/<módulo>` atendem todas as experiências do [PRODUCT.md](../PRODUCT.md#experiências-e-regras-de-acesso). Cada experiência é um grupo de rotas com layout próprio e sem regra de negócio: `(app)/` gestão e `plataforma/` (existentes), `pdv/` (Fase 2), `vendedor/` e `fila/` (Fase 3). Dashboards, app do vendedor, PDV, IA e escritório virtual leem as mesmas funções de métricas (Fase 4), o que mantém o mesmo número em todos os canais e evita cadastro duplicado. A instalação como PWA usa a convenção `app/manifest.ts` do Next.js e entra com a primeira experiência móvel.
+
 ## Dados e migrations
 
 Schema em `src/db/schema/`, explicado em [data-model.md](data-model.md). `getDb()` cria um pool `pg` (máx. 5, timeout 5 s) sob demanda e o reaproveita no HMR; nada conecta no build. Transações: toda operação de tenant é uma transação (`withScope`), o que também garante atomicidade entre a mudança e sua auditoria; limites de plano travam a organização com `FOR UPDATE`. Migrations são geradas por `drizzle-kit generate`, revisadas e aplicadas por `db:migrate` com o dono do schema; `FORCE ROW LEVEL SECURITY` e o catálogo de planos ficam em migrations custom.
@@ -95,9 +99,11 @@ Schema em `src/db/schema/`, explicado em [data-model.md](data-model.md). `getDb(
 | Planos em tabela + `entitlements.ts` único | Limites alteráveis sem espalhar regra comercial | Plano fixo no código | Cobrança/planos personalizados por cliente |
 | Lojas sem exclusão física | Histórico de vendas e auditoria | Exclusão em cascata | — |
 | Componentes próprios sobre Radix | Registro do shadcn bloqueado no ambiente; só o necessário | shadcn/ui CLI | Registro disponível e necessidade de mais componentes |
-| Inter via `next/font/google` | Baixada no build e servida pelo próprio app (sem requisição ao Google no navegador) | Fonte do sistema | Build sem acesso ao Google Fonts |
+| Plus Jakarta Sans e Urbanist via `next/font/google` (identidade NEXT A.I) | Baixadas no build e servida pelo próprio app (sem requisição ao Google no navegador) | Fonte do sistema | Build sem acesso ao Google Fonts |
 | Demonstração separada em `demo/` (página estática, React 18 + htm por CDN, dados fictícios gerados no navegador) | Mostrar a visão completa sem simular módulos dentro do produto nem misturar dados fictícios com reais | Rota `/demo` no app com seed no banco | Fases 2–7 implementadas no produto |
 | Escritório virtual em Canvas 2D próprio (sem Phaser/PixiJS) | Cena pequena, poucos sprites, zero dependência, ciclo de vida explícito | Engine 2D | Animações ou mapas que o Canvas simples não sustente |
+| Perfil Financeiro no nível 80, acima do coordenador | Só dono e administrador concedem acesso financeiro | Nível abaixo do coordenador | Financeiro regional ou por loja |
+| Empresa cadastrada pela plataforma sempre com conta nova do dono | Mesmo motivo do pré-sequestro: sem prova de posse do e-mail, vincular conta existente é inseguro | Vincular conta existente | Convite com confirmação por e-mail disponível |
 | Conta só readicionada pela empresa que a criou | Sem prova de posse do e-mail, vincular contas entre empresas permite pré-sequestro | Vincular qualquer conta existente | Convite com confirmação por e-mail disponível |
 
 Fontes consultadas (16/10/2026): documentação empacotada do Next.js 16.4 (`node_modules/next/dist/docs/`: autenticação, proxy, cookies, data security, `forbidden` experimental), tipos do Drizzle 0.45 (`pg-core/policies`), registry npm (canais `latest`). Context7 indisponível no ambiente (bloqueio de rede).

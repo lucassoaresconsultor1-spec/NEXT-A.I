@@ -1,4 +1,5 @@
 import "server-only";
+import { randomUUID } from "node:crypto";
 import { and, asc, count, eq, ilike, or, type SQL } from "drizzle-orm";
 import { notFound as notFoundPage, redirect } from "next/navigation";
 import { cache } from "react";
@@ -8,8 +9,11 @@ import { withScope, type Tx } from "@/db/tenant";
 import { normalizeCnpj } from "@/lib/documents";
 import { logger } from "@/lib/logger";
 import { diffFields, recordAudit } from "@/server/audit/record";
+import { hashPassword } from "@/server/auth/password";
 import { getCurrentSession } from "@/server/auth/session";
-import { forbidden, invalid, notFound } from "@/server/errors";
+import { conflict, forbidden, invalid, isUniqueViolation, notFound } from "@/server/errors";
+import { emailField, fieldErrorsOf, optionalCnpj, passwordField, requiredText } from "@/server/forms";
+import { provisionOrganization } from "@/server/organizations/provisioning";
 import { likePattern, pageResult, pageWindow, parsePage } from "@/server/pagination";
 import { countUsage } from "@/server/plans/entitlements";
 
@@ -35,6 +39,16 @@ export type PlatformFilters = z.infer<typeof platformFiltersSchema>;
 const uuidSchema = z.uuid();
 const planKeySchema = z.string().trim().min(1).max(32);
 const statusSchema = z.enum(ORGANIZATION_STATUSES);
+
+export const newOrganizationSchema = z.object({
+  organizationName: requiredText("o nome da empresa", 120, 2),
+  organizationDocument: optionalCnpj,
+  planKey: z.string({ error: "Selecione um plano." }).trim().min(1, { error: "Selecione um plano." }).max(32),
+  ownerName: requiredText("o nome do dono", 120, 2),
+  ownerEmail: emailField,
+  ownerPassword: passwordField,
+});
+export type NewOrganizationInput = z.infer<typeof newOrganizationSchema>;
 
 /** For pages, layouts and actions: the signed-in platform administrator, or redirect / 404. */
 export const requirePlatformAdmin = cache(async () => {
@@ -225,4 +239,48 @@ export async function setOrganizationStatus(actorId: string, organizationId: str
       changes: diffFields({ status: current.status }, { status: next.data }, ["status"]),
     });
   });
+}
+
+/**
+ * Registers a client company and its owner (Dono) with a temporary password,
+ * changed on the first sign-in. The owner is always a new account: linking an
+ * existing one needs e-mail confirmation (pending), as in addMember.
+ */
+export async function createOrganization(actorId: string, rawInput: NewOrganizationInput) {
+  const parsed = newOrganizationSchema.safeParse(rawInput);
+  // Hashing is slow on purpose; do it before the transaction.
+  const passwordHash = parsed.success ? await hashPassword(parsed.data.ownerPassword) : null;
+  const organizationId = randomUUID();
+  const ownerUserId = randomUUID();
+  try {
+    await withScope(targetScope(actorId, organizationId), async (tx) => {
+      await assertPlatformAdmin(tx, actorId);
+      if (!parsed.success || passwordHash === null) {
+        throw invalid("Revise os campos destacados.", parsed.success ? undefined : fieldErrorsOf(parsed.error));
+      }
+      const input = parsed.data;
+      await tx
+        .insert(users)
+        .values({ id: ownerUserId, email: input.ownerEmail, name: input.ownerName, passwordHash, mustChangePassword: true });
+      await provisionOrganization(tx, {
+        organizationId,
+        ownerUserId,
+        actorUserId: actorId,
+        name: input.organizationName,
+        document: input.organizationDocument,
+        planKey: input.planKey,
+      });
+      // Set after the organization row exists (foreign key).
+      await tx.update(users).set({ homeOrganizationId: organizationId }).where(eq(users.id, ownerUserId));
+    });
+  } catch (error) {
+    if (isUniqueViolation(error, "users_email_unique")) {
+      throw conflict("Este e-mail já tem cadastro. Use um e-mail novo para o dono.", { ownerEmail: ["E-mail já cadastrado."] });
+    }
+    if (isUniqueViolation(error, "organizations_document_unique")) {
+      throw conflict("Já existe uma empresa com este CNPJ.", { organizationDocument: ["CNPJ já cadastrado."] });
+    }
+    throw error;
+  }
+  return { organizationId };
 }

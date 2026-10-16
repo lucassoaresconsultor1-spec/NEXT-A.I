@@ -33,7 +33,7 @@ erDiagram
 | `regions` | Tenant | Nome único por empresa sem diferenciar maiúsculas |
 | `stores` | Tenant | Código único por empresa; região por FK composta; fuso opcional (herda da empresa); sem exclusão física |
 | `departments` | Tenant | Catálogo da empresa (setores); ativo/inativo |
-| `roles` | Tenant | 7 perfis do sistema por empresa + personalizados; `rank` para hierarquia |
+| `roles` | Tenant | 8 perfis do sistema por empresa + personalizados; `rank` para hierarquia. A migration `0004` renomeia Dono e Coordenador e cria o Financeiro nas empresas existentes |
 | `role_permissions` | Tenant | Só para perfis personalizados; permissões do sistema vêm do código |
 | `organization_memberships` | Tenant | Usuário × empresa, perfil, `store_access` (`all`/`regions`/`stores`), situação |
 | `membership_regions`, `membership_stores` | Tenant | Escopo do vínculo; FKs compostas impedem ids de outra empresa; região referenciada não pode ser excluída (FK sem cascata, migration `0003`) |
@@ -54,6 +54,8 @@ Nomes seguem a sugestão do prompt, ajustados à convenção `snake_case` plural
 |---|---|---|
 | 2 | `categories`, `brands`, `suppliers`, `products`, `product_variants`, `product_prices`, `product_costs` | SKU e código de barras únicos por empresa; histórico de preço/custo por vigência |
 | 2 | `inventory_movements`, `inventory_balances`, `stock_transfers`, `stock_transfer_items`, `inventory_counts` | Livro de movimentações imutável; saldo derivado na mesma transação; transferência com estados solicitada → aprovada → em trânsito → recebida/cancelada; quantidades `numeric(14,3)` |
+| 2–8 | `purchase_orders`, `purchase_order_items`, `goods_receipts` | Recebimento contra pedido gera movimentação no livro de estoque; custo de reposição versionado |
+| 2–4 | `expenses`, `payment_reconciliations` | Despesas por loja e período; conciliação com o retorno do provedor de pagamento |
 | 2 | `customers` | Dados pessoais mínimos (LGPD); CPF opcional conforme configuração |
 | 2 | `cash_registers`, `cash_sessions`, `cash_movements` | Uma sessão aberta por caixa; reabertura autorizada e auditada |
 | 2 | `sales`, `sale_items`, `payments`, `refunds`, `idempotency_keys` | Valores em centavos (`bigint`); número da venda sequencial por loja; chave de idempotência por finalização; pagamento externo só confirmado pelo provedor |

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { PASSWORD, signIn, signOut, signUpCompany, uniqueEmail } from "./helpers";
+import { changeTemporaryPassword, signIn, signOut, signUpCompany, uniqueEmail } from "./helpers";
 
 test("owner creates a store, hits the plan limit and adds a salesperson with restricted access", async ({ page, browser }) => {
   await signUpCompany(page);
@@ -47,11 +47,7 @@ test("owner creates a store, hits the plan limit and adds a salesperson with res
 
   // First access forces a password change; then the salesperson sees no team or structure management.
   await signIn(page, sellerEmail, "provisoria-123");
-  await expect(page).toHaveURL(/\/alterar-senha/);
-  await page.getByLabel("Senha atual").fill("provisoria-123");
-  await page.getByLabel(/^Nova senha/).fill(PASSWORD);
-  await page.getByLabel("Confirme a nova senha").fill(PASSWORD);
-  await page.getByRole("button", { name: "Salvar nova senha" }).click();
+  await changeTemporaryPassword(page, "provisoria-123");
   await expect(page).toHaveURL(/\/painel/);
   const nav = page.getByRole("navigation", { name: "Módulos" });
   await expect(nav.getByRole("link", { name: "Lojas" })).toBeVisible();

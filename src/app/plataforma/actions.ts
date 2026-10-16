@@ -1,12 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import type { ActionState } from "@/lib/action-state";
 import { runAction } from "@/server/actions";
 import { invalidState, pick } from "@/server/forms";
 import {
   changeOrganizationPlan,
+  createOrganization,
+  newOrganizationSchema,
   ORGANIZATION_STATUSES,
   requirePlatformAdmin,
   setOrganizationStatus,
@@ -57,5 +60,22 @@ export async function setOrganizationStatusAction(_state: ActionState, formData:
     },
     parsed.data.status === "suspended" ? "Empresa suspensa." : "Empresa reativada.",
     "setOrganizationStatus",
+  );
+}
+
+const NEW_ORGANIZATION_FIELDS = ["organizationName", "organizationDocument", "planKey", "ownerName", "ownerEmail", "ownerPassword"];
+
+export async function createOrganizationAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+  const admin = await requirePlatformAdmin();
+  const parsed = newOrganizationSchema.safeParse(pick(formData, NEW_ORGANIZATION_FIELDS));
+  if (!parsed.success) return invalidState(parsed.error);
+  return runAction(
+    async () => {
+      await createOrganization(admin.userId, parsed.data);
+      revalidatePath("/plataforma");
+      redirect("/plataforma?criada=1");
+    },
+    "Empresa cadastrada.",
+    "createOrganization",
   );
 }

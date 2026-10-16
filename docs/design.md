@@ -2,7 +2,7 @@
 
 ## Direção
 
-Público: gestores e equipes de lojas brasileiras, de proprietários (desktop, análise) a vendedores e operadores (celular/tablet, rapidez). Interface inteiramente em português do Brasil. Tom: ERP/BI corporativo, sóbrio e denso, sem gradientes excessivos ou decoração sem função. Inspiração em padrões de usabilidade de ERPs e BIs profissionais, sem copiar identidade de concorrentes.
+Público: gestores e equipes de lojas brasileiras, de donos (desktop, análise) a vendedores e operadores (celular/tablet, rapidez). Interface inteiramente em português do Brasil. Tom: ERP/BI corporativo, sóbrio e denso, sem gradientes excessivos ou decoração sem função. Inspiração em padrões de usabilidade de ERPs e BIs profissionais, sem copiar identidade de concorrentes.
 
 O **PDV** (Fase 2) terá layout próprio, focado em velocidade, teclado e leitor de código de barras; o layout de gestão é analítico. *(direção — ainda não implementado)*
 

@@ -16,7 +16,7 @@ export function RoleField({ roles, defaultValue, error }: { roles: RoleOption[];
       label="Perfil"
       error={error}
       required
-      hint="Somente perfis de nível inferior ao seu; o perfil Proprietário só é atribuído por proprietários."
+      hint="Somente perfis de nível inferior ao seu; o perfil Dono só é atribuído por donos."
     >
       {(props) => (
         <Select {...props} name="roleId" defaultValue={defaultValue ?? ""} required>

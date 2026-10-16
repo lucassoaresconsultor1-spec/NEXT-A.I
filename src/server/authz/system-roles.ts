@@ -20,8 +20,8 @@ export const OWNER_ROLE_KEY = "owner";
 export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
   {
     key: OWNER_ROLE_KEY,
-    name: "Proprietário",
-    description: "Acesso total à empresa, inclusive outros proprietários.",
+    name: "Dono",
+    description: "Acesso total à empresa, inclusive outros donos.",
     rank: 100,
     defaultStoreAccess: "all",
     permissions: ALL_PERMISSIONS,
@@ -35,9 +35,18 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     permissions: ALL_PERMISSIONS,
   },
   {
+    // Above the coordinator: only owners and administrators grant financial access.
+    key: "finance",
+    name: "Financeiro",
+    description: "Faturamento, recebimentos, conciliação, caixa e despesas das lojas autorizadas, sem configurações operacionais.",
+    rank: 80,
+    defaultStoreAccess: "stores",
+    permissions: ["organization.settings.read", "stores.read", "regions.read"],
+  },
+  {
     key: "regional_manager",
-    name: "Gestor regional",
-    description: "Acompanha as lojas das regiões autorizadas e suas equipes.",
+    name: "Coordenador",
+    description: "Acompanha a operação consolidada das lojas autorizadas, compara lojas e gerencia equipes.",
     rank: 70,
     defaultStoreAccess: "regions",
     permissions: [

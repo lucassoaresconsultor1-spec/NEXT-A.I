@@ -29,6 +29,13 @@
       "when": 1792146134819,
       "tag": "0003_account_ownership_and_region_restrict",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792194660603,
+      "tag": "0004_business_role_names_and_finance",
+      "breakpoints": true
     }
   ]
 }

@@ -88,7 +88,7 @@ describe("role assignment", () => {
   it("refuses a custom role marked with the owner key only when it is the system owner role", () => {
     const admin = contextAs("admin");
     expect(canAssignRole(admin, { key: "owner", isSystem: false, rank: 10, permissions: ["stores.read"] })).toBe(true);
-    expect(() => assertCanAssignRole(admin, systemRole("owner"))).toThrow(/Somente proprietários/);
+    expect(() => assertCanAssignRole(admin, systemRole("owner"))).toThrow(/Somente donos/);
     expect(() => assertCanAssignRole(contextAs("store_manager", [STORE_A]), systemRole("store_manager"))).toThrowError(
       expect.objectContaining({ code: "forbidden", fieldErrors: expect.objectContaining({ roleId: expect.any(Array) }) }),
     );
