@@ -30,7 +30,7 @@ export function StoreSwitcher({
         }}
         className="h-9 max-w-56 rounded-md border border-line-strong bg-surface px-2 text-sm text-ink"
       >
-        <option value="">Todas as lojas do meu acesso</option>
+        <option value="">Todas as lojas</option>
         {stores.map((store) => (
           <option key={store.id} value={store.id}>
             {store.code} · {store.name}

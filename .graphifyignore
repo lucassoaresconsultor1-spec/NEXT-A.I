@@ -26,3 +26,9 @@ package-lock.json
 yarn.lock
 bun.lock
 bun.lockb
+
+# Project-specific
+index-2.2.html
+test-results/
+playwright-report/
+drizzle/meta/
