@@ -11,10 +11,12 @@
     "lint:rules": "node scripts/verify-quality-rules.mjs ./eslint-rules/index.cjs",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:integration": "vitest run --config vitest.integration.config.mts",
+    "test:e2e": "tsx tests/e2e/reset-db.ts && playwright test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "check": "pnpm lint && pnpm typecheck && pnpm lint:rules && pnpm test && pnpm build",
-    "test:integration": "vitest run --config vitest.integration.config.mts"
+    "platform:admin": "tsx --conditions=react-server scripts/platform-admin.ts",
+    "check": "pnpm lint && pnpm typecheck && pnpm lint:rules && pnpm test && pnpm build"
   },
   "dependencies": {
     "clsx": "2.1.1",
