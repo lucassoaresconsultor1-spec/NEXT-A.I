@@ -79,6 +79,7 @@ Testes ampliados, testes de carga, observabilidade, limites e consumo por plano,
 | Offline do PDV prometido cedo demais | Produto | Só declarar após vendas, estoque, pagamento e sincronização testados |
 | Planos e preços não validados | Comercial | Catálogo em dados, alterável por migration; limites centralizados em `entitlements.ts` |
 | Dependência de e-mail para convites/recuperação | Produto | Senha provisória + troca obrigatória até haver provedor |
+| Pré-sequestro de contas sem prova de posse do e-mail | Técnico, crítico | Conta só readicionada pela empresa que a criou; convite com confirmação por e-mail antes de permitir pessoas em várias empresas |
 | Custo de IA por organização | Comercial | Limites por plano, registro de uso/custo, alertas |
 | LGPD (dados de clientes e equipe) | Regulatório | Minimização, retenção definida, HMAC para identificadores em logs de autenticação, envio mínimo ao modelo |
 

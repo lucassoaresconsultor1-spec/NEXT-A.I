@@ -70,13 +70,44 @@ describe("sign-in", () => {
     expect(wrong.code).toBe("unauthenticated");
   });
 
-  it("throttles repeated failures for the same account", async () => {
+  it("throttles repeated failures for the same account from the same address", async () => {
     const { email, password } = await signUpFixture();
+    const attacker = meta();
     for (let attempt = 0; attempt < 5; attempt += 1) {
+      await signIn({ email, password: `errada-${attempt}-xyz` }, attacker).catch(() => undefined);
+    }
+    // Even the right password is refused from that address while the window is closed…
+    await expect(signIn({ email, password }, attacker)).rejects.toMatchObject({ code: "limit" });
+    // …but the owner signing in from another network is not locked out by a stranger.
+    await expect(signIn({ email, password }, meta())).resolves.toBeDefined();
+  });
+
+  it("does not let one address exhaust the account-wide limit", async () => {
+    const { email, password } = await signUpFixture();
+    const attacker = meta();
+    // More than the account-wide limit, all from one address: blocked attempts must not count for the account.
+    for (let attempt = 0; attempt < 35; attempt += 1) {
+      await signIn({ email, password: `errada-${attempt}-xyz` }, attacker).catch(() => undefined);
+    }
+    await expect(signIn({ email, password }, meta())).resolves.toBeDefined();
+  });
+
+  it("caps attempts against one account across many addresses", async () => {
+    const { email, password } = await signUpFixture();
+    for (let attempt = 0; attempt < 30; attempt += 1) {
       await signIn({ email, password: `errada-${attempt}-xyz` }, meta()).catch(() => undefined);
     }
-    // Even the right password is refused while the window is closed.
     await expect(signIn({ email, password }, meta())).rejects.toMatchObject({ code: "limit" });
+  });
+
+  it("counts concurrent attempts atomically", async () => {
+    const { email } = await signUpFixture();
+    const attacker = meta();
+    const results = await Promise.allSettled(
+      Array.from({ length: 12 }, (_, attempt) => signIn({ email, password: `errada-${attempt}-xyz` }, attacker)),
+    );
+    const throttled = results.filter((result) => result.status === "rejected" && (result.reason as { code?: string }).code === "limit");
+    expect(throttled.length).toBeGreaterThanOrEqual(7);
   });
 
   it("rejects expired sessions and disabled users", async () => {

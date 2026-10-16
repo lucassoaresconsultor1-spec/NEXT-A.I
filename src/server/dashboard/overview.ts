@@ -1,5 +1,5 @@
 import "server-only";
-import { and, count, eq, isNotNull, ne, sql } from "drizzle-orm";
+import { and, count, countDistinct, eq, isNotNull, ne, sql } from "drizzle-orm";
 import { departments, organizationMemberships, organizations, regions, stores } from "@/db/schema";
 import { withScope } from "@/db/tenant";
 import { dbScope, storeScopeCondition, type TenantContext } from "@/server/authz/context";
@@ -17,7 +17,13 @@ export async function getOverview(context: TenantContext) {
       .select({ total: count(), active: sql<number>`(count(*) filter (where ${stores.status} = 'active'))::int` })
       .from(stores)
       .where(and(eq(stores.organizationId, orgId), storeScopeCondition(context.storeScope, stores.id)));
-    const [regionCount] = await tx.select({ value: count() }).from(regions).where(eq(regions.organizationId, orgId));
+    // Scoped members only count regions that hold a store they can access (same rule as /regioes).
+    const [regionCount] = context.storeScope.all
+      ? await tx.select({ value: count() }).from(regions).where(eq(regions.organizationId, orgId))
+      : await tx
+          .select({ value: countDistinct(stores.regionId) })
+          .from(stores)
+          .where(and(eq(stores.organizationId, orgId), storeScopeCondition(context.storeScope, stores.id)));
     const [departmentCount] = await tx
       .select({ value: count() })
       .from(departments)
@@ -45,16 +51,21 @@ export async function getOverview(context: TenantContext) {
         .select({ hasDocument: isNotNull(organizations.document) })
         .from(organizations)
         .where(eq(organizations.id, orgId));
+      // Only steps the member can carry out; each page enforces the same permission.
       onboarding = [
-        { label: "Completar dados da empresa (CNPJ)", done: Boolean(org?.hasDocument), href: "/configuracoes" },
+        can(context, "organization.settings.manage")
+          ? { label: "Completar dados da empresa (CNPJ)", done: Boolean(org?.hasDocument), href: "/configuracoes" }
+          : null,
         { label: "Cadastrar a primeira loja", done: storeCounts.total > 0, href: "/lojas/nova" },
-        { label: "Organizar lojas em regiões (redes)", done: regionCount.value > 0, href: "/regioes" },
-        { label: "Adicionar a equipe", done: (memberCount ?? 0) > 1, href: "/equipe/novo" },
-      ];
+        can(context, "regions.manage") ? { label: "Organizar lojas em regiões (redes)", done: regionCount.value > 0, href: "/regioes" } : null,
+        can(context, "members.manage") && memberCount !== null
+          ? { label: "Adicionar a equipe", done: memberCount > 1, href: "/equipe/novo" }
+          : null,
+      ].filter((step) => step !== null);
     }
 
     let activeStore: { id: string; code: string; name: string; city: string | null; state: string | null } | null = null;
-    if (context.activeStoreId) {
+    if (context.activeStoreId && can(context, "stores.read")) {
       const [store] = await tx
         .select({ id: stores.id, code: stores.code, name: stores.name, city: stores.city, state: stores.state })
         .from(stores)
@@ -63,7 +74,7 @@ export async function getOverview(context: TenantContext) {
     }
 
     return {
-      stores: { total: storeCounts.total, active: storeCounts.active },
+      stores: can(context, "stores.read") ? { total: storeCounts.total, active: storeCounts.active } : null,
       regions: can(context, "regions.read") ? regionCount.value : null,
       departments: can(context, "departments.read") ? departmentCount.value : null,
       members: memberCount,

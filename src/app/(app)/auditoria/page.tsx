@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { History, SearchX } from "lucide-react";
 import type { Metadata } from "next";
 import { AccessDenied } from "@/components/shell/access-denied";
@@ -22,6 +23,18 @@ const single = (value: string | string[] | undefined) => (typeof value === "stri
 
 // Written by the platform administration inside the organization.
 const PLATFORM_ACTIONS: ReadonlySet<string> = new Set(["organization.plan_changed", "organization.status_changed"]);
+
+// Where the affected record can be opened; pages re-check access (removed records answer 404).
+function recordHref(entityType: string, entityId: string | null) {
+  if (entityType === "organization") return "/configuracoes";
+  if (entityType === "region") return "/regioes";
+  if (entityType === "department") return "/departamentos";
+  if (!entityId) return null;
+  if (entityType === "store") return `/lojas/${entityId}`;
+  if (entityType === "member") return `/equipe/${entityId}`;
+  if (entityType === "role") return `/perfis/${entityId}`;
+  return null;
+}
 
 const ENTITY_OPTIONS = Object.entries(AUDIT_ENTITY_LABELS).map(([value, label]) => ({ value, label }));
 
@@ -117,7 +130,15 @@ export default async function AuditPage({ searchParams }: { searchParams: Search
                       <time dateTime={entry.createdAt.toISOString()}>{formatDateTime(entry.createdAt, timeZone)}</time>
                     </Td>
                     <Td className="font-medium">{auditActionLabel(entry.action)}</Td>
-                    <Td className="text-ink-soft">{AUDIT_ENTITY_LABELS[entry.entityType] ?? entry.entityType}</Td>
+                    <Td className="text-ink-soft">
+                      {recordHref(entry.entityType, entry.entityId) ? (
+                        <Link href={recordHref(entry.entityType, entry.entityId)!} className="text-brand hover:underline">
+                          {AUDIT_ENTITY_LABELS[entry.entityType] ?? entry.entityType}
+                        </Link>
+                      ) : (
+                        (AUDIT_ENTITY_LABELS[entry.entityType] ?? entry.entityType)
+                      )}
+                    </Td>
                     <Td>
                       <Responsible action={entry.action} actorName={entry.actorName} />
                     </Td>

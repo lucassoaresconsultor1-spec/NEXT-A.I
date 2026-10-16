@@ -53,7 +53,7 @@ src/
     ├── regions/, stores/, departments/, members/, roles/
     ├── audit/, dashboard/, search/, platform/
     └── actions.ts, forms.ts, errors.ts, pagination.ts, http.ts, shell.ts
-drizzle/                          # SQL versionado (0000 schema, 0001 FORCE RLS, 0002 planos)
+drizzle/                          # SQL versionado (0000 schema, 0001 FORCE RLS, 0002 planos, 0003 dono da conta)
 tests/integration/                # PostgreSQL real; fixtures por inserção direta
 tests/e2e/                        # Playwright sobre build de produção
 scripts/                          # verify-quality-rules, platform-admin, SQL local
@@ -94,7 +94,8 @@ Schema em `src/db/schema/`, explicado em [data-model.md](data-model.md). `getDb(
 | Planos em tabela + `entitlements.ts` único | Limites alteráveis sem espalhar regra comercial | Plano fixo no código | Cobrança/planos personalizados por cliente |
 | Lojas sem exclusão física | Histórico de vendas e auditoria | Exclusão em cascata | — |
 | Componentes próprios sobre Radix | Registro do shadcn bloqueado no ambiente; só o necessário | shadcn/ui CLI | Registro disponível e necessidade de mais componentes |
-| Sem `next/font` local, Inter via `next/font/google` | Baixado no build e servido pelo próprio app | Fonte do sistema | Build sem acesso ao Google Fonts |
+| Inter via `next/font/google` | Baixada no build e servida pelo próprio app (sem requisição ao Google no navegador) | Fonte do sistema | Build sem acesso ao Google Fonts |
+| Conta só readicionada pela empresa que a criou | Sem prova de posse do e-mail, vincular contas entre empresas permite pré-sequestro | Vincular qualquer conta existente | Convite com confirmação por e-mail disponível |
 
 Fontes consultadas (16/10/2026): documentação empacotada do Next.js 16.4 (`node_modules/next/dist/docs/`: autenticação, proxy, cookies, data security, `forbidden` experimental), tipos do Drizzle 0.45 (`pg-core/policies`), registry npm (canais `latest`). Context7 indisponível no ambiente (bloqueio de rede).
 

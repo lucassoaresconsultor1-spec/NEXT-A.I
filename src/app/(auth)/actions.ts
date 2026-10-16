@@ -8,18 +8,12 @@ import { isDomainError } from "@/server/errors";
 import { invalidState, pick, type ActionState } from "@/server/forms";
 import { getRequestMeta } from "@/server/http";
 import { logger } from "@/lib/logger";
+import { safeNextPath } from "@/lib/safe-redirect";
 
 function failure(error: unknown, action: string): ActionState {
   if (isDomainError(error)) return { status: "error", message: error.message, fieldErrors: error.fieldErrors };
   logger.error({ action, err: { name: (error as Error)?.name, code: (error as { code?: string })?.code } }, "Auth action failed");
   return { status: "error", message: "Não foi possível concluir agora. Tente novamente em instantes." };
-}
-
-/** Only same-site relative paths, so `next` cannot become an open redirect. */
-function safeNext(value: FormDataEntryValue | null) {
-  return typeof value === "string" && value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/\\")
-    ? value
-    : null;
 }
 
 export async function signInAction(_state: ActionState, formData: FormData): Promise<ActionState> {
@@ -30,7 +24,7 @@ export async function signInAction(_state: ActionState, formData: FormData): Pro
     const result = await signIn(parsed.data, await getRequestMeta());
     await setSessionCookie(result.token);
     if (result.mustChangePassword) destination = "/alterar-senha";
-    else if (result.organizationCount === 1) destination = safeNext(formData.get("next")) ?? "/painel";
+    else if (result.organizationCount === 1) destination = safeNextPath(formData.get("next")) ?? "/painel";
     else if (result.organizationCount === 0 && result.isPlatformAdmin) destination = "/plataforma";
     else destination = "/selecionar-empresa";
   } catch (error) {

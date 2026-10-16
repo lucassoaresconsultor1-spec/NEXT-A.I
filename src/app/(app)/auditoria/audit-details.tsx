@@ -26,6 +26,29 @@ const FIELD_LABELS: Record<string, string> = {
   storeAccess: "acesso às lojas",
   isActive: "ativo",
   permissions: "permissões",
+  added: "incluídas",
+  removed: "retiradas",
+  rank: "nível",
+  regions: "regiões",
+  stores: "lojas",
+  detachedStores: "lojas sem região",
+  mustChangePassword: "troca de senha obrigatória",
+  reason: "motivo",
+};
+
+// Stored enum values shown in pt-BR; anything else is shown as stored.
+const VALUE_LABELS: Record<string, string> = {
+  active: "ativo",
+  inactive: "inativo",
+  suspended: "suspenso",
+  all: "todas as lojas",
+  regions: "por regiões",
+  stores: "lojas específicas",
+  essencial: "Essencial",
+  profissional: "Profissional",
+  inteligencia: "Inteligência",
+  rede: "Rede",
+  "region.deleted": "região excluída",
 };
 
 export const MAX_VALUE_LENGTH = 60;
@@ -37,7 +60,7 @@ function truncate(text: string, max = MAX_VALUE_LENGTH) {
 
 export function formatAuditValue(value: unknown): string {
   if (value === null || value === undefined || value === "") return "—";
-  if (typeof value === "string") return truncate(value);
+  if (typeof value === "string") return truncate(VALUE_LABELS[value] ?? value);
   if (typeof value === "number" || typeof value === "bigint") return String(value);
   if (typeof value === "boolean") return value ? "sim" : "não";
   if (Array.isArray(value)) return value.length === 0 ? "—" : truncate(value.map((item) => formatAuditValue(item)).join(", "));

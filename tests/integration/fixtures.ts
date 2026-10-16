@@ -19,8 +19,10 @@ const FAST_HASH = { N: 2 ** 10, r: 8, p: 1 };
 export const uniqueSuffix = () => randomUUID().slice(0, 8);
 export const uniqueEmail = (label: string) => `${label}-${uniqueSuffix()}@example.test`;
 
-async function insertUser(tx: Tx, userId: string, name: string, email: string) {
-  await tx.insert(users).values({ id: userId, email, name, passwordHash: await hashPassword(TEST_PASSWORD, FAST_HASH) });
+async function insertUser(tx: Tx, userId: string, name: string, email: string, homeOrganizationId: string | null = null) {
+  await tx
+    .insert(users)
+    .values({ id: userId, email, name, homeOrganizationId, passwordHash: await hashPassword(TEST_PASSWORD, FAST_HASH) });
 }
 
 export async function contextFor(userId: string, organizationId: string, activeStoreId: string | null = null): Promise<TenantContext> {
@@ -49,6 +51,7 @@ export async function createOrganizationFixture(name = `Empresa ${uniqueSuffix()
   await withScope({ organizationId, userId: ownerId }, async (tx) => {
     await insertUser(tx, ownerId, "Proprietária Teste", ownerEmail);
     await provisionOrganization(tx, { organizationId, ownerUserId: ownerId, name });
+    await tx.update(users).set({ homeOrganizationId: organizationId }).where(eq(users.id, ownerId));
   });
   return { organizationId, ownerId, ownerEmail, owner: await contextFor(ownerId, organizationId) };
 }
@@ -87,7 +90,7 @@ export async function addMemberFixture(
   const userId = randomUUID();
   const email = uniqueEmail(options.roleKey);
   const membershipId = await withScope({ organizationId, userId }, async (tx) => {
-    await insertUser(tx, userId, options.name ?? `Membro ${options.roleKey}`, email);
+    await insertUser(tx, userId, options.name ?? `Membro ${options.roleKey}`, email, organizationId);
     const [role] = await tx
       .select({ id: roles.id })
       .from(roles)

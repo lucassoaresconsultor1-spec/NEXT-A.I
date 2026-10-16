@@ -7,13 +7,14 @@ import { invalidateOtherSessions } from "@/server/auth/session";
 import { recordAudit } from "@/server/audit/record";
 import { dbScope, storeScopeCondition, type TenantContext } from "@/server/authz/context";
 import { assertCan } from "@/server/authz/guard";
-import { conflict, forbidden, invalid, isUniqueViolation, notFound } from "@/server/errors";
+import { conflict, forbidden, invalid, isUniqueViolation } from "@/server/errors";
 import { fieldErrorsOf } from "@/server/forms";
 import { assertWithinLimit } from "@/server/plans/entitlements";
 import type { z } from "zod";
 import {
   countActiveOwners,
   findRole,
+  withRolePermissions,
   findScopeIds,
   loadMember,
   lockOrganization,
@@ -22,17 +23,10 @@ import {
   storeLabel,
   type LoadedMember,
 } from "./queries";
-import {
-  accessChanges,
-  assertCanAssignRole,
-  assertCanManage,
-  assertKeepsActiveOwner,
-  canAssignRole,
-  isActiveOwner,
-  isOwnerRole,
-  manageBlock,
-  resolveScope,
-} from "./rules";
+// Decisions and safe messages live in rules.ts (pure, unit tested).
+import { accessChanges, assertCanAssignRole, assertCanManage, assertKeepsActiveOwner, canAssignRole } from "./rules";
+import { EMAIL_IN_USE, EMAIL_TAKEN, isActiveOwner, isOwnerRole, manageBlock, MEMBER_NOT_FOUND } from "./rules";
+import { resolveScope, ROLE_INVALID, SELF_SERVICE_PASSWORD } from "./rules";
 import {
   addMemberSchema,
   isUuid,
@@ -46,12 +40,6 @@ import {
 } from "./schemas";
 
 export type { AddMemberInput, MemberAccessInput, MemberFilters, MemberStatus } from "./schemas";
-
-const MEMBER_NOT_FOUND = () => notFound("Membro não encontrado.");
-const ROLE_INVALID = () => invalid("Perfil inválido.", { roleId: ["Selecione um perfil válido."] });
-const EMAIL_TAKEN = () => conflict("Esta pessoa já faz parte da equipe.", { email: ["E-mail já cadastrado nesta empresa."] });
-const SELF_SERVICE_PASSWORD =
-  "Por segurança, esta pessoa precisa trocar a senha por conta própria, pela opção Alterar senha depois de entrar.";
 
 function parseOrThrow<T extends z.ZodType>(schema: T, input: unknown): z.output<T> {
   const parsed = schema.safeParse(input);
@@ -113,7 +101,9 @@ export async function getMemberFormOptions(context: TenantContext) {
       .orderBy(asc(stores.name))
       .limit(1000);
     return {
-      roles: roleRows.filter((role) => canAssignRole(context, role)),
+      roles: (await withRolePermissions(tx, orgId, roleRows))
+        .filter((role) => canAssignRole(context, role))
+        .map(({ id, key, name, description, rank, isSystem }) => ({ id, key, name, description, rank, isSystem })),
       regions: regionRows,
       stores: storeRows,
       organizationWide: context.storeScope.all,
@@ -143,9 +133,12 @@ async function resolveAccess(tx: Tx, context: TenantContext, input: MemberAccess
 }
 
 /**
- * Adds a person to the organization. An e-mail that already has an account is
- * linked as is (name and password untouched); otherwise a user is created with
- * the temporary password and must change it on the first sign-in.
+ * Adds a person to the organization. A new e-mail gets an account with the
+ * temporary password, to be changed on the first sign-in. An existing account
+ * is only added back by the organization that created it: nobody has proven
+ * owning the e-mail, so linking another organization's account would let its
+ * creator (who knows the password) sign in as this organization's member.
+ * Cross-organization accounts need an e-mail confirmation flow (pending).
  */
 export async function addMember(context: TenantContext, rawInput: AddMemberInput) {
   assertCan(context, "members.manage");
@@ -157,8 +150,12 @@ export async function addMember(context: TenantContext, rawInput: AddMemberInput
     return await withScope(dbScope(context), async (tx) => {
       const { role, scope } = await resolveAccess(tx, context, input);
       await assertWithinLimit(tx, orgId, "members");
-      const [existing] = await tx.select({ id: users.id }).from(users).where(eq(users.email, input.email));
+      const [existing] = await tx
+        .select({ id: users.id, homeOrganizationId: users.homeOrganizationId })
+        .from(users)
+        .where(eq(users.email, input.email));
       let userId = existing?.id;
+      if (existing && existing.homeOrganizationId !== orgId) throw EMAIL_IN_USE();
       if (userId) {
         const [already] = await tx
           .select({ id: memberships.id })
@@ -173,7 +170,7 @@ export async function addMember(context: TenantContext, rawInput: AddMemberInput
         }
         const [created] = await tx
           .insert(users)
-          .values({ email: input.email, name: input.name, passwordHash, mustChangePassword: true })
+          .values({ email: input.email, name: input.name, passwordHash, mustChangePassword: true, homeOrganizationId: orgId })
           .returning({ id: users.id });
         userId = created.id;
       }
@@ -188,7 +185,7 @@ export async function addMember(context: TenantContext, rawInput: AddMemberInput
         action: "member.added",
         entityType: "member",
         entityId: membership.id,
-        changes: { role: role.name, storeAccess: scope.storeAccess, regions: scope.regionIds.length, stores: scope.storeIds.length },
+        changes: { name: input.name, role: role.name, storeAccess: scope.storeAccess, regions: scope.regionIds.length, stores: scope.storeIds.length },
       });
       return { membershipId: membership.id, linkedExistingUser: Boolean(existing) };
     });
@@ -320,6 +317,13 @@ export async function resetMemberPassword(context: TenantContext, membershipId: 
   await withScope(dbScope(context), async (tx) => {
     // Re-checked in the writing transaction: access may have changed meanwhile.
     const current = await lockedTarget(tx, context, membershipId);
+    // Only accounts this organization created; other organizations cannot add them
+    // (see addMember), so this also excludes accounts shared with other tenants.
+    const [account] = await tx
+      .select({ homeOrganizationId: users.homeOrganizationId, isPlatformAdmin: users.isPlatformAdmin })
+      .from(users)
+      .where(eq(users.id, current.userId));
+    if (!account || account.isPlatformAdmin || account.homeOrganizationId !== orgId) throw forbidden(SELF_SERVICE_PASSWORD);
     await tx
       .update(users)
       .set({ passwordHash, mustChangePassword: true, updatedAt: new Date() })

@@ -94,13 +94,6 @@ export async function assertRegionOfOrganization(tx: Tx, organizationId: string,
   if (!found) throw regionUnavailable();
 }
 
-/** PostgreSQL foreign_key_violation on the given constraint (region removed concurrently). */
-export function isForeignKeyViolation(error: unknown, constraint: string) {
-  const cause = (error as { cause?: unknown })?.cause ?? error;
-  const pg = cause as { code?: string; constraint?: string };
-  return pg?.code === "23503" && pg.constraint === constraint;
-}
-
 /** Drops empty values so the creation entry lists only what was filled in. */
 export function filledFields(values: Record<string, unknown>) {
   return Object.fromEntries(Object.entries(values).filter(([, value]) => value !== null && value !== undefined));

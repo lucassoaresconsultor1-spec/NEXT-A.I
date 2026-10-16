@@ -6,7 +6,7 @@ import { withScope, type Tx } from "@/db/tenant";
 import { diffFields, recordAudit } from "@/server/audit/record";
 import { dbScope, storeScopeCondition, type TenantContext } from "@/server/authz/context";
 import { assertCan, assertOrganizationWide } from "@/server/authz/guard";
-import { conflict, invalid, isUniqueViolation, notFound } from "@/server/errors";
+import { conflict, invalid, isForeignKeyViolation, isUniqueViolation, notFound } from "@/server/errors";
 import { optionalText, requiredText } from "@/server/forms";
 
 export const regionInputSchema = z.object({
@@ -86,6 +86,8 @@ export async function updateRegion(context: TenantContext, regionId: string, inp
         .where(and(eq(regions.organizationId, orgId), eq(regions.id, regionId)));
       if (!current) throw notFound("Região não encontrada.");
       const next = { name: input.name, description: input.description ?? null };
+      const changes = diffFields(current, next, ["name", "description"]);
+      if (Object.keys(changes).length === 0) return;
       await tx
         .update(regions)
         .set({ ...next, updatedAt: new Date() })
@@ -96,7 +98,7 @@ export async function updateRegion(context: TenantContext, regionId: string, inp
         action: "region.updated",
         entityType: "region",
         entityId: regionId,
-        changes: diffFields(current, next, ["name", "description"]),
+        changes,
       });
     });
   } catch (error) {
@@ -110,6 +112,21 @@ export async function deleteRegion(context: TenantContext, regionId: string) {
   assertCan(context, "regions.manage");
   assertOrganizationWide(context);
   const orgId = context.organization.id;
+  try {
+    await deleteRegionInScope(context, orgId, regionId);
+  } catch (error) {
+    // A member scope linked concurrently: the restrictive foreign key aborts the deletion.
+    if (isForeignKeyViolation(error, "membership_regions_region_fk")) throw REGION_IN_USE();
+    throw error;
+  }
+}
+
+const REGION_IN_USE = (members?: number) =>
+  invalid(
+    `${members === undefined ? "Há membros com" : `${members} membro(s) têm`} acesso por esta região. Ajuste o escopo deles antes de excluí-la.`,
+  );
+
+async function deleteRegionInScope(context: TenantContext, orgId: string, regionId: string) {
   await withScope(dbScope(context), async (tx) => {
     const [current] = await tx
       .select({ name: regions.name })
@@ -120,9 +137,7 @@ export async function deleteRegion(context: TenantContext, regionId: string) {
       .select({ value: count() })
       .from(membershipRegions)
       .where(and(eq(membershipRegions.organizationId, orgId), eq(membershipRegions.regionId, regionId)));
-    if (linked.value > 0) {
-      throw invalid(`${linked.value} membro(s) têm acesso por esta região. Ajuste o escopo deles antes de excluí-la.`);
-    }
+    if (linked.value > 0) throw REGION_IN_USE(linked.value);
     const detached = await tx
       .update(stores)
       .set({ regionId: null, updatedAt: new Date() })
@@ -137,6 +152,18 @@ export async function deleteRegion(context: TenantContext, regionId: string) {
       entityId: regionId,
       changes: { name: current.name, detachedStores: detached.length },
     });
+    // Store-level entries keep the change visible to members scoped to those stores.
+    for (const store of detached) {
+      await recordAudit(tx, {
+        organizationId: orgId,
+        actorUserId: context.user.id,
+        action: "store.updated",
+        entityType: "store",
+        entityId: store.id,
+        storeId: store.id,
+        changes: { regionId: { from: regionId, to: null }, reason: "region.deleted" },
+      });
+    }
   });
 }
 

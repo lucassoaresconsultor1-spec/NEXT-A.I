@@ -33,7 +33,7 @@ Fontes consultadas: documentação empacotada do Next.js 16.4.2 (`node_modules/n
 | Componente | Ação e motivo | Escopo | Estado e evidência |
 |---|---|---|---|
 | Next.js 16.4.2, React 19.3.0, Tailwind 4.3.3 | Scaffold oficial | Projeto | Validado: build de produção com 24 rotas |
-| Drizzle 0.45.4 + `pg` 8.23.1 + PostgreSQL | Núcleo de persistência do toolkit | Projeto | Validado: 3 migrations aplicadas em banco limpo; suíte de integração |
+| Drizzle 0.45.4 + `pg` 8.23.1 + PostgreSQL | Núcleo de persistência do toolkit | Projeto | Validado: 4 migrations (`0000`–`0003`) aplicadas em banco limpo; suíte de integração |
 | Zod, Pino, `server-only`, `clsx`/`tailwind-merge`, Vitest | Núcleo do toolkit (templates `templates/next/` copiados, `.env.example` mantido) | Projeto | Validado: testes de ambiente, logger e pool do template passando |
 | ESLint do toolkit (`next-app.config.mjs`, `eslint-rules/`, self-check) | Perfil completo com Drizzle | Projeto | Validado: `pnpm lint` e `pnpm lint:rules` |
 | Skills Vercel: `vercel-react-best-practices`, `vercel-composition-patterns`, `web-design-guidelines`, `writing-guidelines`, `vercel-react-view-transitions`, `vercel-optimize`, `deploy-to-vercel`, `vercel-cli-with-tokens` + `find-skills` | Catálogo upstream conferido com `--list` (mesmas 8 web + RN); RN omitida (sem plataforma mobile nativa) | Projeto (`--agent claude-code`, cópias em `.claude/skills/`, `skills-lock.json`) | Instalado e versionado; descoberta pelo cliente confirmada na sessão retomada (skills listadas) |
@@ -41,6 +41,7 @@ Fontes consultadas: documentação empacotada do Next.js 16.4.2 (`node_modules/n
 | Context7 | Sem conexão ativa; `.mcp.json` do template | Projeto | Configurado sem execução: host bloqueado pela rede do ambiente |
 | RTK | Ausente; binário global | Usuário | Pendente: não instalado (o bootstrap não instala binários globais) |
 | Graphify (`graphifyy` 0.9.91) | Ausente; executado via `uvx` sem instalação global; `.graphifyignore` do template + exclusões do projeto | Projeto (`graphify-out/` ignorado) | Validado: `GRAPHIFY_NO_AUTO_REFRESH=1 uvx --from graphifyy graphify update . --no-cluster` → 1218 nós, 4833 arestas, 198 arquivos. A versão não tem `extract`; `update` é o modo sem LLM. SQL não extraído (falta `graphifyy[sql]`). Skill do Graphify não instalada (`graphify install` é global) |
+| Plugins da conta `engineering` e `design` (sincronizados pelo claude.ai) | Adicionados pelo usuário durante a sessão; usados quando pertinentes. Plugins só do computador local não chegam ao container | Conta | Validado: skill `engineering:code-review` usada na revisão final do diff. Servidores MCP desses plugins (Figma, Asana, Atlassian, GitHub, Linear, Notion, PagerDuty, Slack, Intercom) recusados pelo proxy (403); Datadog exige autorização. Sem efeito na Fase 1 |
 | Playwright Chromium | Revisão esperada (1248) ausente; usado o Chromium pré-instalado do ambiente (1194) via `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` | Ambiente | Validado: E2E desktop e celular |
 
 ## Documentação criada
@@ -54,13 +55,13 @@ Fontes consultadas: documentação empacotada do Next.js 16.4.2 (`node_modules/n
 | `pnpm lint` | Validado | Sem erros ou avisos |
 | `pnpm typecheck` | Validado | `next typegen` + `tsc --noEmit` sem erros |
 | `pnpm lint:rules` | Validado | `quality/max-lines`, `no-direct-console`, `no-direct-data-access`: ok |
-| `pnpm test` | Validado | Ver contagem final abaixo |
+| `pnpm test` | Validado | 12 arquivos, 77 testes |
 | `pnpm build` | Validado | 24 rotas, sem variáveis de banco no ambiente do shell |
-| `pnpm db:generate` | Validado | SQL gerado sem conexão (`0000_foundation.sql`) e revisado; `0001`/`0002` custom |
+| `pnpm db:generate` | Validado | SQL gerado sem conexão (`0000_foundation.sql`, `0003_account_ownership_and_region_restrict.sql`) e revisado; `0001`/`0002` custom |
 | Migrations em banco real | Validado | Aplicadas do zero a cada execução das suítes (PostgreSQL 16.15, papel dono) |
 | RLS com papel da aplicação | Validado | Papel `varejo_app` sem SUPERUSER/BYPASSRLS; testes de isolamento |
-| `pnpm test:integration` | Validado | Ver contagem final abaixo |
-| `pnpm test:e2e` | Validado | Ver contagem final abaixo |
+| `pnpm test:integration` | Validado | 9 arquivos, 95 testes (PostgreSQL real, papel sem BYPASSRLS) |
+| `pnpm test:e2e` | Validado | 6 cenários (5 desktop, 1 celular) sobre build de produção |
 | HTTP | Validado | `GET /api/health` → `{"status":"ok","database":"ok"}` em porta livre; páginas inspecionadas por captura de tela |
 | `pnpm audit --prod` | Validado | Nenhuma vulnerabilidade conhecida |
 | `pnpm audit` (dev) | Risco conhecido | `braces` (alta, via `eslint-config-next` → `fast-glob` → `micromatch`; sem versão corrigida publicada) e `esbuild <=0.24.2` (moderada, via `drizzle-kit` → `@esbuild-kit/core-utils`; afeta o servidor de desenvolvimento do esbuild, não usado). Ambos só em ferramentas de desenvolvimento; sem downgrade/override forçado |
@@ -73,4 +74,37 @@ Recursos temporários criados e encerrados: cluster PostgreSQL local do containe
 - **Externas:** provedor de e-mail, pagamentos (PIX/cartão), emissão fiscal, provedor de IA, hospedagem e PostgreSQL gerenciado, validação comercial dos planos, enquadramento LGPD ([PRODUCT.md](../PRODUCT.md#hipóteses-e-pendências)).
 - **Ferramentas:** RTK e skill do Graphify (globais), consulta real ao Context7.
 - **Próxima tarefa do MVP:** Fase 2, catálogo + estoque por livro de movimentações ([roadmap.md](roadmap.md)).
-- **Revisão sugerida:** ver o fim deste documento após a rodada adversarial.
+- **Revisão sugerida:** ver a seção seguinte.
+
+## Revisões realizadas
+
+1. **Adversarial por dimensão** (isolamento, escalada de privilégio, autenticação, integridade, UX/documentação), com verificação cética de cada achado. Corrigidos 1 crítico (pré-sequestro de conta), 2 altos e 7 médios, cada um com teste de regressão; detalhes e riscos aceitos em [security.md](security.md#revisão-adversarial-16102026). Migration `0003` (dono da conta e FK de região restritiva).
+2. **Diff final com a skill `engineering:code-review`**: 1 alto (limite por conta somava tentativas já bloqueadas no par conta+IP; um único endereço bloqueava o titular), corrigido com teste; 2 baixos (helper de FK duplicado, mensagem sem contagem), corrigidos.
+
+## Próximos ciclos de code review sugeridos
+
+Seis ciclos, pelo risco de autenticação e isolamento multiempresa. Sugestão, não autorização: cada rodada depende de pedido.
+
+| Ciclo | Foco | Motivo |
+|---|---|---|
+| 1 | Isolamento multiempresa: políticas RLS, `withScope`, FKs compostas, migrations `0000`–`0003` | Falha aqui vaza dados entre empresas |
+| 2 | Escalada de privilégio: membros, perfis, hierarquia, escopo de lojas, invariante de proprietário | Regras com muitas combinações |
+| 3 | Autenticação e sessão: limites de tentativa, cookies, troca e redefinição de senha, `next` | Superfície pública |
+| 4 | Integridade e concorrência: transações, limites de plano, corridas, auditoria de toda mutação | Corridas aparecem só sob carga |
+| 5 | Interface: acessibilidade (`design:accessibility-review`, `web-design-guidelines`), textos pt-BR (`design:ux-copy`), estados e celular | Telas novas sem revisão dedicada |
+| 6 | Testes e documentação (`engineering:testing-strategy`, `writing-guidelines`): lacunas de cobertura, docs coerentes com o código | Base para a Fase 2 |
+
+Prompt para continuar:
+
+```text
+Faça 6 ciclos de code review da Fase 1 do Varejo Inteligente, nesta ordem:
+1) isolamento multiempresa (RLS, withScope, FKs compostas, migrations);
+2) escalada de privilégio (membros, perfis, hierarquia, escopo de lojas);
+3) autenticação e sessão (limites, cookies, senhas, redirecionamento);
+4) integridade e concorrência (transações, limites de plano, auditoria);
+5) interface (acessibilidade, textos pt-BR, estados, celular);
+6) testes e documentação.
+Em cada ciclo, revise o estado atual, registre achados com severidade, arquivo:linha e evidência,
+corrija os confirmados com teste de regressão e rode os checks afetados. No fim, rode lint, typecheck,
+testes unitários, de integração e E2E, atualize docs/setup.md e docs/security.md, faça commit e push na branch atual.
+```

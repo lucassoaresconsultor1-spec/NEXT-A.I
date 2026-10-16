@@ -1,12 +1,24 @@
 import "server-only";
 import { isStoreInScope, type TenantContext } from "@/server/authz/context";
 import { canManageRank, isOwner } from "@/server/authz/guard";
+import type { Permission } from "@/server/authz/permissions";
 import { OWNER_ROLE_KEY, type StoreAccess } from "@/server/authz/system-roles";
-import { conflict, DomainError, forbidden, invalid } from "@/server/errors";
+import { conflict, DomainError, forbidden, invalid, notFound } from "@/server/errors";
 
 // Anti-privilege-escalation decisions for the members module. No I/O: the
 // service loads the facts (target membership, ids found in the organization,
 // active owner count) and calls these before writing anything.
+
+export const MEMBER_NOT_FOUND = () => notFound("Membro não encontrado.");
+export const ROLE_INVALID = () => invalid("Perfil inválido.", { roleId: ["Selecione um perfil válido."] });
+export const EMAIL_TAKEN = () => conflict("Esta pessoa já faz parte da equipe.", { email: ["E-mail já cadastrado nesta empresa."] });
+export const EMAIL_IN_USE = () =>
+  conflict(
+    "Este e-mail já tem uma conta criada por outra empresa. Por segurança, contas existentes só poderão ser vinculadas com confirmação por e-mail (ainda não disponível). Use outro e-mail ou fale com o suporte.",
+    { email: ["E-mail já usado em outra conta."] },
+  );
+export const SELF_SERVICE_PASSWORD =
+  "Por segurança, esta pessoa precisa trocar a senha por conta própria, pela opção Alterar senha depois de entrar.";
 
 export const SELF_CHANGE_MESSAGE = "Você não pode alterar o próprio acesso.";
 export const LAST_OWNER_MESSAGE =
@@ -35,9 +47,23 @@ export function isActiveOwner(target: Pick<TargetFacts, "status" | "role">) {
   return target.status === "active" && isOwnerRole(target.role);
 }
 
-/** Roles strictly below the actor's rank (owners: any rank); the owner role only by owners. */
-export function canAssignRole(context: TenantContext, role: RoleFacts) {
-  return canManageRank(context, role.rank) && (!isOwnerRole(role) || isOwner(context));
+/** A role being assigned, with its resolved permissions (system roles from code, custom from the database). */
+export interface AssignableRoleFacts extends RoleFacts {
+  permissions: readonly string[];
+}
+
+/** Every permission of the role is held by the actor (owners hold them all by definition). */
+export function holdsRolePermissions(context: TenantContext, role: AssignableRoleFacts) {
+  return isOwner(context) || role.permissions.every((permission) => context.permissions.has(permission as Permission));
+}
+
+/**
+ * Roles strictly below the actor's rank (owners: any rank) whose permissions the
+ * actor also holds; the owner role only by owners. Granting a role is granting
+ * its permissions, so a lower rank alone is not enough.
+ */
+export function canAssignRole(context: TenantContext, role: AssignableRoleFacts) {
+  return canManageRank(context, role.rank) && (!isOwnerRole(role) || isOwner(context)) && holdsRolePermissions(context, role);
 }
 
 export type ManageBlock = "permission" | "self" | "rank" | "scope";
@@ -71,11 +97,13 @@ export function assertCanManage(context: TenantContext, target: TargetFacts) {
   if (block) throw forbidden(MANAGE_BLOCK_MESSAGES[block]);
 }
 
-export function assertCanAssignRole(context: TenantContext, role: RoleFacts) {
+export function assertCanAssignRole(context: TenantContext, role: AssignableRoleFacts) {
   if (canAssignRole(context, role)) return;
   const message = isOwnerRole(role)
     ? "Somente proprietários podem atribuir o perfil Proprietário."
-    : "Você só pode atribuir perfis de nível inferior ao seu.";
+    : !canManageRank(context, role.rank)
+      ? "Você só pode atribuir perfis de nível inferior ao seu."
+      : "Este perfil inclui permissões que você não possui.";
   throw new DomainError(message, "forbidden", { roleId: [message] });
 }
 

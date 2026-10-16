@@ -60,12 +60,14 @@ export default async function DashboardPage({ searchParams }: PageProps<"/painel
       {params["senha-alterada"] ? <Notice tone="success" title="Senha alterada com sucesso." /> : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Stat
-          label="Lojas ativas"
-          value={formatInteger(overview.stores.active)}
-          detail={overview.plan ? limitDetail(overview.plan.usage.stores, overview.plan.maxStores) : `${formatInteger(overview.stores.total)} no seu acesso`}
-          href={can(context, "stores.read") ? "/lojas" : undefined}
-        />
+        {overview.stores ? (
+          <Stat
+            label="Lojas ativas"
+            value={formatInteger(overview.stores.active)}
+            detail={overview.plan ? limitDetail(overview.plan.usage.stores, overview.plan.maxStores) : `${formatInteger(overview.stores.total)} no seu acesso`}
+            href="/lojas"
+          />
+        ) : null}
         {overview.regions !== null ? <Stat label="Regiões" value={formatInteger(overview.regions)} href="/regioes" /> : null}
         {overview.departments !== null ? (
           <Stat label="Departamentos ativos" value={formatInteger(overview.departments)} href="/departamentos" />

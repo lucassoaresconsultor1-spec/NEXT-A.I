@@ -5,14 +5,13 @@ import { withScope } from "@/db/tenant";
 import { diffFields, recordAudit } from "@/server/audit/record";
 import { dbScope, storeScopeCondition, type TenantContext } from "@/server/authz/context";
 import { assertCan, assertOrganizationWide, assertStoreInScope } from "@/server/authz/guard";
-import { forbidden, isUniqueViolation, notFound } from "@/server/errors";
+import { forbidden, isForeignKeyViolation, isUniqueViolation, notFound } from "@/server/errors";
 import { likePattern, pageResult, pageWindow } from "@/server/pagination";
 import { assertWithinLimit, countUsage, getOrganizationPlan } from "@/server/plans/entitlements";
 import {
   assertRegionOfOrganization,
   codeTaken,
   filledFields,
-  isForeignKeyViolation,
   parseStoreInput,
   regionOfStore,
   regionUnavailable,

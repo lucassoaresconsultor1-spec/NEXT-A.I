@@ -2,7 +2,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { and, asc, eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { getDb } from "@/db";
-import { auditLogs, membershipStores, roles, sessions, users } from "@/db/schema";
+import { auditLogs, membershipStores, organizationMemberships, roles, sessions, users } from "@/db/schema";
 import { withScope } from "@/db/tenant";
 import { verifyPassword } from "@/server/auth/password";
 import { loadTenantContext } from "@/server/authz/context";
@@ -25,7 +25,6 @@ import {
   createOrganizationFixture,
   createRegionFixture,
   createStoreFixture,
-  TEST_PASSWORD,
   uniqueEmail,
 } from "./fixtures";
 
@@ -249,9 +248,8 @@ describe("members lifecycle", () => {
     await expect(setMemberStatus(org.owner, team[0].membershipId, "active")).rejects.toMatchObject({ code: "limit" });
   });
 
-  it("creates new accounts with a temporary password and links existing ones untouched", async () => {
+  it("creates new accounts with a temporary password owned by the organization", async () => {
     const a = await createOrganizationFixture();
-    const b = await createOrganizationFixture();
     const store = await createStoreFixture(a.organizationId);
     const seller = await roleIdOf(a.organizationId, "salesperson");
     const fresh = { ...newPerson(seller, "stores", { storeIds: [store] }), initialPassword: undefined };
@@ -261,27 +259,80 @@ describe("members lifecycle", () => {
     expect(created.linkedExistingUser).toBe(false);
     const [createdUser] = await getDb().select().from(users).where(eq(users.email, fresh.email));
     expect(createdUser.mustChangePassword).toBe(true);
+    expect(createdUser.homeOrganizationId).toBe(a.organizationId);
     expect(await verifyPassword(TEMP_PASSWORD, createdUser.passwordHash)).toBe(true);
     const [entry] = await auditTrail(a.organizationId, created.membershipId);
-    expect(entry).toEqual({ action: "member.added", changes: { role: "Vendedor", storeAccess: "stores", regions: 0, stores: 1 } });
-
-    const before = await readUser(b.ownerId);
-    const linked = await addMember(a.owner, { ...newPerson(seller, "stores", { storeIds: [store] }), email: b.ownerEmail.toUpperCase(), name: "Outro Nome" });
-    expect(linked.linkedExistingUser).toBe(true);
-    const after = await readUser(b.ownerId);
-    expect({ name: after.name, hash: after.passwordHash, must: after.mustChangePassword }).toEqual({
-      name: before.name,
-      hash: before.passwordHash,
-      must: false,
-    });
-    expect(await verifyPassword(TEST_PASSWORD, after.passwordHash)).toBe(true);
-    await expect(addMember(a.owner, { ...newPerson(seller, "stores", { storeIds: [store] }), email: b.ownerEmail })).rejects.toMatchObject({
-      code: "conflict",
-      fieldErrors: { email: expect.any(Array) },
-    });
-    expect(await getMember(a.owner, linked.membershipId)).toMatchObject({ passwordResetBlock: expect.stringContaining("outra empresa") });
+    expect(entry).toEqual({ action: "member.added", changes: { name: "Pessoa Nova", role: "Vendedor", storeAccess: "stores", regions: 0, stores: 1 } });
     expect(await getMember(a.owner, created.membershipId)).toMatchObject({ passwordResetBlock: null });
-    await expect(resetMemberPassword(a.owner, linked.membershipId, TEMP_PASSWORD)).rejects.toMatchObject({ code: "forbidden" });
+  });
+
+  it("refuses accounts created by another organization (account pre-hijacking)", async () => {
+    const attacker = await createOrganizationFixture();
+    const victimCompany = await createOrganizationFixture();
+    const attackerStore = await createStoreFixture(attacker.organizationId);
+    const victimStore = await createStoreFixture(victimCompany.organizationId);
+    // The attacker creates an account for the victim's e-mail with a password it knows.
+    const victimEmail = `vitima-${randomBytes(4).toString("hex")}@example.test`;
+    await addMember(attacker.owner, {
+      ...newPerson(await roleIdOf(attacker.organizationId, "salesperson"), "stores", { storeIds: [attackerStore] }),
+      email: victimEmail,
+      initialPassword: TEMP_PASSWORD,
+    });
+    // The victim's real employer adds the same e-mail: it must not be linked.
+    await expect(
+      addMember(victimCompany.owner, {
+        ...newPerson(await roleIdOf(victimCompany.organizationId, "admin"), "all"),
+        email: victimEmail.toUpperCase(),
+        initialPassword: "outra-senha-forte-1",
+      }),
+    ).rejects.toMatchObject({ code: "conflict", fieldErrors: { email: expect.any(Array) } });
+    // Owners of other organizations (self sign-up accounts) cannot be linked either.
+    const before = await readUser(victimCompany.ownerId);
+    await expect(
+      addMember(attacker.owner, {
+        ...newPerson(await roleIdOf(attacker.organizationId, "salesperson"), "stores", { storeIds: [attackerStore] }),
+        email: victimCompany.ownerEmail,
+      }),
+    ).rejects.toMatchObject({ code: "conflict" });
+    expect((await readUser(victimCompany.ownerId)).passwordHash).toBe(before.passwordHash);
+    expect(victimStore).toBeTruthy();
+  });
+
+  it("adds back a former member of the same organization without touching the account", async () => {
+    const org = await createOrganizationFixture();
+    const store = await createStoreFixture(org.organizationId);
+    const seller = await roleIdOf(org.organizationId, "salesperson");
+    const person = { ...newPerson(seller, "stores", { storeIds: [store] }), initialPassword: TEMP_PASSWORD };
+    const first = await addMember(org.owner, person);
+    await removeMember(org.owner, first.membershipId);
+    const [account] = await getDb().select().from(users).where(eq(users.email, person.email));
+    const again = await addMember(org.owner, { ...person, name: "Outro Nome", initialPassword: undefined });
+    expect(again.linkedExistingUser).toBe(true);
+    const after = await readUser(account.id);
+    expect({ name: after.name, hash: after.passwordHash }).toEqual({ name: account.name, hash: account.passwordHash });
+    await expect(addMember(org.owner, person)).rejects.toMatchObject({ code: "conflict", fieldErrors: { email: expect.any(Array) } });
+  });
+
+  it("refuses resetting the password of an account owned by another organization", async () => {
+    const a = await createOrganizationFixture();
+    const b = await createOrganizationFixture();
+    const storeOfA = await createStoreFixture(a.organizationId);
+    // Legacy/manual link: B's owner account also holds a membership in A.
+    const [sellerRole] = await withScope({ organizationId: a.organizationId }, (tx) =>
+      tx.select({ id: roles.id }).from(roles).where(and(eq(roles.organizationId, a.organizationId), eq(roles.key, "salesperson"))),
+    );
+    const [membership] = await withScope({ organizationId: a.organizationId }, (tx) =>
+      tx
+        .insert(organizationMemberships)
+        .values({ organizationId: a.organizationId, userId: b.ownerId, roleId: sellerRole.id, storeAccess: "stores" })
+        .returning({ id: organizationMemberships.id }),
+    );
+    await withScope({ organizationId: a.organizationId }, (tx) =>
+      tx.insert(membershipStores).values({ organizationId: a.organizationId, membershipId: membership.id, storeId: storeOfA }),
+    );
+    const before = await readUser(b.ownerId);
+    expect(await getMember(a.owner, membership.id)).toMatchObject({ passwordResetBlock: expect.any(String) });
+    await expect(resetMemberPassword(a.owner, membership.id, TEMP_PASSWORD)).rejects.toMatchObject({ code: "forbidden" });
     expect((await readUser(b.ownerId)).passwordHash).toBe(before.passwordHash);
   });
 

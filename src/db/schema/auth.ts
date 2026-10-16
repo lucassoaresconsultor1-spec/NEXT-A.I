@@ -15,6 +15,10 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
   mustChangePassword: boolean("must_change_password").notNull().default(false),
   isPlatformAdmin: boolean("is_platform_admin").notNull().default(false),
+  // Organization that created the account (sign-up or member creation). Without
+  // e-mail ownership proof, only this organization may add the account again;
+  // NULL for platform-created accounts.
+  homeOrganizationId: uuid("home_organization_id").references(() => organizations.id, { onDelete: "set null" }),
   status: userStatus("status").notNull().default("active"),
   lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
   ...timestamps,

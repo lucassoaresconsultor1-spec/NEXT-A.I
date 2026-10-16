@@ -10,10 +10,11 @@ describe("describeChanges", () => {
   });
 
   it("renders flat values as 'campo: valor' and keeps unknown keys", () => {
-    expect(describeChanges({ plan: "essencial", detachedStores: 2, isActive: false })).toEqual([
-      "plano: essencial",
-      "detachedStores: 2",
+    expect(describeChanges({ plan: "essencial", detachedStores: 2, isActive: false, customField: "x" })).toEqual([
+      "plano: Essencial",
+      "lojas sem região: 2",
       "ativo: não",
+      "customField: x",
     ]);
   });
 

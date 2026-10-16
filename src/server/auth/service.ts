@@ -12,9 +12,11 @@ import { hashPassword, verifyAgainstDummy, verifyPassword } from "./password";
 import {
   clearRateLimit,
   hitRateLimit,
-  isRateLimited,
   LOGIN_PER_ACCOUNT,
+  LOGIN_PER_ACCOUNT_AND_IP,
   LOGIN_PER_IP,
+  PASSWORD_CHANGE_PER_USER,
+  releaseRateLimit,
   SIGNUP_PER_IP,
 } from "./rate-limit";
 import type { SignUpInput } from "./schemas";
@@ -53,6 +55,8 @@ export async function signUp(input: SignUpInput, meta: RequestMeta) {
         name: input.organizationName,
         document: input.organizationDocument,
       });
+      // Set after the organization row exists (foreign key).
+      await tx.update(users).set({ homeOrganizationId: organizationId }).where(eq(users.id, userId));
     });
   } catch (error) {
     if (isUniqueViolation(error, "users_email_unique")) {
@@ -80,9 +84,18 @@ export async function listUserOrganizations(userId: string) {
 }
 
 export async function signIn(input: { email: string; password: string }, meta: RequestMeta) {
+  const pairKey = `login:pair:${keyedDigest(`${input.email}|${meta.ip}`)}`;
   const accountKey = `login:account:${keyedDigest(input.email)}`;
   const ipKey = `login:ip:${keyedDigest(meta.ip)}`;
-  if ((await isRateLimited(accountKey, LOGIN_PER_ACCOUNT)) || (await isRateLimited(ipKey, LOGIN_PER_IP))) {
+  // Count the attempt atomically BEFORE checking the password, so concurrent
+  // requests cannot all pass a check made before any of them was counted.
+  // Attempts already blocked for this account+address are not counted for the
+  // account, so one address cannot lock the owner out everywhere.
+  const pair = await hitRateLimit(pairKey, LOGIN_PER_ACCOUNT_AND_IP);
+  const counted = pair.allowed
+    ? await Promise.all([hitRateLimit(accountKey, LOGIN_PER_ACCOUNT), hitRateLimit(ipKey, LOGIN_PER_IP)])
+    : [];
+  if (!pair.allowed || counted.some((result) => !result.allowed)) {
     await recordAuthEvent("login_throttled", { subject: input.email, ip: meta.ip });
     throw new DomainError(THROTTLED, "limit");
   }
@@ -95,13 +108,12 @@ export async function signIn(input: { email: string; password: string }, meta: R
   const valid = user ? await verifyPassword(input.password, user.passwordHash) : await verifyAgainstDummy(input.password);
 
   if (!user || !valid || user.status !== "active") {
-    await hitRateLimit(accountKey, LOGIN_PER_ACCOUNT);
-    await hitRateLimit(ipKey, LOGIN_PER_IP);
     await recordAuthEvent("login_failed", { userId: user?.id, subject: input.email, ip: meta.ip });
     throw new DomainError(GENERIC_LOGIN_ERROR, "unauthenticated");
   }
 
-  await clearRateLimit(accountKey);
+  // Success: the limits keep counting failures only.
+  await Promise.all([clearRateLimit(pairKey), releaseRateLimit(accountKey), releaseRateLimit(ipKey)]);
   const memberships = await listUserOrganizations(user.id);
   const active = memberships.filter((membership) => membership.status === "active");
   const session = await createSession(user.id, active.length === 1 ? active[0].id : null);
@@ -124,11 +136,15 @@ export async function changePassword(
   input: { currentPassword: string; newPassword: string },
   meta: RequestMeta,
 ) {
+  // A stolen session must not allow unlimited guessing of the current password.
+  const changeKey = `password-change:user:${session.userId}`;
+  if (!(await hitRateLimit(changeKey, PASSWORD_CHANGE_PER_USER)).allowed) throw new DomainError(THROTTLED, "limit");
   const db = getDb();
   const [user] = await db.select({ passwordHash: users.passwordHash }).from(users).where(eq(users.id, session.userId));
   if (!user || !(await verifyPassword(input.currentPassword, user.passwordHash))) {
     throw invalid("Senha atual incorreta.", { currentPassword: ["Senha atual incorreta."] });
   }
+  await clearRateLimit(changeKey);
   const passwordHash = await hashPassword(input.newPassword);
   await db
     .update(users)

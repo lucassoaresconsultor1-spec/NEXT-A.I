@@ -34,3 +34,10 @@ export function isUniqueViolation(error: unknown, constraint?: string) {
   const pg = cause as { code?: string; constraint?: string };
   return pg?.code === "23505" && (!constraint || pg.constraint === constraint);
 }
+
+/** PostgreSQL foreign_key_violation (e.g. a row became referenced concurrently). */
+export function isForeignKeyViolation(error: unknown, constraint?: string) {
+  const cause = (error as { cause?: unknown })?.cause ?? error;
+  const pg = cause as { code?: string; constraint?: string };
+  return pg?.code === "23503" && (!constraint || pg.constraint === constraint);
+}

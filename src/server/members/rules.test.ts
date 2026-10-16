@@ -25,7 +25,7 @@ const REGION_N = "00000000-0000-4000-8000-0000000000e1";
 function systemRole(key: string) {
   const role = findSystemRole(key);
   if (!role) throw new Error(`unknown role ${key}`);
-  return { key: role.key, isSystem: true, rank: role.rank };
+  return { key: role.key, isSystem: true, rank: role.rank, permissions: role.permissions };
 }
 
 function contextAs(roleKey: string, storeIds: string[] | "all" = "all"): TenantContext {
@@ -87,7 +87,7 @@ describe("role assignment", () => {
 
   it("refuses a custom role marked with the owner key only when it is the system owner role", () => {
     const admin = contextAs("admin");
-    expect(canAssignRole(admin, { key: "owner", isSystem: false, rank: 10 })).toBe(true);
+    expect(canAssignRole(admin, { key: "owner", isSystem: false, rank: 10, permissions: ["stores.read"] })).toBe(true);
     expect(() => assertCanAssignRole(admin, systemRole("owner"))).toThrow(/Somente proprietários/);
     expect(() => assertCanAssignRole(contextAs("store_manager", [STORE_A]), systemRole("store_manager"))).toThrowError(
       expect.objectContaining({ code: "forbidden", fieldErrors: expect.objectContaining({ roleId: expect.any(Array) }) }),
@@ -217,5 +217,20 @@ describe("access audit diff", () => {
       { ...before, stores: [entry("s3", "Centro")] },
     );
     expect(Object.keys(swapped)).toEqual(["stores"]);
+  });
+});
+
+describe("permissions carried by an assigned role", () => {
+  it("refuses a lower-rank custom role holding permissions the actor lacks", () => {
+    const manager = contextAs("store_manager", [STORE_A]);
+    const auditor = { key: "custom_auditor", isSystem: false, rank: 10, permissions: ["stores.read", "audit.read"] };
+    expect(canAssignRole(manager, auditor)).toBe(false);
+    expect(() => assertCanAssignRole(manager, auditor)).toThrow(/permissões que você não possui/);
+    expect(canAssignRole(manager, { ...auditor, permissions: ["stores.read", "members.read"] })).toBe(true);
+  });
+
+  it("lets owners assign any role", () => {
+    const owner = contextAs("owner");
+    expect(canAssignRole(owner, { key: "custom_x", isSystem: false, rank: 99, permissions: ["audit.read"] })).toBe(true);
   });
 });

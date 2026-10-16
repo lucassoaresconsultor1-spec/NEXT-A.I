@@ -6,13 +6,14 @@ import {
   organizationMemberships as memberships,
   organizations,
   regions,
+  rolePermissions,
   roles,
   stores,
   users,
 } from "@/db/schema";
 import type { Tx } from "@/db/tenant";
 import { storeScopeCondition, type TenantContext } from "@/server/authz/context";
-import { OWNER_ROLE_KEY } from "@/server/authz/system-roles";
+import { findSystemRole, OWNER_ROLE_KEY } from "@/server/authz/system-roles";
 import { likePattern, pageResult, pageWindow } from "@/server/pagination";
 import type { ResolvedScope } from "./rules";
 import type { MemberFilters, MemberSortColumn } from "./schemas";
@@ -163,7 +164,24 @@ export async function findRole(tx: Tx, orgId: string, roleId: string) {
     .select({ id: roles.id, key: roles.key, name: roles.name, rank: roles.rank, isSystem: roles.isSystem })
     .from(roles)
     .where(and(eq(roles.organizationId, orgId), eq(roles.id, roleId)));
-  return role ?? null;
+  return role ? ((await withRolePermissions(tx, orgId, [role]))[0] ?? null) : null;
+}
+
+/** Adds resolved permissions: system roles from code, custom roles from role_permissions (one query). */
+export async function withRolePermissions<T extends { id: string; key: string; isSystem: boolean }>(tx: Tx, orgId: string, rows: T[]) {
+  const customIds = rows.filter((row) => !row.isSystem).map((row) => row.id);
+  const granted = new Map<string, string[]>();
+  if (customIds.length > 0) {
+    const entries = await tx
+      .select({ roleId: rolePermissions.roleId, permission: rolePermissions.permission })
+      .from(rolePermissions)
+      .where(and(eq(rolePermissions.organizationId, orgId), inArray(rolePermissions.roleId, customIds)));
+    for (const entry of entries) granted.set(entry.roleId, [...(granted.get(entry.roleId) ?? []), entry.permission]);
+  }
+  return rows.map((row) => ({
+    ...row,
+    permissions: row.isSystem ? [...(findSystemRole(row.key)?.permissions ?? [])] : (granted.get(row.id) ?? []),
+  }));
 }
 
 /** Audit label of a store: names may repeat, codes are unique per organization. */

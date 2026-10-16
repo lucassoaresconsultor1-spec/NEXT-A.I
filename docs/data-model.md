@@ -1,6 +1,6 @@
 # Modelo de dados
 
-Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/`. Este documento explica o desenho; não repete colunas óbvias.
+Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva). Este documento explica o desenho; não repete colunas óbvias.
 
 ## Implementado (Fase 1)
 
@@ -36,9 +36,9 @@ erDiagram
 | `roles` | Tenant | 7 perfis do sistema por empresa + personalizados; `rank` para hierarquia |
 | `role_permissions` | Tenant | Só para perfis personalizados; permissões do sistema vêm do código |
 | `organization_memberships` | Tenant | Usuário × empresa, perfil, `store_access` (`all`/`regions`/`stores`), situação |
-| `membership_regions`, `membership_stores` | Tenant | Escopo do vínculo; FKs compostas impedem ids de outra empresa |
+| `membership_regions`, `membership_stores` | Tenant | Escopo do vínculo; FKs compostas impedem ids de outra empresa; região referenciada não pode ser excluída (FK sem cascata, migration `0003`) |
 | `audit_logs` | Tenant | Somente inserção e leitura; `changes` guarda campos de negócio alterados |
-| `users` | Global | E-mail normalizado único; hash scrypt; troca de senha obrigatória; flag de administrador da plataforma |
+| `users` | Global | E-mail normalizado único; hash scrypt; troca de senha obrigatória; flag de administrador da plataforma; `home_organization_id` = empresa que criou a conta (só ela pode readicioná-la sem confirmação por e-mail) |
 | `sessions` | Global | Id = SHA-256 do token; empresa e loja ativas da sessão |
 | `auth_rate_limits`, `auth_events` | Global | Chaves e identificadores em HMAC |
 

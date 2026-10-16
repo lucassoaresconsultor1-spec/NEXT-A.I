@@ -27,7 +27,7 @@ Permissões são granulares (catálogo em `src/server/authz/permissions.ts`), ve
 1. **Criar conta da empresa:** nome da empresa, CNPJ opcional, dados do proprietário → empresa no plano Essencial, perfis do sistema criados, proprietário com acesso a todas as lojas, sessão aberta.
 2. **Entrar e escolher empresa:** e-mail e senha → painel da empresa (ou seletor, se houver mais de uma; ou troca de senha obrigatória, se provisória).
 3. **Estruturar a empresa:** cadastrar regiões, lojas (código, CNPJ, contato, endereço, fuso) e departamentos.
-4. **Montar a equipe:** adicionar membro com perfil e escopo (todas as lojas, regiões ou lojas específicas), senha provisória para e-mails novos; suspender, remover, redefinir senha provisória.
+4. **Montar a equipe:** adicionar membro com perfil e escopo (todas as lojas, regiões ou lojas específicas), senha provisória para e-mails novos; suspender, remover, redefinir senha provisória. E-mail que já tem conta criada por outra empresa é recusado até existir convite com confirmação por e-mail.
 5. **Governar o acesso:** consultar a matriz de permissões, criar perfis personalizados, auditar alterações.
 6. **Administrar a plataforma:** listar empresas, alterar plano, suspender/reativar.
 
@@ -81,7 +81,7 @@ Ordem de entrega (detalhe e critérios em [docs/roadmap.md](docs/roadmap.md)):
 |---|---|---|---|
 | Planos Essencial/Profissional/Inteligência/Rede, limites (1 loja nos três primeiros; 10/30/30 membros) e recursos por plano | Hipótese comercial reversível (migration `0002`) | Bloqueia criação acima do limite | Validar com o comercial; alterar por nova migration |
 | Preços | Pendente (não definido) | Nenhum na Fase 1 | Decisão comercial antes de cobrança |
-| Provedor de e-mail | Pendente externo | Convites e recuperação de senha por link | Escolher provedor e domínio; credenciais por variável de ambiente |
+| Provedor de e-mail | Pendente externo | Convites, recuperação de senha por link e pessoas em mais de uma empresa (hoje recusado por segurança) | Escolher provedor e domínio; credenciais por variável de ambiente; implementar convite com confirmação |
 | Provedores de pagamento (PIX/cartão) e emissão fiscal (NFC-e/NF-e) | Pendente externo | Fase 2 | Escolher provedores; homologação, certificado e configuração tributária validados por profissional |
 | Provedor de IA e política de dados enviados ao modelo | Pendente externo | Fase 5 | Verificar documentação/termos do provedor; credenciais só no servidor |
 | Hospedagem e PostgreSQL gerenciado | Pendente externo | Produção | Escolher host; criar papel de aplicação sem BYPASSRLS |

@@ -110,11 +110,13 @@ export const membershipRegions = pgTable(
       columns: [t.organizationId, t.membershipId],
       foreignColumns: [organizationMemberships.organizationId, organizationMemberships.id],
     }).onDelete("cascade"),
+    // No cascade: deleting a region still referenced by a member scope must fail,
+    // even when the link is created concurrently with the deletion.
     foreignKey({
       name: "membership_regions_region_fk",
       columns: [t.organizationId, t.regionId],
       foreignColumns: [regions.organizationId, regions.id],
-    }).onDelete("cascade"),
+    }),
     index("membership_regions_region_idx").on(t.organizationId, t.regionId),
     tenantIsolationPolicy(),
   ],
