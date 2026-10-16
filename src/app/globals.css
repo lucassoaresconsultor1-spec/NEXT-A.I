@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+/* Design tokens: the source of truth referenced by docs/design.md. */
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --color-canvas: #f4f6f9;
+  --color-surface: #ffffff;
+  --color-line: #dfe3ea;
+  --color-line-strong: #c5ccd8;
+  --color-ink: #172033;
+  --color-ink-soft: #4a556b;
+  --color-ink-muted: #6b768a;
+
+  --color-sidebar: #0f1d33;
+  --color-sidebar-hover: #1a2c49;
+  --color-sidebar-active: #22396080;
+  --color-sidebar-ink: #c9d3e3;
+
+  --color-brand: #1f5bd1;
+  --color-brand-strong: #1848a8;
+  --color-brand-soft: #e8effc;
+
+  --color-positive: #18794e;
+  --color-positive-soft: #e6f4ec;
+  --color-critical: #c22b2b;
+  --color-critical-soft: #fbeaea;
+  --color-attention: #a35a00;
+  --color-attention-soft: #fdf1df;
+
+  --radius-card: 0.625rem;
+  --shadow-card: 0 1px 2px rgb(15 29 51 / 0.06), 0 1px 3px rgb(15 29 51 / 0.04);
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
