@@ -4,27 +4,30 @@ Plano por fases do [PRODUCT.md](../PRODUCT.md). Cada fase entrega incrementos ve
 
 ## Mapa de módulos
 
-| Módulo | Responsabilidade | Fase | Estado |
+Classificação do estado no produto (`src/`): **existente**, **parcial**, **ausente** ou **dependente de integração**. "Protótipo na demo" indica que a tela e as regras existem só na demonstração fictícia (`demo/`), sem banco, autenticação real nem testes de produto.
+
+| Módulo | Responsabilidade | Fase | Estado no produto |
 |---|---|---|---|
-| Identidade e sessão | Cadastro, login, sessões, troca de senha, limitação de tentativas | 1 | Entregue |
-| Empresas e planos | Organizações, planos, limites, recursos por plano, situação | 1 | Entregue |
-| Estrutura | Regiões, lojas, departamentos | 1 | Entregue |
-| Pessoas e acesso | Vínculos, escopo de lojas, perfis do sistema e personalizados, permissões | 1 | Entregue |
-| Auditoria | Trilha imutável de alterações | 1 | Entregue |
-| Plataforma | Administração de empresas clientes e planos | 1 | Entregue |
-| Catálogo | Produtos, variações, categorias, marcas, fornecedores, histórico de preço/custo | 2 | Planejado |
-| Estoque | Livro de movimentações, saldo/reserva/trânsito por loja, inventário, transferências, recebimento | 2 | Planejado |
-| PDV e caixa | Venda, carrinho, descontos autorizados, suspensão, sessões de caixa, sangria/suprimento, fechamento e divergência | 2 | Planejado |
-| Pagamentos | Adaptadores de provedor, confirmação por webhook autenticado/consulta, idempotência, estorno | 2 | Planejado |
-| Fiscal | Camada desacoplada para NFC-e/NF-e via provedor especializado | 2–7 | Planejado (depende de provedor) |
-| Atendimento | Fila, distribuição configurável, eventos, vínculo com venda, conversão | 3 | Planejado |
-| Metas, comissões e campanhas | Metas por escopo/período, regras de comissão versionadas, apuração/aprovação/pagamento | 3 | Planejado |
-| Indicadores e BI | Serviços de métricas compartilhados, dashboards por perfil, drill-down | 4 | Planejado |
-| Relatórios | Central com filtros, exportação CSV/XLSX/PDF, agendamento, histórico | 4 | Planejado |
-| IA | Adaptador de modelo, ferramentas autorizadas, agente central, uso e custo | 5 | Planejado |
-| Multiagente e alertas | Especialistas, regras proativas, recomendações, central de tarefas | 6 | Planejado |
-| Importação | CSV/XLSX com mapeamento, validação, prévia e histórico | 2–4 | Planejado |
-| Observabilidade | Erros, latência, consultas lentas, filas, custos de IA por organização | 7 | Planejado |
+| Identidade e sessão | Cadastro, login, sessões, troca de senha, limitação de tentativas | 1 | Existente |
+| Empresas e planos | Organizações, planos, limites, recursos por plano, situação | 1 | Existente |
+| Estrutura | Regiões, lojas, departamentos | 1 | Existente |
+| Pessoas e acesso | Vínculos, escopo de lojas, perfis do sistema e personalizados, permissões | 1 | Existente (perfis de diretor comercial, estoque e financeiro entram com seus módulos) |
+| Auditoria | Trilha imutável de alterações | 1 | Existente |
+| Plataforma | Administração de empresas clientes e planos | 1 | Existente |
+| Catálogo | Produtos, variações, categorias, marcas, fornecedores, histórico de preço/custo | 2 | Ausente · protótipo na demo (sem variações nem histórico de preço) |
+| Estoque | Livro de movimentações, saldo/reserva/trânsito por loja, inventário, transferências, recebimento, pedidos de compra | 2 | Ausente · protótipo na demo (livro, transferências; sem pedidos de compra) |
+| PDV e caixa | Venda, carrinho, descontos autorizados, suspensão, sessões de caixa, sangria/suprimento, fechamento e divergência | 2 | Ausente · protótipo na demo |
+| Pagamentos | Adaptadores de provedor, confirmação por webhook autenticado/consulta, idempotência, estorno | 2 | Dependente de integração (demo: dinheiro local, cartão por NSU, PIX bloqueado) |
+| Fiscal | Camada desacoplada para NFC-e/NF-e via provedor especializado | 2–8 | Dependente de integração |
+| Atendimento | Fila, distribuição configurável, eventos, vínculo com venda, conversão | 3 | Ausente · protótipo na demo |
+| Metas, comissões e campanhas | Metas por escopo/período, regras de comissão versionadas, apuração/aprovação/pagamento | 3 | Ausente · protótipo na demo (sem campanhas) |
+| Indicadores e BI | Serviços de métricas compartilhados, dashboards por perfil, drill-down | 4 | Ausente · protótipo na demo (sem drill-down) |
+| Relatórios | Central com filtros, exportação CSV/XLSX/PDF, agendamento, histórico | 4 | Ausente · protótipo na demo (CSV por cópia) |
+| IA | Adaptador de modelo, ferramentas autorizadas, agente central, uso e custo | 5 | Dependente de integração (provedor) · demo com roteamento por regras locais |
+| Multiagente e alertas | Especialistas, regras proativas, recomendações, central de tarefas | 6 | Ausente · protótipo na demo |
+| Escritório Virtual 2D | Salas, personagens, estados reais, histórico, conversas, conexões entre agentes | 7 | Ausente · protótipo na demo ([virtual-office.md](virtual-office.md)) |
+| Importação | CSV/XLSX com mapeamento, validação, prévia e histórico | 2–4 | Ausente |
+| Observabilidade | Erros, latência, consultas lentas, filas, custos de IA por organização | 8 | Ausente |
 
 ## Fases
 
@@ -61,9 +64,17 @@ Conforme [ai.md](ai.md): adaptador de provedor, catálogo de ferramentas sobre o
 
 Especialistas (BI, comercial, estoque, operações, atendimento, financeiro, procedimentos) acionados pelo orquestrador só quando trazem benefício medido; regras proativas determinísticas (meta em risco, estoque mínimo, caixa não fechado…) com severidade, responsável e resolução; recomendações viram tarefas apenas por ação humana.
 
-### Fase 7 — Robustez e comercialização
+### Fase 7 — Escritório Virtual 2D
+
+Conforme [virtual-office.md](virtual-office.md): auditoria da arquitetura de agentes, salas e personagens ligados aos agentes reais, estados derivados das execuções (`ai_tool_runs`), painel do agente, histórico, conversas e conexões de delegação, atualização por Server-Sent Events com reconexão e "última atualização", visão em lista acessível. Aceite: os critérios do documento testados com dados reais, inclusive permissões, isolamento e liberação de recursos. O protótipo da demo valida interface e regras de estado.
+
+### Fase 8 — Robustez e comercialização
 
 Testes ampliados, testes de carga, observabilidade, limites e consumo por plano, backup/restauração testados, documentação de implantação, preparação de integrações fiscais e de ERPs por adaptadores.
+
+### Demonstração
+
+`demo/` antecipa as Fases 2–7 com dados fictícios para validar telas e apresentar o produto. Ao implementar cada fase no produto, reaproveite as fórmulas de `demo/js/metrics.js` como referência de especificação, não como código de produção: o produto calcula no servidor, sobre PostgreSQL com RLS, com testes de integração.
 
 ## Riscos
 
@@ -81,6 +92,8 @@ Testes ampliados, testes de carga, observabilidade, limites e consumo por plano,
 | Dependência de e-mail para convites/recuperação | Produto | Senha provisória + troca obrigatória até haver provedor |
 | Pré-sequestro de contas sem prova de posse do e-mail | Técnico, crítico | Conta só readicionada pela empresa que a criou; convite com confirmação por e-mail antes de permitir pessoas em várias empresas |
 | Custo de IA por organização | Comercial | Limites por plano, registro de uso/custo, alertas |
+| Demonstração confundida com produto pronto | Produto, confiança | Selo "DEMONSTRAÇÃO", aviso fixo, dados fictícios separados em `demo/`, classificação de estado nesta tabela |
+| Escritório virtual com estados "decorativos" | Produto, confiança | Estados derivados só de execuções registradas; teste de desconexão; nada aleatório |
 | LGPD (dados de clientes e equipe) | Regulatório | Minimização, retenção definida, HMAC para identificadores em logs de autenticação, envio mínimo ao modelo |
 
 ## Manutenção

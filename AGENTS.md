@@ -67,7 +67,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Valide entradas e ambiente com Zod (`src/server/forms.ts`, `src/lib/env.ts`). Use Pino no servidor, sem segredos ou corpos completos. Apresentação (`src/app`, `src/components`) chama serviços, nunca o cliente de banco.
 - Prefira tipos inferidos, consultas parametrizadas, projeções explícitas, listagens limitadas/paginadas e DTOs seguros. Transações seguem a atomicidade exigida.
 - Consulte fontes oficiais atuais e o canal estável antes de alterar stack/APIs. Registre fonte, motivo e resultado em `docs/setup.md`. Não migre versões principais ou serviços automaticamente.
-- `PRODUCT.md` guarda escopo; `docs/architecture.md`, estrutura e decisões; `docs/data-model.md`, schema; `docs/security.md`, controles; `docs/ai.md`, plano de IA; `docs/roadmap.md`, fases; `docs/design.md`, interface; `docs/onboarding.md`, preparação; `docs/quality.md`, checks. Atualize o documento responsável junto da mudança.
+- `PRODUCT.md` guarda escopo; `docs/architecture.md`, estrutura e decisões; `docs/data-model.md`, schema; `docs/security.md`, controles; `docs/ai.md`, plano de IA; `docs/virtual-office.md`, escritório virtual; `docs/roadmap.md`, fases; `docs/design.md`, interface; `docs/onboarding.md`, preparação; `docs/quality.md`, checks. Atualize o documento responsável junto da mudança.
 
 ## Ferramentas e estilo
 

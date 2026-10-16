@@ -69,6 +69,20 @@ Fontes consultadas: documentação empacotada do Next.js 16.4.2 (`node_modules/n
 
 Recursos temporários criados e encerrados: cluster PostgreSQL local do container (iniciado para testes), bancos `varejo`, `varejo_test` e `varejo_it_*` (descartáveis, locais), servidores `next start` nas portas 3100/3200/3300 (encerrados). Nenhum serviço externo, publicação ou cobrança.
 
+## Demonstração com dados fictícios (16/10/2026)
+
+Pedido do usuário: demo funcional da visão completa (PRD com Escritório Virtual 2D), com dados fictícios. Entregue em `demo/`, separada do app ([demo/README.md](../demo/README.md)).
+
+| Item | Estado | Evidência |
+|---|---|---|
+| Motor (dados, métricas, PDV, estoque, fila, agentes, alertas) | Validado | `node demo/selfcheck.mjs`: ledger sem saldo negativo; totais por loja, por vendedor e gráfico diário iguais ao resumo; idempotência; desconto, PIX e NSU recusados; ferramenta bloqueada por perfil; roteamento das 8 perguntas sugeridas; alertas sem duplicar; aprovação gera transferência |
+| Interface no Chromium (1440 px, 390 px e movimento reduzido) | Validado | 11 roteiros Playwright passaram, sem erros de console: venda com comprovante, PIX desabilitado, resposta do assistente com aprovação, delegação visível no mapa, seleção por chip e por clique no canvas, queda de conexão com estado desatualizado, visão em lista, vendedora sem acesso a caixa, ferramenta de comparação bloqueada, celular sem rolagem horizontal. Bibliotecas servidas das mesmas versões do npm (CDNs bloqueados no container) |
+| `pnpm lint` | Validado | `demo/js` incluído, sem erros ou avisos; arquivos ≤ 350 linhas |
+| Publicação | Configurado sem execução no visualizador | Artefato privado https://claude.ai/artifact/SqQ3ETNacUbsf9W85oNtnL; carrega React 18.3.1 (cdnjs) e htm 3.1.1 (jsDelivr). A renderização dentro do visualizador do claude.ai não foi aberta por esta sessão |
+| Skills usadas | — | `dataviz` (gráficos), guia de design de artefatos, `engineering:code-review` (rodada anterior) |
+
+Semente 276 escolhida por busca para a história se manter estável nos dias seguintes: lojas no ritmo da meta, uma em atenção e uma em risco, rupturas, caixa pendente e divergência.
+
 ## Pendências e próxima entrega
 
 - **Externas:** provedor de e-mail, pagamentos (PIX/cartão), emissão fiscal, provedor de IA, hospedagem e PostgreSQL gerenciado, validação comercial dos planos, enquadramento LGPD ([PRODUCT.md](../PRODUCT.md#hipóteses-e-pendências)).

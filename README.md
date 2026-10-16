@@ -4,6 +4,10 @@ Plataforma SaaS multiempresa para gestão de varejo: lojas, equipes, PDV, estoqu
 
 **Estado atual: Fase 1 (fundação) concluída** — autenticação, isolamento entre empresas no banco (RLS), perfis e permissões com escopo de lojas, layout corporativo, cadastros de lojas, regiões, departamentos e equipe, perfis personalizados, auditoria, planos com limites e administração da plataforma. Vendas, estoque, fila, BI e IA seguem o [plano por fases](docs/roadmap.md).
 
+## Demonstração
+
+Uma página interativa com **dados fictícios** mostra a visão completa (painéis por perfil, PDV, estoque, fila, metas, relatórios, agentes de IA e o Escritório Virtual 2D) sem banco nem login: [link privado](https://claude.ai/artifact/SqQ3ETNacUbsf9W85oNtnL) · código e limites em [demo/README.md](demo/README.md). Ela é separada da aplicação e não representa módulos já implementados no produto.
+
 ## Executar
 
 Requer Node.js ≥ 22.12, pnpm 10 e PostgreSQL ≥ 15.
@@ -25,7 +29,7 @@ Verificação: `pnpm check` (lint, tipos, regras, unitários e build, sem banco)
 - [Preparação local](docs/onboarding.md).
 - [Estrutura e decisões técnicas](docs/architecture.md) e [modelo de dados](docs/data-model.md).
 - [Segurança, isolamento e LGPD](docs/security.md).
-- [Plano de IA e agentes](docs/ai.md).
+- [Plano de IA e agentes](docs/ai.md) e [Escritório Virtual 2D](docs/virtual-office.md).
 - [Design e acessibilidade](docs/design.md).
 - [Checks de qualidade](docs/quality.md).
 - [Instruções para agentes](AGENTS.md).

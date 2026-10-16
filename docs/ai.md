@@ -1,6 +1,6 @@
 # Inteligência artificial e agentes — plano
 
-**Estado: planejado (Fases 5 e 6). Nada desta camada está implementado na Fase 1.** Requisitos de origem em [PRODUCT.md](../PRODUCT.md); segurança em [security.md](security.md).
+**Estado: planejado (Fases 5 e 6; Escritório Virtual na Fase 7). Nada desta camada está implementado no produto.** A demonstração (`demo/`) tem um protótipo com dados fictícios: as mesmas ferramentas conceituais, permissões por perfil, agentes especialistas, alertas por regra, aprovação de recomendações e o escritório 2D, com roteamento por regras locais e **nenhum modelo de IA chamado**. Requisitos de origem em [PRODUCT.md](../PRODUCT.md); segurança em [security.md](security.md); escritório em [virtual-office.md](virtual-office.md).
 
 ## Princípios
 
@@ -62,7 +62,7 @@ Fluxo: identificar período e escopo permitido → buscar indicadores reais → 
 
 ## Multiagente (Fase 6)
 
-Especialistas (BI, comercial, estoque, operações, atendimento, financeiro, procedimentos) como módulos com conjunto restrito de ferramentas. Começa com um agente central e ferramentas confiáveis; especialistas independentes entram quando houver benefício mensurável (qualidade em avaliação com casos de números conhecidos, latência e custo). Lucro líquido só com custos e despesas suficientes.
+Especialistas (BI, comercial, estoque, financeiro, atendimento, operações e auditoria, conhecimento/procedimentos) como módulos com conjunto restrito de ferramentas; o mapeamento agente → ferramentas está em [virtual-office.md](virtual-office.md#salas-e-agentes). Não é obrigatório um modelo independente por especialista. Começa com um agente central e ferramentas confiáveis; especialistas independentes entram quando houver benefício mensurável (qualidade em avaliação com casos de números conhecidos, latência e custo). Lucro líquido só com custos e despesas suficientes.
 
 **Inteligência proativa:** regras determinísticas e configuráveis (meta em risco, estoque mínimo, cancelamentos acima do padrão, espera elevada, caixa não fechado) geram `alerts` com severidade, responsável e estado; a IA contextualiza e prioriza. Regra de limite não é chamada de "preditiva". Previsão de demanda e anomalias estatísticas exigem histórico adequado.
 

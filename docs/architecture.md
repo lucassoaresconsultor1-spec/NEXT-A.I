@@ -53,6 +53,7 @@ src/
     ├── regions/, stores/, departments/, members/, roles/
     ├── audit/, dashboard/, search/, platform/
     └── actions.ts, forms.ts, errors.ts, pagination.ts, http.ts, shell.ts
+demo/                             # demonstração estática com dados fictícios (fora do app; ver demo/README.md)
 drizzle/                          # SQL versionado (0000 schema, 0001 FORCE RLS, 0002 planos, 0003 dono da conta)
 tests/integration/                # PostgreSQL real; fixtures por inserção direta
 tests/e2e/                        # Playwright sobre build de produção
@@ -95,6 +96,8 @@ Schema em `src/db/schema/`, explicado em [data-model.md](data-model.md). `getDb(
 | Lojas sem exclusão física | Histórico de vendas e auditoria | Exclusão em cascata | — |
 | Componentes próprios sobre Radix | Registro do shadcn bloqueado no ambiente; só o necessário | shadcn/ui CLI | Registro disponível e necessidade de mais componentes |
 | Inter via `next/font/google` | Baixada no build e servida pelo próprio app (sem requisição ao Google no navegador) | Fonte do sistema | Build sem acesso ao Google Fonts |
+| Demonstração separada em `demo/` (página estática, React 18 + htm por CDN, dados fictícios gerados no navegador) | Mostrar a visão completa sem simular módulos dentro do produto nem misturar dados fictícios com reais | Rota `/demo` no app com seed no banco | Fases 2–7 implementadas no produto |
+| Escritório virtual em Canvas 2D próprio (sem Phaser/PixiJS) | Cena pequena, poucos sprites, zero dependência, ciclo de vida explícito | Engine 2D | Animações ou mapas que o Canvas simples não sustente |
 | Conta só readicionada pela empresa que a criou | Sem prova de posse do e-mail, vincular contas entre empresas permite pré-sequestro | Vincular qualquer conta existente | Convite com confirmação por e-mail disponível |
 
 Fontes consultadas (16/10/2026): documentação empacotada do Next.js 16.4 (`node_modules/next/dist/docs/`: autenticação, proxy, cookies, data security, `forbidden` experimental), tipos do Drizzle 0.45 (`pg-core/policies`), registry npm (canais `latest`). Context7 indisponível no ambiente (bloqueio de rede).

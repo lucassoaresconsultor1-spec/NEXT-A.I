@@ -1,12 +1,12 @@
 # Varejo Inteligente — plataforma SaaS de gestão para varejo
 
-> Nome de trabalho. Fonte: "Prompt mestre — plataforma SaaS inteligente de gestão para varejo" (outubro de 2026). Este documento guarda escopo, regras e aceite; estrutura técnica fica em [docs/architecture.md](docs/architecture.md), o plano por fases em [docs/roadmap.md](docs/roadmap.md).
+> Nome de trabalho. Fontes: "Prompt mestre — plataforma SaaS inteligente de gestão para varejo" e "Documento mestre do produto — PRD + especificação técnica" (outubro de 2026), que acrescenta o Escritório Virtual 2D de agentes. Este documento guarda escopo, regras e aceite; estrutura técnica fica em [docs/architecture.md](docs/architecture.md), o plano por fases em [docs/roadmap.md](docs/roadmap.md).
 
 ## Problema e objetivo
 
 Empresas de varejo — de uma loja independente a redes com dezenas ou centenas de filiais — operam vendas, caixa, estoque, atendimento, metas e equipe em ferramentas separadas. Os dados operacionais existem, mas não viram decisão: o gestor não sabe com confiança onde agir hoje.
 
-O produto centraliza a operação (PDV, caixa, estoque, fila de atendimento, metas e comissões) numa plataforma multiempresa e transforma esses dados em indicadores consistentes e em análises de um agente de IA que **só usa números calculados por serviços determinísticos**.
+O produto centraliza a operação (PDV, caixa, estoque, fila de atendimento, metas e comissões) numa plataforma multiempresa e transforma esses dados em indicadores consistentes e em análises de um agente de IA que **só usa números calculados por serviços determinísticos**. O diferencial é ligar dados, análise e execução: recomendações viram tarefas acompanháveis, e um **Escritório Virtual 2D** mostra o trabalho real dos agentes ([docs/virtual-office.md](docs/virtual-office.md)).
 
 ## Público e papéis
 
@@ -19,6 +19,8 @@ O produto centraliza a operação (PDV, caixa, estoque, fila de atendimento, met
 | Supervisor | Lojas autorizadas | Monitora equipe, fila e indicadores |
 | Vendedor | Própria loja | Vê o próprio desempenho, metas, comissões estimadas e atendimentos |
 | Operador de caixa | Própria loja | Opera o PDV e o próprio caixa |
+
+Diretores comerciais, responsáveis por estoque e analistas financeiros (citados no PRD) entram como perfis do sistema junto dos seus módulos; até lá, perfis personalizados cobrem esses papéis.
 
 Permissões são granulares (catálogo em `src/server/authz/permissions.ts`), verificadas no servidor em toda consulta e operação, e combinadas com o **escopo de lojas** do vínculo (todas, regiões ou lojas específicas). Perfis personalizados são permitidos, sempre abaixo do nível de quem os cria.
 
@@ -41,11 +43,14 @@ Ordem de entrega (detalhe e critérios em [docs/roadmap.md](docs/roadmap.md)):
 4. **Fase 4 — BI e relatórios:** indicadores compartilhados, dashboards por perfil, relatórios e exportação.
 5. **Fase 5 — IA:** interface conversacional, adaptador de modelo, ferramentas autorizadas, relatórios gerados com dados reais.
 6. **Fase 6 — Multiagente:** especialistas, alertas, recomendações e central de tarefas.
-7. **Fase 7 — Robustez e comercialização:** segurança, desempenho, observabilidade, backup, integrações fiscais.
+7. **Fase 7 — Escritório Virtual 2D:** salas, personagens e estados ligados às execuções reais dos agentes, com visão em lista acessível.
+8. **Fase 8 — Robustez e comercialização:** segurança, desempenho, observabilidade, backup, integrações fiscais.
+
+**Demonstração:** a pasta `demo/` tem uma página interativa com dados **fictícios** que antecipa as Fases 2–7 para validação de telas e apresentação ([demo/README.md](demo/README.md)). É separada do produto, não usa o banco e não conta como módulo entregue.
 
 ## Fora de escopo nesta entrega
 
-- Qualquer módulo das Fases 2–7 (vendas, PDV, estoque, fila, metas, relatórios, IA). O painel mostra apenas dados estruturais reais e declara que os indicadores comerciais chegam com seus módulos.
+- Qualquer módulo das Fases 2–8 no produto (vendas, PDV, estoque, fila, metas, relatórios, IA, escritório virtual); existem apenas como protótipo na demonstração fictícia. O painel do produto mostra apenas dados estruturais reais e declara que os indicadores comerciais chegam com seus módulos.
 - E-mail transacional (convites, recuperação de senha por link): depende de provedor. Enquanto isso, administradores definem senha provisória e o usuário troca no primeiro acesso.
 - Cobrança e troca de plano self-service: planos são alterados pelo administrador da plataforma.
 - Exclusão definitiva de lojas: lojas são desativadas, porque terão histórico de vendas.
@@ -86,6 +91,7 @@ Ordem de entrega (detalhe e critérios em [docs/roadmap.md](docs/roadmap.md)):
 | Provedor de IA e política de dados enviados ao modelo | Pendente externo | Fase 5 | Verificar documentação/termos do provedor; credenciais só no servidor |
 | Hospedagem e PostgreSQL gerenciado | Pendente externo | Produção | Escolher host; criar papel de aplicação sem BYPASSRLS |
 | Operação offline do PDV | Hipótese de arquitetura | Fase 2+ | Avaliar após PDV online testado; não declarar offline antes de testes |
+| Metas numéricas de sucesso (tempo de relatório, conversão, ticket, divergência de caixa) | Pendente: sem linha de base | Medição de valor | Definir valores iniciais após testes com empresas-piloto |
 
 ## Critérios de aceitação
 
