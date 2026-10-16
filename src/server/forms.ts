@@ -31,7 +31,9 @@ export const requiredText = (label: string, max: number, min = 1) =>
   z
     .string({ error: `Informe ${label}.` })
     .trim()
-    .min(min, { error: min > 1 ? `Use ao menos ${min} caracteres.` : `Informe ${label}.` })
+    // Empty input reports "Informe…" first; short input reports the minimum length.
+    .min(1, { error: `Informe ${label}.` })
+    .min(min, { error: `Use ao menos ${min} caracteres.` })
     .max(max, { error: `Use no máximo ${max} caracteres.` });
 
 export const optionalText = (max: number) =>

@@ -12,7 +12,7 @@ export const auditFiltersSchema = z.object({
   entityType: z.enum(["organization", "region", "store", "department", "member", "role"]).optional().catch(undefined),
   from: z.iso.date().optional().catch(undefined),
   to: z.iso.date().optional().catch(undefined),
-  page: z.unknown().transform(parsePage),
+  page: z.unknown().optional().transform(parsePage),
 });
 export type AuditFilters = z.infer<typeof auditFiltersSchema>;
 

@@ -5,7 +5,7 @@ test("company sign-up, sign-out and sign-in", async ({ page }) => {
   const { email, company } = await signUpCompany(page);
   await expect(page.getByText("Conta criada")).toBeVisible();
   await expect(page.getByText(company).first()).toBeVisible();
-  await expect(page.getByText("Primeiros passos")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Primeiros passos" })).toBeVisible();
 
   await signOut(page);
   await signIn(page, email, PASSWORD);
@@ -16,7 +16,7 @@ test("protected pages redirect to sign-in and wrong credentials show a generic e
   await page.goto("/lojas");
   await expect(page).toHaveURL(/\/entrar\?next=%2Flojas/);
   await signIn(page, "ninguem@example.test", "senha-errada-123");
-  await expect(page.getByRole("alert")).toContainText("E-mail ou senha inválidos.");
+  await expect(page.getByRole("alert").filter({ hasText: "E-mail ou senha inválidos." })).toBeVisible();
 });
 
 test("sign-up validates fields inline", async ({ page }) => {

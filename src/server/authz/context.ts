@@ -89,8 +89,17 @@ export async function loadTenantContext(session: CurrentSession, organizationId:
       row.storeAccess === "all"
         ? { all: true }
         : { all: false, storeIds: await resolveMembershipStores(tx, organizationId, row.membershipId) };
-    const activeStoreId =
-      session.activeStoreId && isStoreInScope(storeScope, session.activeStoreId) ? session.activeStoreId : null;
+    // The selected store must still be an active store of this organization inside the scope.
+    let activeStoreId: string | null = null;
+    if (session.activeStoreId && isStoreInScope(storeScope, session.activeStoreId)) {
+      const [selected] = await tx
+        .select({ id: stores.id })
+        .from(stores)
+        .where(
+          and(eq(stores.organizationId, organizationId), eq(stores.id, session.activeStoreId), eq(stores.status, "active")),
+        );
+      activeStoreId = selected?.id ?? null;
+    }
 
     return {
       sessionId: session.id,
