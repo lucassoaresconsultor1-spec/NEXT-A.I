@@ -6,6 +6,8 @@ Público: gestores e equipes de lojas brasileiras, de proprietários (desktop, a
 
 O **PDV** (Fase 2) terá layout próprio, focado em velocidade, teclado e leitor de código de barras; o layout de gestão é analítico. *(direção — ainda não implementado)*
 
+**Demonstração (`demo/`):** segue uma direção visual nova, escolhida pelo usuário a partir de uma referência: lima `#9FE870` sobre verde-floresta `#062F28`, Urbanist e Plus Jakarta Sans, sidebar clara e cards arredondados ([demo/README.md](../demo/README.md#visual)). O app em `src/` mantém os tokens abaixo até haver decisão de migrar; se migrar, os tokens mudam aqui e em `src/app/globals.css`.
+
 ## Sistema existente
 
 Fonte de verdade dos tokens: `@theme` em `src/app/globals.css`.

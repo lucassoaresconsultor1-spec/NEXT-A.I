@@ -81,6 +81,8 @@ Pedido do usuário: demo funcional da visão completa (PRD com Escritório Virtu
 | Publicação | Configurado sem execução no visualizador | Artefato privado https://claude.ai/artifact/SqQ3ETNacUbsf9W85oNtnL; carrega React 18.3.1 (cdnjs) e htm 3.1.1 (jsDelivr). A renderização dentro do visualizador do claude.ai não foi aberta por esta sessão |
 | Skills usadas | — | `dataviz` (gráficos), guia de design de artefatos, `engineering:code-review` (rodada anterior) |
 
+**Novo visual da demo (16/10/2026):** referência visual enviada pelo usuário em capturas (Behance bloqueado na rede do ambiente: `www.behance.net` e `mir-s3-cdn-cf.behance.net` recusados). Aplicados paleta, tipografia (Urbanist e Plus Jakarta Sans via Google Fonts), sidebar clara com ícones, card de destaque, colunas, rosca, medidor, pontos de progresso e orbe; escritório 2D recolorido. Validado de novo: `pnpm lint`, `node demo/selfcheck.mjs` e os 11 roteiros no Chromium sem erros de console. O validador de paleta de gráficos reprova a paleta da marca em luminosidade e croma; compensado com legenda com valores, rótulos e tabela.
+
 Semente 276 escolhida por busca para a história se manter estável nos dias seguintes: lojas no ritmo da meta, uma em atenção e uma em risco, rupturas, caixa pendente e divergência.
 
 ## Pendências e próxima entrega

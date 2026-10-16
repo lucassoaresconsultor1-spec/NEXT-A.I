@@ -54,7 +54,7 @@ export function createOffice(canvas, { getView, onSelect }) {
     bctx.font = FONT;
     bctx.textBaseline = "top";
     ROOMS.forEach((room, i) => {
-      bctx.fillStyle = "#33415c";
+      bctx.fillStyle = "#062f28";
       bctx.fillText(`${room.n} ${LABELS[i]}`, room.x + 3, room.y + room.h - 10);
     });
     if (!stale) drawConnections(bctx, snapshot, t, reduced);
@@ -75,11 +75,11 @@ export function createOffice(canvas, { getView, onSelect }) {
       const width = Math.ceil(bctx.measureText(label).width) + 4;
       const lx = Math.round(pos.x + 6 - width / 2);
       const ly = pos.y + (SEATED.has(state) ? 14 : 17);
-      rect(bctx, lx, ly, width, 9, agent.id === selectedId ? "#1f5bd1" : "#0f1d33");
-      bctx.fillStyle = "#ffffff";
+      rect(bctx, lx, ly, width, 9, agent.id === selectedId ? "#9fe870" : "#062f28");
+      bctx.fillStyle = agent.id === selectedId ? "#062f28" : "#ffffff";
       bctx.fillText(label, lx + 2, ly + 1);
       if (agent.id === selectedId) {
-        bctx.strokeStyle = "#1f5bd1";
+        bctx.strokeStyle = "#9fe870";
         bctx.lineWidth = 1;
         bctx.strokeRect(pos.x - 3.5, pos.y - 15.5, 19, 42);
       }
@@ -88,7 +88,7 @@ export function createOffice(canvas, { getView, onSelect }) {
     }
     ctx.imageSmoothingEnabled = false;
     const s = scale();
-    ctx.fillStyle = "#252d3b";
+    ctx.fillStyle = "#062f28";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(buffer, camera.x, camera.y, camera.cssW / s, camera.cssH / s, 0, 0, canvas.width, canvas.height);
   }
@@ -110,7 +110,7 @@ export function createOffice(canvas, { getView, onSelect }) {
         for (let d = offset; d < len; d += 6) {
           const x = Math.round(p.x + ((q.x - p.x) * d) / len);
           const y = Math.round(p.y + ((q.y - p.y) * d) / len);
-          rect(c, x, y, 2, 2, "#5fb3ff");
+          rect(c, x, y, 2, 2, "#9fe870");
         }
         offset = (offset + 6 - (len % 6)) % 6;
       }

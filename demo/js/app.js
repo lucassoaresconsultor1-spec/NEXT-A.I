@@ -4,6 +4,7 @@ import { date } from "./lib.js";
 import { store } from "./app-store.js";
 import { runMonitoring } from "./orchestrator.js";
 import { VIEWERS } from "./store.js";
+import { Icon } from "./icons.js";
 import { html, useEffect, useState, useStore } from "./ui.js";
 import { Alertas, Auditoria } from "./views/alertas.js";
 import { Assistente } from "./views/assistente.js";
@@ -68,12 +69,27 @@ function App() {
   const sections = [...new Set(ROUTES.map((r) => r.section))];
   const openAlerts = store.can("alerts.read") ? store.state.alerts.filter((a) => a.status === "aberto" && viewer.storeIds.includes(a.storeId)).length : 0;
 
+  const initials = viewer.name.split(" ").map((w) => w[0]).slice(0, 2).join("");
+
   return html`<div className=${`app ${menuOpen ? "app--menu" : ""}`}>
     <a className="skip" href="#conteudo">Pular para o conteúdo</a>
     <aside className="sidebar" aria-label="Navegação principal">
       <div className="brand">
         <span className="brand__mark" aria-hidden="true">VI</span>
         <div><strong>Varejo Inteligente</strong><small>${ORGANIZATION.name}</small></div>
+      </div>
+      <div className="user-card">
+        <span className="avatar-initials" aria-hidden="true">${initials}</span>
+        <div className="user-card__text">
+          <strong>${viewer.name}</strong>
+          <small>${viewer.title} · ${viewer.scopeLabel}</small>
+        </div>
+        <label className="viewer">
+          <span className="sr-only">Ver como</span>
+          <select value=${viewer.id} onChange=${(e) => store.setViewer(e.target.value)}>
+            ${VIEWERS.map((v) => html`<option key=${v.id} value=${v.id}>Ver como: ${v.name.split(" ")[0]} · ${v.title.toLowerCase()}</option>`)}
+          </select>
+        </label>
       </div>
       <nav>
         ${sections.map((section) => {
@@ -82,23 +98,28 @@ function App() {
           return html`<div key=${section} className="nav-section">
             <span className="nav-section__title">${section}</span>
             ${items.map((r) => html`<a key=${r.id} href=${`#${r.id}`} aria-current=${r.id === route ? "page" : undefined} className=${r.id === route ? "is-active" : ""}>
-              ${r.label}${r.id === "alertas" && openAlerts ? html`<span className="nav-count" aria-label=${`${openAlerts} alertas abertos`}>${openAlerts}</span>` : null}
+              <${Icon} name=${r.id} size=${18} />
+              <span className="nav-label">${r.label}</span>
+              ${r.id === "alertas" && openAlerts ? html`<span className="nav-count" aria-label=${`${openAlerts} alertas abertos`}>${openAlerts}</span>` : null}
             </a>`)}
           </div>`;
         })}
       </nav>
-      <p className="sidebar__foot">Demonstração · dados fictícios gerados em ${date(store.state.meta.generatedAt)}</p>
+      <div className="demo-card">
+        <strong>Demonstração</strong>
+        <p>Dados fictícios gerados em ${date(store.state.meta.generatedAt)}. Nada aqui é registro real.</p>
+        <button type="button" className="btn btn--dark btn--block" onClick=${() => window.location.reload()}><${Icon} name="refazer" size=${16} /> Restaurar dados</button>
+      </div>
     </aside>
     <div className="main">
       <header className="topbar">
-        <button type="button" className="btn btn--ghost menu-button" aria-expanded=${menuOpen} onClick=${() => setMenuOpen(!menuOpen)}>Menu</button>
+        <button type="button" className="btn btn--ghost menu-button" aria-expanded=${menuOpen} onClick=${() => setMenuOpen(!menuOpen)}><${Icon} name="menu" /> Menu</button>
+        <div className="topbar__title">
+          <strong>${current.label}</strong>
+          <span>“Operação e indicadores com dados calculados pelo sistema”</span>
+        </div>
         <span className="demo-badge">DEMONSTRAÇÃO</span>
-        <label className="viewer">
-          <span>Ver como</span>
-          <select value=${viewer.id} onChange=${(e) => store.setViewer(e.target.value)}>
-            ${VIEWERS.map((v) => html`<option key=${v.id} value=${v.id}>${v.name} · ${v.title} (${v.scopeLabel})</option>`)}
-          </select>
-        </label>
+        <span className="avatar-initials avatar-initials--small" title=${`${viewer.name} · ${viewer.title}`} aria-hidden="true">${initials}</span>
       </header>
       <p className="demo-banner">Dados fictícios de uma empresa inventada. Pagamentos não são processados, nada é emitido na Receita e nenhum modelo de IA é chamado: os agentes usam regras locais sobre os mesmos cálculos dos painéis. Recarregar a página restaura os dados iniciais.</p>
       <main id="conteudo" tabIndex="-1">

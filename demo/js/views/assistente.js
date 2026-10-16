@@ -38,7 +38,7 @@ function AssistenteView() {
       </button>`)}
     </div>
     <div className="chat" aria-live="polite">
-      ${runs.length === 0 ? html`<div className="chat__empty"><strong>Pergunte sobre a operação.</strong><p>Escolha uma sugestão abaixo ou escreva a sua pergunta.</p></div>` : null}
+      ${runs.length === 0 ? html`<div className="chat__empty"><strong>Como posso ajudar?</strong><p>Escolha uma sugestão abaixo ou escreva a sua pergunta sobre a operação.</p></div>` : null}
       ${runs.map((run) => html`<article key=${run.id} className="chat__turn">
         <div className="bubble bubble--user"><span>${run.question}</span><small>${time(run.createdAt)}${run.agentId && run.agentId !== "central" ? ` · para ${agent(run.agentId).name}` : ""}</small></div>
         <div className="bubble bubble--agent">

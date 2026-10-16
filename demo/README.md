@@ -19,6 +19,10 @@ Página interativa que mostra a visão completa do produto: painéis por perfil,
 
 As etapas dos agentes têm duração mínima de 0,9 s só para a animação ser acompanhada; isso está escrito na página.
 
+## Visual
+
+Direção visual de referência enviada pelo usuário (case "AI Finance Management SaaS", Behance), usada **só como inspiração de estilo**: lima `#9FE870` como destaque sobre verde-floresta `#062F28`, cinza `#7B7B7B` e branco; fontes Urbanist (títulos e números) e Plus Jakarta Sans (texto); sidebar clara, cards muito arredondados, botões em pílula, card de destaque lima, colunas, rosca, medidor, progresso em dez pontos e orbe do assistente. Nenhuma imagem, marca, logotipo ou texto do case foi copiado. A paleta da marca falha nas faixas de luminosidade e croma do validador de gráficos; por isso os gráficos levam legenda com valores, rótulos diretos, espaço entre fatias e visão em tabela.
+
 ## Estrutura
 
 `index.html` e `styles.css` (página), `js/` com módulos ES sem etapa de build. React 18.3.1 e htm 3.1.1 vêm de CDN fixado por versão.
@@ -30,7 +34,7 @@ As etapas dos agentes têm duração mínima de 0,9 s só para a animação ser 
 | `store.js`, `pdv-ops.js`, `ops.js` | "Backend" da página: perfis, permissões, escopo, mutações e auditoria |
 | `tools.js`, `agents.js`, `orchestrator.js` | Ferramentas autorizadas, registro dos 8 agentes, estados derivados, orquestração, alertas e aprovações |
 | `office.js`, `office-rooms.js`, `sprites.js` | Mapa em Canvas 2D (pixel art desenhada por código), câmera, zoom, cliques e ciclo de vida |
-| `ui.js`, `charts.js`, `views/` | Componentes e telas |
+| `ui.js`, `charts.js`, `icons.js`, `views/` | Componentes, gráficos (linha, colunas, barras, rosca, medidor, pontos), ícones e telas; `views/widgets.js` reúne os blocos dos painéis |
 
 ## Verificar
 

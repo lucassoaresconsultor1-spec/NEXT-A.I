@@ -11,7 +11,7 @@ export const ROOMS = Array.from({ length: 8 }, (_, i) => {
   return { n: i + 1, x, y, w: 114, h: 120, top, doorX: x + 47, desk: { x: x + 40, y: y + 52 } };
 });
 export const LABELS = ["CENTRAL", "BI", "COMERCIAL", "ESTOQUE", "FINANCEIRO", "ATENDIMENTO", "OPERAÇÕES", "CONHECIMENTO"];
-const FLOORS = [["#c7d0de", "#bfc9d8"], ["#cdd5e0", "#c4cddb"], ["#d3d2cc", "#cbcac3"], ["#cfc8bb", "#c6bfb1"], ["#d0d5d9", "#c8cdd2"], ["#cbd3e0", "#c2cbd9"], ["#c9cdd4", "#c0c5cc"], ["#d4cfc4", "#ccc6ba"]];
+const FLOORS = [["#e3e6e1", "#dbdfd9"], ["#e6e7e4", "#dfe0dc"], ["#e2e5dd", "#dadfd4"], ["#e4e1d9", "#dcd8cf"], ["#e5e6e3", "#dddfdb"], ["#e1e6e1", "#d9dfd9"], ["#e3e4e2", "#dbdcda"], ["#e6e3dc", "#dedad2"]];
 export const FONT = '8px "Silkscreen", monospace';
 
 /** Character anchor points: standing beside the desk, or seated at it. */
@@ -21,11 +21,11 @@ export const doorPoint = (room) => ({ x: room.doorX + 10, y: room.top ? room.y +
 
 /** Static layer: floors, walls, furniture. Drawn once into an offscreen buffer. */
 export function drawStatic(ctx) {
-  rect(ctx, 0, 0, MAP_W, MAP_H, "#252d3b");
+  rect(ctx, 0, 0, MAP_W, MAP_H, "#0a2a24");
   // Corridor: navy carpet with a runner.
-  rect(ctx, 6, 132, MAP_W - 12, 36, "#1c2944");
-  rect(ctx, 6, 147, MAP_W - 12, 6, "#22335a");
-  for (let x = 10; x < MAP_W - 12; x += 16) rect(ctx, x, 149, 8, 2, "#2c4372");
+  rect(ctx, 6, 132, MAP_W - 12, 36, "#0e453a");
+  rect(ctx, 6, 147, MAP_W - 12, 6, "#115242");
+  for (let x = 10; x < MAP_W - 12; x += 16) rect(ctx, x, 149, 8, 2, "#3f8f5c");
   for (const x of [20, 128, 246, 364, 452]) drawPlant(ctx, x, 134);
   rect(ctx, 236, 134, 8, 12, "#dbe7f3");
   rect(ctx, 237, 135, 6, 4, "#6fb3e8");
@@ -35,8 +35,8 @@ export function drawStatic(ctx) {
       for (let tx = room.x; tx < room.x + room.w; tx += 8) rect(ctx, tx, ty, 8, 8, ((tx - room.x) / 8 + (ty - room.y) / 8) % 2 ? a : b);
     }
     // Back wall face with a baseboard (3/4 view).
-    rect(ctx, room.x, room.y, room.w, 16, "#e4e9f0");
-    rect(ctx, room.x, room.y + 14, room.w, 2, "#9aa6b8");
+    rect(ctx, room.x, room.y, room.w, 16, "#f6f7f4");
+    rect(ctx, room.x, room.y + 14, room.w, 2, "#b8c2bb");
     // Door into the corridor.
     const doorY = room.top ? room.y + room.h : room.y - 4;
     rect(ctx, room.doorX, doorY, 20, 4, a);
@@ -54,9 +54,9 @@ const FURNITURE = [
   },
   (ctx, r) => {
     rect(ctx, r.x + 8, r.y + 3, 22, 10, "#ffffff");
-    for (const [i, h] of [[0, 4], [1, 7], [2, 5], [3, 8]]) rect(ctx, r.x + 11 + i * 5, r.y + 12 - h, 3, h, "#2a78d6");
+    for (const [i, h] of [[0, 4], [1, 7], [2, 5], [3, 8]]) rect(ctx, r.x + 11 + i * 5, r.y + 12 - h, 3, h, i === 3 ? "#9fe870" : "#062f28");
     rect(ctx, r.x + 84, r.y + 3, 22, 10, "#ffffff");
-    for (let i = 0; i < 9; i += 1) rect(ctx, r.x + 86 + i * 2, r.y + 10 - Math.round(Math.abs(Math.sin(i / 1.7)) * 5), 2, 1, "#eb6834");
+    for (let i = 0; i < 9; i += 1) rect(ctx, r.x + 86 + i * 2, r.y + 10 - Math.round(Math.abs(Math.sin(i / 1.7)) * 5), 2, 1, "#2f6b4f");
     rect(ctx, r.x + 8, r.y + 86, 30, 18, "#9fb3d1");
   },
   (ctx, r) => {
@@ -88,7 +88,7 @@ const FURNITURE = [
     rect(ctx, r.x + 10, r.y + 80, 22, 12, "#5a4636");
   },
   (ctx, r) => {
-    drawShelf(ctx, r.x + 4, r.y + 1, 50, 14, ["#1f5bd1", "#c2410c", "#18794e", "#7c3aed", "#a35a00", "#0e7490"]);
+    drawShelf(ctx, r.x + 4, r.y + 1, 50, 14, ["#062f28", "#9fe870", "#7b7b7b", "#2f6b4f", "#c9d4d1", "#0e453a"]);
     drawShelf(ctx, r.x + 60, r.y + 1, 50, 14, ["#334155", "#be123c", "#0f766e", "#1d4ed8", "#a16207"]);
     rect(ctx, r.x + 12, r.y + 84, 14, 12, "#7f1d1d");
     rect(ctx, r.x + 14, r.y + 86, 10, 8, "#9b2c2c");
@@ -101,18 +101,18 @@ const FURNITURE = [
 export function drawBoards(ctx, info, active, t, reduced) {
   const [central, , comercial, estoque, , atendimento, operacoes] = ROOMS;
   // Central: agent network; spokes light up only for real delegations.
-  rect(ctx, central.x + 30, central.y + 2, 54, 12, "#0f1d33");
+  rect(ctx, central.x + 30, central.y + 2, 54, 12, "#062f28");
   const hub = { x: central.x + 57, y: central.y + 8 };
   for (let i = 0; i < 7; i += 1) {
     const node = { x: central.x + 34 + i * 7.5, y: central.y + (i % 2 ? 4 : 11) };
     const on = active.has(i + 2);
-    ctx.strokeStyle = on ? "#5fb3ff" : "#2c4372";
+    ctx.strokeStyle = on ? "#9fe870" : "#1d5a48";
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(hub.x + 0.5, hub.y + 0.5);
     ctx.lineTo(Math.round(node.x) + 0.5, node.y + 0.5);
     ctx.stroke();
-    rect(ctx, Math.round(node.x) - 1, node.y - 1, 3, 3, on ? "#9fd3ff" : "#3d5a8a");
+    rect(ctx, Math.round(node.x) - 1, node.y - 1, 3, 3, on ? "#d7f7bf" : "#2f6b4f");
   }
   rect(ctx, hub.x - 1, hub.y - 1, 3, 3, "#ffffff");
   // Comercial: one bar per store goal (progress), colored by projection.

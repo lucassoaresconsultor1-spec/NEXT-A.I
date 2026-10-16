@@ -152,7 +152,7 @@ export function drawShelf(ctx, x, y, w, h, items) {
 }
 
 export function drawBubble(ctx, x, y, kind, t, reduced) {
-  const tone = { analisando: "#1f5bd1", executando: "#1f5bd1", gerando_relatorio: "#1f5bd1", aguardando_aprovacao: "#a35a00", concluido: "#18794e", erro: "#c22b2b", indisponivel: "#6b768a", desatualizado: "#6b768a" }[kind];
+  const tone = { analisando: "#0e453a", executando: "#0e453a", gerando_relatorio: "#0e453a", aguardando_aprovacao: "#a35a00", concluido: "#18794e", erro: "#c22b2b", indisponivel: "#6b768a", desatualizado: "#6b768a" }[kind];
   if (!tone) return;
   rect(ctx, x, y, 11, 9, tone);
   rect(ctx, x + 1, y + 1, 9, 7, "#ffffff");
@@ -217,15 +217,15 @@ export function screenPainter(ctx, state, t, reduced, room) {
     if (state === "gerando_relatorio") {
       rect(ctx, x, y, w, h, "#e9eef7");
       const lines = reduced ? 3 : 1 + (Math.floor(t / 300) % 3);
-      for (let i = 0; i < lines; i += 1) rect(ctx, x + 2, y + 1 + i * 2, w - 4 - (i % 2) * 3, 1, "#1f5bd1");
+      for (let i = 0; i < lines; i += 1) rect(ctx, x + 2, y + 1 + i * 2, w - 4 - (i % 2) * 3, 1, "#062f28");
       return;
     }
     const working = state === "analisando" || state === "executando";
-    rect(ctx, x, y, w, h, working ? "#0d2a5c" : "#0b1220");
+    rect(ctx, x, y, w, h, working ? "#0b3b2f" : "#0b1612");
     for (let i = 0; i < 5; i += 1) {
       const base = [3, 5, 2, 6, 4][(i + room) % 5];
       const height = working && !reduced ? 1 + Math.round(((Math.sin(t / 220 + i * 1.3 + room) + 1) / 2) * (h - 2)) : working ? base : Math.min(base, 2);
-      rect(ctx, x + 1 + i * 2, y + h - height, 1, height, working ? "#5fb3ff" : "#24406e");
+      rect(ctx, x + 1 + i * 2, y + h - height, 1, height, working ? "#9fe870" : "#1d4a3c");
     }
   };
 }
