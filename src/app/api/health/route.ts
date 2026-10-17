@@ -7,7 +7,9 @@ export async function GET() {
     await checkDatabase();
     return Response.json({ status: "ok", database: "ok" });
   } catch (error) {
-    logger.error({ err: { code: (error as { code?: string })?.code } }, "Health check failed");
+    // Name and message identify the cause (missing env var, auth, DNS, timeout); they never carry the URL or password.
+    const { name, message, code } = error as { name?: string; message?: string; code?: string };
+    logger.error({ err: { name, code, message } }, "Health check failed");
     return Response.json({ status: "degraded", database: "unavailable" }, { status: 503 });
   }
 }
