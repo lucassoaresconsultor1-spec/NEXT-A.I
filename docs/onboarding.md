@@ -63,6 +63,28 @@ PLATFORM_ADMIN_PASSWORD='senha-provisoria-forte' pnpm platform:admin admin@exemp
 
 Se o e-mail já existir, o usuário apenas recebe a permissão; caso contrário é criado com troca de senha obrigatória no primeiro acesso. Depois de entrar, cadastre empresas e o acesso do dono em **Plataforma → Nova empresa** (`/plataforma/nova-empresa`) e envie ao dono o e-mail e a senha provisória por um canal seguro. O cadastro público `/criar-conta` funciona enquanto `ALLOW_SIGNUP=true`; em produção, use `false`.
 
+## Produção gratuita (Vercel + Neon)
+
+Ponto de partida sem custo: Vercel Hobby (app) e Neon Free (PostgreSQL). O Hobby da Vercel é para uso pessoal e não comercial; ao atender clientes pagantes, migre para um plano pago. O Neon Free suspende o banco ocioso (a primeira requisição depois de uma pausa demora mais) e tem armazenamento e histórico de restauração limitados.
+
+1. **Neon:** crie o projeto (versão padrão do PostgreSQL, região mais próxima dos usuários, de preferência São Paulo). O papel padrão `neondb_owner` é o dono do schema e roda as migrations.
+2. **Papel da aplicação** (SQL Editor do Neon, antes das migrations), com uma senha longa e aleatória:
+
+   ```sql
+   CREATE ROLE next_app LOGIN PASSWORD 'troque-por-senha-longa' NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;
+   GRANT USAGE ON SCHEMA public TO next_app;
+   ALTER DEFAULT PRIVILEGES FOR ROLE neondb_owner IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO next_app;
+   ALTER DEFAULT PRIVILEGES FOR ROLE neondb_owner IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO next_app;
+   SELECT rolname, rolbypassrls FROM pg_roles WHERE rolname = 'next_app'; -- deve mostrar false
+   ```
+
+3. **Segredos do GitHub** (repositório → Settings → Secrets and variables → Actions): `DATABASE_MIGRATION_URL` = conexão **direta** (sem `-pooler`) do `neondb_owner`; `PLATFORM_ADMIN_PASSWORD` = senha provisória do seu acesso (mínimo de 10 caracteres).
+4. **Migrations e administrador:** Actions → "Banco de produção" → Run workflow, informando seu e-mail. O workflow (`.github/workflows/database.yml`) aplica `pnpm db:migrate` e roda `pnpm platform:admin`; rode de novo, sem e-mail, a cada migration nova antes do deploy que depende dela.
+5. **Vercel:** importe o repositório (Next.js é detectado; pnpm vem de `packageManager`). Variáveis de ambiente de produção: `DATABASE_URL` = conexão **com pool** (`-pooler`) do `next_app`, `AUTH_SECRET` = texto aleatório com 32+ caracteres (`openssl rand -base64 48`), `ALLOW_SIGNUP=false`. Se disponível no plano, escolha a região de funções próxima ao banco.
+6. **Conferir:** `https://<seu-app>.vercel.app/api/health` responde `{"status":"ok","database":"ok"}`; entre com seu e-mail e a senha provisória, troque a senha e cadastre empresas em Plataforma → Nova empresa.
+
+O pool do Neon (modo transação) é compatível com o contexto de RLS, que usa `set_config(..., true)` dentro de cada transação. Se a conexão falhar por causa do parâmetro `channel_binding=require` da URL do Neon, remova-o e mantenha `sslmode=require`.
+
 ## Verificar
 
 ```bash

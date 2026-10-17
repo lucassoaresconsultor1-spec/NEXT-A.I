@@ -1,0 +1,38 @@
+# Manual: applies the migrations to the production database and, if an
+# e-mail is given, creates (or promotes) the platform administrator.
+# Repository secrets: DATABASE_MIGRATION_URL (schema owner, direct connection)
+# and PLATFORM_ADMIN_PASSWORD (temporary; changed on the first sign-in).
+name: Banco de produção
+
+on:
+  workflow_dispatch:
+    inputs:
+      admin_email:
+        description: "E-mail do administrador da plataforma (vazio = só aplicar migrations)"
+        required: false
+        default: ""
+
+concurrency: production-database
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Aplicar migrations
+        run: pnpm db:migrate
+        env:
+          DATABASE_MIGRATION_URL: ${{ secrets.DATABASE_MIGRATION_URL }}
+      - name: Administrador da plataforma
+        if: ${{ inputs.admin_email != '' }}
+        run: pnpm platform:admin "$ADMIN_EMAIL"
+        env:
+          ADMIN_EMAIL: ${{ inputs.admin_email }}
+          DATABASE_URL: ${{ secrets.DATABASE_MIGRATION_URL }}
+          PLATFORM_ADMIN_PASSWORD: ${{ secrets.PLATFORM_ADMIN_PASSWORD }}
