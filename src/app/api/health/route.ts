@@ -8,8 +8,11 @@ export async function GET() {
     return Response.json({ status: "ok", database: "ok" });
   } catch (error) {
     // Name and message identify the cause (missing env var, auth, DNS, timeout); they never carry the URL or password.
-    const { name, message, code } = error as { name?: string; message?: string; code?: string };
-    logger.error({ err: { name, code, message } }, "Health check failed");
+    type Failure = { name?: string; message?: string; code?: string; cause?: Failure };
+    const { name, message, code, cause } = error as Failure;
+    // Drizzle wraps the driver error ("Failed query: ...") in `cause`.
+    const driver = cause && { name: cause.name, code: cause.code, message: cause.message };
+    logger.error({ err: { name, code, message, cause: driver } }, "Health check failed");
     return Response.json({ status: "degraded", database: "unavailable" }, { status: 503 });
   }
 }
