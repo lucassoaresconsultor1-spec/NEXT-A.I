@@ -85,7 +85,7 @@ Um arquivo por módulo em `docs/contracts/<id>.md`, a partir de [_TEMPLATE.md](c
 
 | Contrato | Estado |
 |----------|--------|
-| [m01-dias-uteis](contracts/m01-dias-uteis.md) | Escrito (v1); aguarda validação do Maestro |
+| [m01-dias-uteis](contracts/m01-dias-uteis.md) | Escrito (v2, ajustado após a revisão do Arquiteto); aguarda a reconfirmação do Arquiteto antes de delegar |
 | m02 a m25 | Não escritos; o Arquiteto escreve um por vez, na ordem do mapa |
 
 ## 5. Definição de pronto global
@@ -100,3 +100,4 @@ Um arquivo por módulo em `docs/contracts/<id>.md`, a partir de [_TEMPLATE.md](c
 | Versão | Data | Módulo | Mudança | Motivo |
 |--------|------|--------|---------|--------|
 | 1 | 20/10/2026 | SPEC, m01-dias-uteis | Mapa de módulos, ADRs, modelo de ameaças e primeiro contrato | Preenchimento inicial a pedido do usuário |
+| 2 | 21/10/2026 | m01-dias-uteis | Opções hostis com `RangeError`, `isValidCalendarDay(unknown)`, `MAX_EXTRA_HOLIDAYS`, `NaN`/`Infinity`, borda de 3660/3661 dias, comandos de fuso e motivo de `easterSunday` | Revisão do Arquiteto (Opus): sete ajustes |
