@@ -1,11 +1,11 @@
 # Progresso do desenvolvimento autônomo
 
-Resumo das etapas concluídas até **22/10/2026**, no commit `0065a87` da branch `build/fases-1-8` (enviada ao GitHub). **Nada foi mesclado na `main` nem publicado.** O plano completo é o [SPEC](SPEC.md) (61 módulos, 8 fases); o registro de decisões é o [DECISIONS](DECISIONS.md); o estado por fase continua no [roadmap](roadmap.md).
+Resumo das etapas concluídas até **22/10/2026**, no commit `7d4adf6` da branch `build/fases-1-8` (enviada ao GitHub). **Nada foi mesclado na `main` nem publicado.** O plano completo é o [SPEC](SPEC.md) (61 módulos, 8 fases); o registro de decisões é o [DECISIONS](DECISIONS.md); o estado por fase continua no [roadmap](roadmap.md).
 
 ## 1. Resumo em números
-- **Módulos integrados nesta rodada:** 8 (m01, m02a, m02b, m27, m28a, m29a, m30a, m05a e o m44 de correção de teste), mais o back-end de catálogo e estoque e a infraestrutura de esteira.
-- **Migrações novas:** 0005 a 0016 (catálogo/estoque, configurações operacionais, clientes, compras, transferências e reservas, caixa), todas com RLS forçado.
-- **Testes verdes no último módulo integrado:** 268 unitários e **163 de integração** (PostgreSQL real, `varejo_test`).
+- **Módulos integrados nesta rodada:** 8 (m01, m02a, m02b, m27, m28a, m29a, m30a, m05a, m06a, m26 e o m44 de correção de teste), mais o back-end de catálogo e estoque e a infraestrutura de esteira.
+- **Migrações novas:** 0005 a 0018 (catálogo/estoque, configurações operacionais, clientes, compras, transferências e reservas, caixa, vendas), todas com RLS forçado.
+- **Testes verdes no último módulo integrado:** 280 unitários e **175 de integração** (PostgreSQL real, `varejo_test`).
 - **Contratos escritos:** 17 (m01, m02a, m02b, m03, m04, m05a, m06a, m14, m26, m27, m28a, m28b, m29a, m29b, m30a, m30b, m44).
 - **Ainda sem verificação manual no navegador** (celular, perfis, acessibilidade): fica para o marco de cada fase.
 
@@ -26,6 +26,8 @@ Resumo das etapas concluídas até **22/10/2026**, no commit `0065a87` da branch
 | **m29a compras** (3ª migração) | `77c217a` | Pedidos, recebimento contra pedido (entrada no livro e custo de reposição na mesma transação, idempotente por chave), contador de documentos (0011/0012) | PASS+REVIEW, 142 testes; revisão do recebimento |
 | **m30a transferências e reservas** (4ª migração) | `d247855` | Transferências (solicitada → aprovada → em trânsito → recebida/cancelada), reservas, colunas `reserved` e `in_transit`, regra "saldo nunca abaixo do reservado" (0013/0014) | PASS+REVIEW, 152 testes |
 | **m05a caixa** (5ª migração) | `0065a87` | Caixas, sessões e livro de dinheiro só de inserção (0015/0016); uma sessão aberta por caixa e por operador; esperado sempre somado do livro no servidor; diferença exige justificativa; reabertura autorizada | PASS+REVIEW, 163 testes; revisão do livro e do ciclo da sessão |
+| **m06a PDV: vendas e vendas suspensas** (6ª migração) | `2bd28c2` | Venda completa numa transação: preço do servidor (conflito se mudou), desconto com teto e permissão, pagamentos que somam exato, estoque e caixa atômicos, numeração por loja, snapshot de preço e custo, idempotência por chave; suspensão com reserva de estoque, retomada por outro operador e descarte com motivo (0017/0018) | PASS+REVIEW, 175 testes; revisão de `complete.ts` e `suspend.ts` |
+| **m26 estados de interface** | `ff09b79` | Skeleton, tela de carregamento e limites de erro com tentar de novo e sem vazar detalhe | Gate PASS isolado; build compila |
 | Planejamento | `2eaf3b5`, `4a08335`, `fe7f9d6` | SPEC v8 com 61 módulos, ADR-008 a ADR-020, contratos dos lotes 1 e 2 e do m14 | Revisões do Arquiteto (Opus) |
 
 ## 3. Como a esteira funciona
@@ -40,7 +42,8 @@ Resumo das etapas concluídas até **22/10/2026**, no commit `0065a87` da branch
 4. Mudanças pedidas ao próprio gate (ignorar arquivos de outros módulos) foram recusadas: a verificação passou a ser isolada, sem enfraquecer o gate.
 
 ## 5. Em andamento e bloqueios
-- **Em andamento (Opus):** m06a PDV (6ª migração, 0017/0018). A etapa 1 (venda completa: preço e custo congelados, pagamentos locais, idempotência, numeração por loja, estoque e caixa na mesma transação) está pronta e revisada, 171 testes de integração; a etapa 2 (suspensão e retomada com reserva) vem em seguida e o módulo só é commitado inteiro. Faltam os contratos m05b, m06b e m06c.
+- **Em andamento (Opus):** m07 pagamentos (7ª migração: porta de provedor, confirmação só por webhook autenticado ou consulta, sem provedor real), seguido de m09 (fiscal, só interface) e m08 (cancelamentos e devoluções). Contratos do lote 3 (m05b, m06b, m06c, m30b) e do lote 4 (m07, m08, m09) já commitados; faltam os de m31 e m19.
+- **Backlog do m06a (não bloqueia):** suspender não é idempotente; a lista de suspensas faz uma consulta por linha; vendas suspensas não expiram e seguram estoque reservado; venda sem saldo é recusada (regra de "vender sem saldo" é decisão de produto).
 - **Parados:** m26 (arquivos na árvore, não verificados), m14, m28b, m29b, m30b, m03 e m04. **Motivo:** o terminal "Codex — Apoio" está ocupado por uma sessão do Claude Code em somente leitura, não pelo Codex CLI. É preciso abrir o Codex CLI nele.
 - **Antigravity:** sem cota até cerca de 27/10/2026.
 
