@@ -23,5 +23,16 @@
         "repo": "JuliusBrussee/caveman"
       }
     }
+  },
+  "permissions": {
+    "allow": [
+      "Bash(pnpm -s lint)",
+      "Bash(pnpm -s typecheck)",
+      "Bash(pnpm -s lint:rules)",
+      "Bash(pnpm -s test)",
+      "mcp__github__actions_list",
+      "mcp__github__list_pull_requests",
+      "mcp__claude-code-remote__read_documentation"
+    ]
   }
 }
