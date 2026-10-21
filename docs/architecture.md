@@ -88,6 +88,23 @@ Um app Next.js e os serviços de `src/server/<módulo>` atendem todas as experi�
 
 Schema em `src/db/schema/`, explicado em [data-model.md](data-model.md). `getDb()` cria um pool `pg` (máx. 5, timeout 5 s) sob demanda e o reaproveita no HMR; nada conecta no build. Transações: toda operação de tenant é uma transação (`withScope`), o que também garante atomicidade entre a mudança e sua auditoria; limites de plano travam a organização com `FOR UPDATE`. Migrations são geradas por `drizzle-kit generate`, revisadas e aplicadas por `db:migrate` com o dono do schema; `FORCE ROW LEVEL SECURITY` e o catálogo de planos ficam em migrations custom.
 
+## Métricas de vendas
+
+`src/server/metrics/` é a fonte única dos números de vendas (ADR-012): metas, app do vendedor, painéis, relatórios e IA leem daqui, nunca somam vendas por conta própria. Tudo é agregado em SQL (centavos inteiros, quantidades em milésimos), dentro de `withScope`, com a visibilidade do m06a (`sales.read` no escopo de lojas; sem ela, só as próprias vendas). Datas são do calendário do fuso da loja (ou da empresa), com as duas pontas incluídas e até 366 dias.
+
+| Métrica | Fórmula |
+|---|---|
+| `grossRevenueCents` | Σ subtotal + acréscimo das vendas finalizadas no período (inclui as canceladas depois) |
+| `discountCents` | Σ desconto das mesmas vendas |
+| `cancelledCents` | Σ total das vendas cujo cancelamento ocorreu no período |
+| `returnedCents` | Σ valor das devoluções registradas no período |
+| `netRevenueCents` | bruto − desconto − cancelado − devolvido |
+| `saleCount` | vendas finalizadas no período que continuam finalizadas |
+| `averageTicketCents` | líquido ÷ quantidade, arredondado para baixo; 0 sem vendas |
+| `itemsPerSale` | Σ quantidade das vendas contadas ÷ quantidade, 2 casas, arredondado para baixo |
+
+O detalhamento (`salesDrillDown`) usa as mesmas parcelas por venda; a soma das contribuições é igual à métrica.
+
 ## Decisões
 
 | Decisão | Motivo | Alternativa considerada | Revisar quando |
