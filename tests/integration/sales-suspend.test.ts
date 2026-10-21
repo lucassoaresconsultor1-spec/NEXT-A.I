@@ -77,6 +77,18 @@ describe("suspended sales", () => {
     expect((await balance(s)).reserved).toBe("3.000");
   });
 
+  it("returns the same suspension for a repeated key, sequentially and concurrently", async () => {
+    const s = await setup();
+    const suspensionKey = randomUUID();
+    const first = await suspendSale(s.first, { suspensionKey, storeId: s.storeId, items: items(s, "2") });
+    expect(await suspendSale(s.first, { suspensionKey, storeId: s.storeId, items: items(s, "2") })).toEqual(first);
+    const parallelKey = randomUUID();
+    const results = await Promise.all([0, 1].map(() => suspendSale(s.first, { suspensionKey: parallelKey, storeId: s.storeId, items: items(s, "1") })));
+    expect(results[0]).toEqual(results[1]);
+    expect(await balance(s)).toEqual({ quantity: "5.000", reserved: "3.000" });
+    expect(await listSuspendedSales(s.first, s.storeId)).toHaveLength(2);
+  });
+
   it("releases the reservation when discarded, with a reason", async () => {
     const s = await setup();
     const { saleId } = await suspendSale(s.first, { storeId: s.storeId, items: items(s) });

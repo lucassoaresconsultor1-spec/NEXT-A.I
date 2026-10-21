@@ -116,6 +116,8 @@ export type ParsedCompleteSale = z.output<typeof completeSaleSchema>;
 
 export const suspendSaleSchema = z
   .object({
+    // Optional for compatibility; the POS always sends it so a repeated submission returns the same suspension.
+    suspensionKey: z.uuid({ error: "Chave da suspensão inválida." }).optional(),
     storeId: z.uuid({ error: "Selecione uma loja válida." }),
     customerId: optionalId,
     salespersonUserId: optionalId,

@@ -33,6 +33,7 @@ export const auditFiltersSchema = z.object({
       "sale",
       "payment_intent",
       "fiscal_document",
+      "sale_refund",
     ])
     .optional()
     .catch(undefined),

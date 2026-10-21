@@ -1,7 +1,7 @@
 import "server-only";
 import { alias } from "drizzle-orm/pg-core";
-import { and, asc, count, desc, eq, gte, inArray, lt, type SQL } from "drizzle-orm";
-import { customers, saleItems, salePayments, sales, stores, users } from "@/db/schema";
+import { and, asc, count, desc, eq, gte, inArray, lt, sql, type SQL } from "drizzle-orm";
+import { customers, saleItems, salePayments, saleRefundItems, saleRefunds, sales, stores, users } from "@/db/schema";
 import { withScope, type Tx } from "@/db/tenant";
 import { zonedDayStart } from "@/lib/dates";
 import { dbScope, storeScopeCondition, type TenantContext } from "@/server/authz/context";
@@ -128,6 +128,7 @@ export async function loadSaleDetail(tx: Tx, context: TenantContext, saleId: str
   const withCosts = can(context, "catalog.costs.read");
   const itemRows = await tx
     .select({
+      id: saleItems.id,
       line: saleItems.line,
       variantId: saleItems.variantId,
       productName: saleItems.productName,
@@ -156,6 +157,27 @@ export async function loadSaleDetail(tx: Tx, context: TenantContext, saleId: str
     .from(salePayments)
     .where(and(eq(salePayments.organizationId, orgId), eq(salePayments.saleId, saleId)))
     .orderBy(asc(salePayments.createdAt));
+  const refunds = await tx
+    .select({
+      id: saleRefunds.id,
+      kind: saleRefunds.kind,
+      method: saleRefunds.method,
+      amountCents: saleRefunds.amountCents,
+      reason: saleRefunds.reason,
+      createdAt: saleRefunds.createdAt,
+      createdByName: users.name,
+    })
+    .from(saleRefunds)
+    .leftJoin(users, eq(users.id, saleRefunds.createdBy))
+    .where(and(eq(saleRefunds.organizationId, orgId), eq(saleRefunds.saleId, saleId)))
+    .orderBy(asc(saleRefunds.createdAt));
+  const returned = await tx
+    .select({ saleItemId: saleRefundItems.saleItemId, quantity: sql<string>`coalesce(sum(${saleRefundItems.quantity}), 0)::text` })
+    .from(saleRefundItems)
+    .innerJoin(saleRefunds, and(eq(saleRefunds.organizationId, saleRefundItems.organizationId), eq(saleRefunds.id, saleRefundItems.refundId)))
+    .where(and(eq(saleRefundItems.organizationId, orgId), eq(saleRefunds.saleId, saleId)))
+    .groupBy(saleRefundItems.saleItemId);
+  const returnedByItem = new Map(returned.map((row) => [row.saleItemId, row.quantity]));
   const { customerId, customerName, customerDocument, ...rest } = sale;
   const fullDocument = can(context, "customers.documents.read");
   return {
@@ -163,7 +185,8 @@ export async function loadSaleDetail(tx: Tx, context: TenantContext, saleId: str
     customer: customerId
       ? { id: customerId, name: customerName, document: customerDocument ? (fullDocument ? customerDocument : maskCpf(customerDocument)) : null }
       : null,
-    items: itemRows.map(({ unitCostCents, ...item }) => ({ ...item, ...(withCosts ? { unitCostCents } : {}) })),
+    items: itemRows.map(({ id, unitCostCents, ...item }) => ({ ...item, returnedQuantity: returnedByItem.get(id) ?? "0.000", ...(withCosts ? { unitCostCents } : {}) })),
+    refunds,
     payments: payments.map((payment) => ({ ...payment, nsu: lastDigits(payment.nsu) })),
   };
 }

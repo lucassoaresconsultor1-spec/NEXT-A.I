@@ -29,6 +29,8 @@ export const sales = pgTable(
     number: integer("number"),
     status: saleStatus("status").notNull(),
     completionKey: uuid("completion_key"),
+    // Idempotency of suspensions (a repeated submission returns the same suspended sale).
+    suspensionKey: uuid("suspension_key"),
     cashSessionId: uuid("cash_session_id"),
     operatorUserId: uuid("operator_user_id")
       .notNull()
@@ -52,6 +54,7 @@ export const sales = pgTable(
   (t) => [
     unique("sales_org_id_key").on(t.organizationId, t.id),
     unique("sales_org_completion_key_key").on(t.organizationId, t.completionKey),
+    unique("sales_org_suspension_key_key").on(t.organizationId, t.suspensionKey),
     unique("sales_org_store_number_key").on(t.organizationId, t.storeId, t.number),
     foreignKey({ name: "sales_store_fk", columns: [t.organizationId, t.storeId], foreignColumns: [stores.organizationId, stores.id] }),
     foreignKey({

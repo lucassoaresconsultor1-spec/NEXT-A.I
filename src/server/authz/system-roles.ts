@@ -108,6 +108,9 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
       "sales.discount",
       "sales.discount.override",
       "sales.surcharge",
+      "sales.cancel",
+      "sales.refund",
+      "sales.refund.override",
       "fiscal.read",
       "cash.read",
       "cash.operate",
@@ -141,7 +144,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 20,
     defaultStoreAccess: "stores",
     // Front-line roles register the buyer at the sale (ADR-017).
-    permissions: ["stores.read", "catalog.read", "inventory.read", "sales.create", "sales.discount", "cash.operate", "customers.read", "customers.manage"],
+    permissions: ["stores.read", "catalog.read", "inventory.read", "sales.create", "sales.discount", "sales.cancel", "cash.operate", "customers.read", "customers.manage"],
   },
 ];
 

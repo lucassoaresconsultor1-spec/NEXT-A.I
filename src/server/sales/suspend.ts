@@ -1,14 +1,14 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { alias } from "drizzle-orm/pg-core";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, sum } from "drizzle-orm";
 import { customers, saleItems, sales, users } from "@/db/schema";
 import { withScope, type Tx } from "@/db/tenant";
 import { recordAudit } from "@/server/audit/record";
 import { dbScope, isStoreInScope, type TenantContext } from "@/server/authz/context";
 import { assertCan, assertStoreInScope } from "@/server/authz/guard";
 import { loadActiveCustomer } from "@/server/customers/service";
-import { invalid, isDomainError, notFound } from "@/server/errors";
+import { invalid, isDomainError, isUniqueViolation, notFound } from "@/server/errors";
 import { isWholeQuantity, toDbQuantity } from "@/server/inventory/quantity";
 import { releaseReservation, reserveStock } from "@/server/inventory/reservations";
 import { assertFeature } from "@/server/plans/entitlements";
@@ -29,8 +29,36 @@ export async function suspendSale(context: TenantContext, rawInput: unknown): Pr
   const input = parse(suspendSaleSchema, rawInput);
   assertStoreInScope(context, input.storeId);
   const orgId = context.organization.id;
+  const findByKey = async (tx: Tx) => {
+    if (!input.suspensionKey) return null;
+    const [row] = await tx
+      .select({ id: sales.id })
+      .from(sales)
+      .where(and(eq(sales.organizationId, orgId), eq(sales.suspensionKey, input.suspensionKey)));
+    return row ?? null;
+  };
+  try {
+    return await suspendOnce(context, input, findByKey);
+  } catch (error) {
+    // A concurrent retry with the same key committed first: answer with that suspension.
+    if (isUniqueViolation(error, "sales_org_suspension_key_key")) {
+      const previous = await withScope(dbScope(context), (tx) => findByKey(tx));
+      if (previous) return { saleId: previous.id };
+    }
+    throw error;
+  }
+}
+
+async function suspendOnce(
+  context: TenantContext,
+  input: ReturnType<typeof suspendSaleSchema.parse>,
+  findByKey: (tx: Tx) => Promise<{ id: string } | null>,
+): Promise<{ saleId: string }> {
+  const orgId = context.organization.id;
   return withScope(dbScope(context), async (tx) => {
     await assertFeature(tx, orgId, "pos");
+    const previous = await findByKey(tx);
+    if (previous) return { saleId: previous.id };
     await assertStoreActive(tx, orgId, input.storeId);
     if (input.customerId && !(await loadActiveCustomer(tx, orgId, input.customerId))) {
       throw invalid("Revise os campos destacados.", { customerId: ["Selecione um cliente ativo."] });
@@ -53,6 +81,7 @@ export async function suspendSale(context: TenantContext, rawInput: unknown): Pr
       organizationId: orgId,
       storeId: input.storeId,
       status: "suspended",
+      suspensionKey: input.suspensionKey ?? null,
       operatorUserId: context.user.id,
       salespersonUserId: input.salespersonUserId ?? null,
       customerId: input.customerId ?? null,
@@ -117,15 +146,15 @@ export async function listSuspendedSales(context: TenantContext, storeId: string
       .where(and(eq(sales.organizationId, orgId), eq(sales.storeId, storeId), eq(sales.status, "suspended")))
       .orderBy(desc(sales.suspendedAt))
       .limit(100);
-    const result = [];
-    for (const row of rows) {
-      const items = await tx
-        .select({ total: saleItems.totalCents })
-        .from(saleItems)
-        .where(and(eq(saleItems.organizationId, orgId), eq(saleItems.saleId, row.id)));
-      result.push({ ...row, itemCount: items.length, estimatedTotalCents: items.reduce((sum, item) => sum + item.total, 0) });
-    }
-    return result;
+    if (rows.length === 0) return [];
+    // One aggregate query for every listed sale (no query per row).
+    const totals = await tx
+      .select({ saleId: saleItems.saleId, itemCount: count(), total: sum(saleItems.totalCents).mapWith(Number) })
+      .from(saleItems)
+      .where(and(eq(saleItems.organizationId, orgId), inArray(saleItems.saleId, rows.map((row) => row.id))))
+      .groupBy(saleItems.saleId);
+    const bySale = new Map(totals.map((entry) => [entry.saleId, entry]));
+    return rows.map((row) => ({ ...row, itemCount: bySale.get(row.id)?.itemCount ?? 0, estimatedTotalCents: bySale.get(row.id)?.total ?? 0 }));
   });
 }
 

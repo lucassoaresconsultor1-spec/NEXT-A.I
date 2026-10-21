@@ -1,4 +1,4 @@
-# Contrato do módulo `m08-cancelamentos` — v1
+# Contrato do módulo `m08-cancelamentos` — v2
 
 > Escrito pelo Arquiteto (Opus) em 22/10/2026. Risco: **SENSÍVEL** (dinheiro, estoque, autorização). Nível: **A** (Opus).
 > **Ordem de migração: 9ª da fila A**, depois da do m09 integrada (usa o estorno do m07 e o estado fiscal do m09).
@@ -20,6 +20,10 @@ src/server/sales/refund.ts
 src/server/sales/refund-schemas.ts
 src/server/sales/refund-schemas.test.ts
 src/server/sales/queries.ts                  (detalhe da venda passa a listar devoluções e saldo devolvível por item)
+src/server/sales/suspend.ts                  (v2, backlog do m06a: suspensão idempotente e lista sem consulta por linha)
+src/server/sales/schemas.ts                  (v2: suspensionKey no suspendSaleSchema)
+src/db/schema/sales.ts                       (v2: coluna suspension_key)
+tests/integration/sales-suspend.test.ts      (v2: casos novos de idempotência)
 src/server/authz/permissions.ts
 src/server/authz/system-roles.ts
 src/server/authz/system-roles.test.ts
@@ -46,6 +50,11 @@ export async function refundSale(context, saleId, input: unknown): Promise<{ ref
 - Comissões (m12a) leem as devoluções para estornar; este módulo só registra.
 - Permissões novas: `sales.cancel` ("Cancelar venda do caixa aberto"), `sales.refund` ("Registrar devolução de venda"), `sales.refund.override` ("Devolver fora do prazo"). Gerente: as três; Operador de caixa: `sales.cancel` só das próprias vendas (regra no serviço); Dono/Admin: todas.
 - Auditoria: `sale.cancelled`, `sale.refunded`; entidade `sale_refund` "Devolução".
+
+## 4.1 Backlog do m06a (v2)
+- `sales.suspension_key uuid NULL` com `UNIQUE (organization_id, suspension_key)`; `suspendSaleSchema` exige `suspensionKey` (uuid); `suspendSale` com chave repetida devolve a mesma venda suspensa (sem reservar de novo), inclusive em corrida (violação de unicidade = releitura).
+- `listSuspendedSales` passa a calcular `itemCount` e `estimatedTotalCents` numa consulta agregada só.
+- Testes novos em `sales-suspend.test.ts`: mesma chave duas vezes (em sequência e em paralelo) = uma suspensa e uma reserva.
 
 ## 5. Dados (`refunds.ts`)
 ```
