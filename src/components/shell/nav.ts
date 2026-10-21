@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Map,
   Repeat,
+  ScrollText,
   Package,
   Settings,
   ShieldCheck,
@@ -61,7 +62,10 @@ export const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
   },
   {
     label: "Vendas",
-    items: [{ href: "/clientes", label: "Clientes", icon: Contact }],
+    items: [
+      { href: "/vendas", label: "Histórico de vendas", icon: ScrollText },
+      { href: "/clientes", label: "Clientes", icon: Contact },
+    ],
   },
   {
     label: "Pessoas e acesso",

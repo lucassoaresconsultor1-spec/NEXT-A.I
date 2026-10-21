@@ -7,9 +7,10 @@ import { can } from "@/server/authz/guard";
 import type { Permission } from "@/server/authz/permissions";
 import { listStoreOptions } from "@/server/stores/options";
 
-// Navigation entries and the permission that unlocks each one. Pages enforce the
-// same permission again; this list only decides what the menu shows.
-const NAV_PERMISSIONS: Record<string, Permission | null> = {
+// Navigation entries and the permission that unlocks each one (any of them, when
+// a list). Pages enforce the same permission again; this list only decides what
+// the menu shows.
+const NAV_PERMISSIONS: Record<string, Permission | readonly Permission[] | null> = {
   "/painel": null,
   "/lojas": "stores.read",
   "/regioes": "regions.read",
@@ -24,6 +25,7 @@ const NAV_PERMISSIONS: Record<string, Permission | null> = {
   "/estoque/inventarios": "inventory.read",
   "/compras": "purchases.read",
   "/clientes": "customers.read",
+  "/vendas": ["sales.read", "sales.create"],
   "/equipe": "members.read",
   "/perfis": "roles.read",
   "/auditoria": "audit.read",
@@ -32,7 +34,7 @@ const NAV_PERMISSIONS: Record<string, Permission | null> = {
 
 export async function getShellData(context: TenantContext) {
   const allowedNav = Object.entries(NAV_PERMISSIONS)
-    .filter(([, permission]) => permission === null || can(context, permission))
+    .filter(([, permission]) => permission === null || (Array.isArray(permission) ? permission : [permission]).some((key) => can(context, key)))
     .map(([href]) => href);
   const [stores, plan] = await Promise.all([
     can(context, "stores.read") ? listStoreOptions(context) : Promise.resolve([]),
