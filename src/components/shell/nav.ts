@@ -1,4 +1,5 @@
 import {
+  Award,
   Building2,
   History,
   LayoutDashboard,
@@ -6,6 +7,7 @@ import {
   Settings,
   ShieldCheck,
   Store,
+  Tags,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -28,6 +30,13 @@ export const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
       { href: "/lojas", label: "Lojas", icon: Store },
       { href: "/regioes", label: "Regiões", icon: Map },
       { href: "/departamentos", label: "Departamentos", icon: Building2 },
+    ],
+  },
+  {
+    label: "Catálogo",
+    items: [
+      { href: "/categorias", label: "Categorias", icon: Tags },
+      { href: "/marcas", label: "Marcas", icon: Award },
     ],
   },
   {

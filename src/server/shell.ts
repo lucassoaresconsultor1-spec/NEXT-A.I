@@ -14,6 +14,8 @@ const NAV_PERMISSIONS: Record<string, Permission | null> = {
   "/lojas": "stores.read",
   "/regioes": "regions.read",
   "/departamentos": "departments.read",
+  "/categorias": "catalog.read",
+  "/marcas": "catalog.read",
   "/equipe": "members.read",
   "/perfis": "roles.read",
   "/auditoria": "audit.read",
