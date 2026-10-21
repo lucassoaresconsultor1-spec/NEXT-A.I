@@ -109,6 +109,7 @@ Instalar skills não executa suas ações. Não force animações, cache, deploy
 - Delegue somente quando isolamento de contexto, especialização ou paralelismo independente compensarem a coordenação; prefira execução direta para tarefas simples.
 - Cada tarefa recebe objetivo, contexto mínimo, arquivos permitidos, dependências, aceite e checks. Um escritor por arquivo; o coordenador cuida de lockfile, configuração compartilhada e integração. Revisores paralelos trabalham somente em leitura. Testes de integração paralelos usam bancos distintos.
 - Verifique diff e checks antes de aceitar o resultado de um trabalhador.
+- Delegação a workers segue `docs/PROTOCOLO-MODULAR-V2.md`: contrato em `docs/contracts/`, aprovação do plano e veredito de `tools/gate/gate.ps1` (uso em [docs/quality.md](docs/quality.md#gate-modular)).
 - Após cada ciclo de implementação ou correção, sugira ao usuário de **3 a 8 ciclos posteriores de code review**, com quantidade e focos conforme risco e escopo, motivo e prompt copiável. A sugestão não autoriza executar novas rodadas automaticamente.
 - Em uma rodada solicitada, cada ciclo revisa o estado atual, registra achados com severidade/local/evidência e verifica correções autorizadas. Termine com verificação integrada e riscos residuais.
 

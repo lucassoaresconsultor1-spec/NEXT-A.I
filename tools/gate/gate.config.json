@@ -1,0 +1,40 @@
+{
+  "commands": {
+    "lint": "corepack pnpm lint",
+    "typecheck": "corepack pnpm typecheck",
+    "lint:rules": "corepack pnpm lint:rules",
+    "test": "corepack pnpm test"
+  },
+  "sensitiveCommands": {
+    "integration": ""
+  },
+  "maxOutputLines": 30,
+  "ignoreGlobs": [".maestri/**", "node_modules/**", ".next/**", "dist/**", "build/**", "coverage/**", "*.tsbuildinfo"],
+  "forbiddenFiles": [".env", ".env.*", "*.pem", "*.key", "id_rsa*"],
+  "dependencyFiles": [
+    "package.json", "package-lock.json", "pnpm-lock.yaml", "yarn.lock",
+    "requirements.txt", "pyproject.toml", "poetry.lock", "go.mod", "Cargo.toml"
+  ],
+  "sensitiveGlobs": [
+    "**/auth/**", "**/authz/**", "**/middleware/**", "**/permissions/**", "**/roles/**",
+    "**/payment*/**", "**/billing/**", "**/crypto/**", "**/secrets/**",
+    "**/migrations/**", "**/*.sql", "**/upload*/**", "**/webhook*/**", "**/integrations/**",
+    "src/db/**", "drizzle/**", "src/proxy.ts", "src/lib/env.ts",
+    "src/server/audit/**", "src/server/plans/**", "src/server/members/**", "src/server/platform/**",
+    "src/server/inventory/**", "tools/gate/**", "docs/contracts/**", "next.config.*", ".github/**"
+  ],
+  "testGlobs": ["**/tests/**", "**/__tests__/**", "**/*.test.*", "**/*.spec.*", "**/test_*.py"],
+  "testTamperPatterns": [
+    "\\.(skip|only)\\(", "\\bxit\\(", "\\bxdescribe\\(", "@pytest\\.mark\\.skip", "@Disabled", "t\\.Skip\\("
+  ],
+  "secretPatterns": [
+    "AKIA[0-9A-Z]{16}",
+    "-----BEGIN (RSA |EC |OPENSSH |)PRIVATE KEY-----",
+    "eyJ[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}",
+    "(?i)(api|secret|private)[_-]?key\\s*[:=]\\s*['\"][A-Za-z0-9_\\-]{16,}['\"]"
+  ],
+  "weakSecretPatterns": [
+    "(?i)\\b(password|passwd|senha)\\s*[:=]\\s*['\"][^'\"]{6,}['\"]"
+  ],
+  "weakSecretSkipGlobs": ["**/tests/**", "**/__tests__/**", "**/*.test.*", "**/*.spec.*"]
+}

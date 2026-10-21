@@ -38,6 +38,26 @@ Ao concluir um ciclo de implementação ou correção, sugira de 3 a 8 ciclos po
 
 Cada ciclo verifica o estado atual e o código conectado, registra achados com severidade, local e evidência e reavalia correções autorizadas com os checks afetados. Correções da mesma rodada não reiniciam a contagem. Termine com verificação integrada e riscos residuais, sem criar ciclos artificiais ou afirmar que uma quantidade de revisões prova ausência de bugs.
 
+## Gate modular
+
+Portão sem LLM para módulos entregues por workers ([PROTOCOLO-MODULAR-V2.md](PROTOCOLO-MODULAR-V2.md)). Rode na raiz do repositório, com PowerShell 7:
+
+```powershell
+pwsh tools/gate/gate.ps1 -Module <id> -Allowed 'src/server/<modulo>/**','tests/integration/<modulo>.test.ts'
+```
+
+| Saída | Significado |
+|---|---|
+| `PASS` (exit 0) | Escopo, arquivos proibidos, dependências, testes e segredos ok; `lint`, `typecheck`, `lint:rules` e `test` passaram |
+| `PASS+REVIEW` (exit 2) | Como PASS, mas tocou superfície sensível ou removeu asserts; o Maestro revisa só esses diffs com [REVIEW-CHECKLIST.md](REVIEW-CHECKLIST.md) |
+| `FAIL` (exit 1) | Arquivo fora da allowlist, `.env`/chave, `package.json`/lockfile, teste apagado ou com `skip`/`only`, possível segredo, ou comando reprovado |
+
+- Configuração em `tools/gate/gate.config.json`. Sensíveis incluem `auth`, `authz`, `roles`, `src/db/**`, `drizzle/**`, auditoria, planos, membros, plataforma, estoque e o próprio `tools/gate/**` (nunca entra em allowlist de worker).
+- Segredos: chave AWS, chave privada, JWT e `api/secret/private key` literal reprovam em qualquer arquivo; senha literal (`password`/`senha`) reprova fora de testes.
+- O gate compara com `HEAD` e soma arquivos não rastreados: com trabalho sem commit na árvore, todo módulo reprova por escopo. Use um commit base (decisão do usuário) ou `-InitBaseline` antes do worker começar. Workers rodam em sequência na mesma árvore.
+- Não roda `build` nem integração. `tools/gate/gate.integration.config.json` (via `-Config`) acrescenta `pnpm test:integration` quando há arquivo sensível; as variáveis `TEST_DATABASE_URL`/`TEST_DATABASE_MIGRATION_URL` vêm do shell, nunca de arquivo.
+- `.env*` e `*.pem` estão no `.gitignore`, então o gate não os enxerga; a regra de proibidos só pega arquivos rastreados à força.
+
 ## Dependências e entrega
 
 Confira auditorias completas e de produção (`pnpm audit --prod` e `pnpm audit`). Investigue advisories e registre risco conhecido e correção disponível em [setup.md](setup.md). Lint/build aprovados não significam auditoria zerada.
