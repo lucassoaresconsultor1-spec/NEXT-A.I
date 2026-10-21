@@ -204,6 +204,20 @@
       "when": 1792618569226,
       "tag": "0028_force_rls_imports",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1792619357010,
+      "tag": "0029_company_calendar",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1792619361109,
+      "tag": "0030_force_rls_company_calendar",
+      "breakpoints": true
     }
   ]
 }
