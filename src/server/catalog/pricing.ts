@@ -54,30 +54,44 @@ export async function setVariantPrice(context: TenantContext, variantId: string,
   });
 }
 
-/** Cost amounts stay out of the audit trail; the entry points at the cost history row. */
+/**
+ * Appends a cost record when it differs from the current one, under the variant lock, inside the
+ * caller's transaction. Cost amounts stay out of the audit trail; the entry points at the cost
+ * history row and tells where the cost came from. No permission check: the caller authorized it.
+ */
+export async function recordCostInTx(
+  tx: Tx,
+  organizationId: string,
+  actorUserId: string,
+  variantId: string,
+  cents: number,
+  source: "manual" | "purchase_receipt",
+) {
+  await lockVariant(tx, organizationId, variantId);
+  const { costCents } = await currentValues(tx, organizationId, variantId);
+  if (costCents === cents) return { changed: false };
+  const [created] = await tx
+    .insert(productCosts)
+    .values({ organizationId, variantId, costCents: cents, createdBy: actorUserId })
+    .returning({ id: productCosts.id });
+  await recordAudit(tx, {
+    organizationId,
+    actorUserId,
+    action: "product_variant.cost_changed",
+    entityType: "product_variant",
+    entityId: variantId,
+    changes: { costRecordId: created.id, source },
+  });
+  return { changed: true };
+}
+
 export async function setVariantCost(context: TenantContext, variantId: string, cents: number) {
   assertCanManageCosts(context);
   const input = parseOrThrow(priceInputSchema, { cents });
   if (!isUuid(variantId)) throw VARIANT_NOT_FOUND();
-  const orgId = context.organization.id;
-  return withScope(dbScope(context), async (tx) => {
-    await lockVariant(tx, orgId, variantId);
-    const { costCents } = await currentValues(tx, orgId, variantId);
-    if (costCents === input.cents) return { changed: false };
-    const [created] = await tx
-      .insert(productCosts)
-      .values({ organizationId: orgId, variantId, costCents: input.cents, createdBy: context.user.id })
-      .returning({ id: productCosts.id });
-    await recordAudit(tx, {
-      organizationId: orgId,
-      actorUserId: context.user.id,
-      action: "product_variant.cost_changed",
-      entityType: "product_variant",
-      entityId: variantId,
-      changes: { costRecordId: created.id },
-    });
-    return { changed: true };
-  });
+  return withScope(dbScope(context), (tx) =>
+    recordCostInTx(tx, context.organization.id, context.user.id, variantId, input.cents, "manual"),
+  );
 }
 
 const HISTORY = {

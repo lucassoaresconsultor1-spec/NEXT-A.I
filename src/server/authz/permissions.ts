@@ -44,6 +44,16 @@ export const PERMISSION_GROUPS = [
     ],
   },
   {
+    key: "purchasing",
+    label: "Compras",
+    permissions: [
+      { key: "purchases.read", label: "Ver pedidos de compra e recebimentos das lojas do escopo" },
+      { key: "purchases.manage", label: "Criar e editar pedidos de compra (exige ver custos)" },
+      { key: "purchases.approve", label: "Aprovar, cancelar e encerrar pedidos de compra" },
+      { key: "purchases.receive", label: "Registrar recebimento de mercadorias" },
+    ],
+  },
+  {
     key: "customers",
     label: "Clientes",
     permissions: [

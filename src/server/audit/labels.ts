@@ -40,6 +40,12 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "customer.created": "Cliente cadastrado",
   "customer.updated": "Cliente alterado",
   "customer.status_changed": "Situação de cliente alterada",
+  "purchase_order.created": "Pedido de compra criado",
+  "purchase_order.updated": "Pedido de compra alterado",
+  "purchase_order.approved": "Pedido de compra aprovado",
+  "purchase_order.cancelled": "Pedido de compra cancelado",
+  "purchase_order.closed": "Pedido de compra encerrado com pendências",
+  "goods_receipt.recorded": "Recebimento de mercadorias registrado",
 };
 
 export const AUDIT_ENTITY_LABELS: Record<string, string> = {
@@ -57,6 +63,8 @@ export const AUDIT_ENTITY_LABELS: Record<string, string> = {
   inventory_movement: "Movimentação de estoque",
   operational_settings: "Regras de operação",
   customer: "Cliente",
+  purchase_order: "Pedido de compra",
+  goods_receipt: "Recebimento de mercadorias",
 };
 
 export function auditActionLabel(action: string) {

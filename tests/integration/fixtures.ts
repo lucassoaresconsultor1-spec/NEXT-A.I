@@ -11,6 +11,7 @@ import {
   regions,
   roles,
   stores,
+  suppliers,
   users,
 } from "@/db/schema";
 import { withScope, type Tx } from "@/db/tenant";
@@ -177,5 +178,15 @@ export async function createCustomerFixture(
       })
       .returning({ id: customers.id });
     return customer.id;
+  });
+}
+
+export async function createSupplierFixture(organizationId: string, values: { name?: string; isActive?: boolean } = {}) {
+  return withScope({ organizationId }, async (tx) => {
+    const [supplier] = await tx
+      .insert(suppliers)
+      .values({ organizationId, name: values.name ?? `Fornecedor ${uniqueSuffix()}`, isActive: values.isActive ?? true })
+      .returning({ id: suppliers.id });
+    return supplier.id;
   });
 }

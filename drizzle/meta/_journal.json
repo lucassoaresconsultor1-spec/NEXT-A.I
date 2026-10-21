@@ -78,6 +78,20 @@
       "when": 1792581650555,
       "tag": "0010_force_rls_customers",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792583365835,
+      "tag": "0011_purchasing",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792583375516,
+      "tag": "0012_force_rls_purchasing",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,6 @@
 # Modelo de dados
 
-Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes). Este documento explica o desenho; não repete colunas óbvias.
+Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes, `0011` compras e contador de documentos, `0012` FORCE RLS de compras). Este documento explica o desenho; não repete colunas óbvias.
 
 ## Implementado (Fase 1)
 
@@ -101,6 +101,19 @@ Migrations `0009` (tabela, política, índices, checks) e `0010` (FORCE RLS).
 | `customers` | Clientes da **empresa** (sem escopo de loja), com dados mínimos (ADR-017): nome, CPF opcional (11 dígitos, único por empresa quando informado), e-mail (minúsculo) e telefone (só dígitos) opcionais, consentimento de contato com data (`consent_at` presente só com consentimento, garantido por check), ativo/inativo. `UNIQUE (organization_id, id)` para as FKs compostas de vendas e fila. Índices por nome (`lower`), e-mail e telefone. Sem exclusão física |
 
 O CPF completo só sai do serviço para quem tem `customers.documents.read`; os demais recebem `***.456.789-**`. A auditoria guarda CPF, e-mail e telefone sempre mascarados.
+
+## Implementado (Fase 2 — compras, módulo m29a)
+
+Migrations `0011` (tabelas, políticas, FKs, checks) e `0012` (FORCE RLS).
+
+| Tabela | Notas |
+|---|---|
+| `document_counters` | Chave `(organization_id, scope)`; `last_value` incrementado dentro da transação que cria o documento (a linha fica travada até o commit; rollback devolve o número). Escopos: `purchase_order` e, no PDV, `sale:{loja}` (ADR-014) |
+| `purchase_orders` | Número único por empresa; loja de destino e fornecedor por FK composta; situação `draft` → `approved` → `partially_received` → `received`, ou `cancelled`; checks de coerência para cancelamento e encerramento com pendências |
+| `purchase_order_items` | Uma linha por variação no pedido; `quantity_received` entre 0 e `quantity_ordered` (check); custo unitário em centavos. Substituídos só enquanto o pedido é rascunho |
+| `goods_receipts`, `goods_receipt_items` | Somente inserção e leitura. Chave de idempotência única por empresa; cada item aponta para o movimento de estoque (`entry`) que criou, por FK composta |
+
+**Recebimento atômico:** numa transação, o serviço trava o pedido e os itens, confere a chave de idempotência (repetida = mesmo recebimento), recusa quantidade acima do pendente, lança a entrada no livro por `postLedgerEntry` em ordem crescente de variação, grava o custo de reposição por `recordCostInTx` (só quando muda; auditoria com `source: "purchase_receipt"`), atualiza o recebido e a situação, e audita.
 
 ## Planejado (Fases 2–6)
 
