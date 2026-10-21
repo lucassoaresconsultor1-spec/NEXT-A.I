@@ -9,3 +9,4 @@ export * from "./settings";
 export * from "./customers";
 export * from "./counters";
 export * from "./purchasing";
+export * from "./transfers";

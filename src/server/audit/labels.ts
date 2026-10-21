@@ -46,6 +46,11 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "purchase_order.cancelled": "Pedido de compra cancelado",
   "purchase_order.closed": "Pedido de compra encerrado com pendências",
   "goods_receipt.recorded": "Recebimento de mercadorias registrado",
+  "stock_transfer.requested": "Transferência de estoque solicitada",
+  "stock_transfer.approved": "Transferência aprovada",
+  "stock_transfer.dispatched": "Transferência despachada",
+  "stock_transfer.received": "Transferência recebida",
+  "stock_transfer.cancelled": "Transferência cancelada",
 };
 
 export const AUDIT_ENTITY_LABELS: Record<string, string> = {
@@ -65,6 +70,7 @@ export const AUDIT_ENTITY_LABELS: Record<string, string> = {
   customer: "Cliente",
   purchase_order: "Pedido de compra",
   goods_receipt: "Recebimento de mercadorias",
+  stock_transfer: "Transferência de estoque",
 };
 
 export function auditActionLabel(action: string) {

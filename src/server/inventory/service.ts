@@ -10,6 +10,7 @@ import { invalid } from "@/server/errors";
 import { likePattern, pageResult, pageWindow } from "@/server/pagination";
 import { assertFeature } from "@/server/plans/entitlements";
 import { postLedgerEntry } from "./ledger";
+import { fromDbQuantity, toDbQuantity } from "./quantity";
 import { movementInputSchema, type BalanceFilters, type MovementFilters, type MovementInput, type ParsedMovementInput } from "./schemas";
 
 export type { BalanceFilters, MovementFilters, MovementInput } from "./schemas";
@@ -81,6 +82,8 @@ export async function listBalances(context: TenantContext, filters: BalanceFilte
         productName: products.name,
         unit: products.unit,
         quantity: inventoryBalances.quantity,
+        reserved: inventoryBalances.reserved,
+        inTransit: inventoryBalances.inTransit,
         updatedAt: inventoryBalances.updatedAt,
       })
       .from(inventoryBalances)
@@ -91,7 +94,9 @@ export async function listBalances(context: TenantContext, filters: BalanceFilte
       .orderBy(asc(sql`lower(${products.name})`), asc(sql`lower(${productVariants.name})`), asc(stores.code))
       .limit(limit)
       .offset(offset);
-    return pageResult(rows, total.value, filters.page);
+    // Available = quantity − reserved, computed in thousandths (ADR-015).
+    const withAvailable = rows.map((row) => ({ ...row, available: toDbQuantity(fromDbQuantity(row.quantity) - fromDbQuantity(row.reserved)) }));
+    return pageResult(withAvailable, total.value, filters.page);
   });
 }
 

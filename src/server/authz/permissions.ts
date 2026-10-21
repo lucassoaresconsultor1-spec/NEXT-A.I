@@ -41,6 +41,9 @@ export const PERMISSION_GROUPS = [
     permissions: [
       { key: "inventory.read", label: "Ver saldos e movimentações das lojas do escopo" },
       { key: "inventory.manage", label: "Lançar entradas, saídas, ajustes, perdas e inventários nas lojas do escopo" },
+      { key: "inventory.transfer.request", label: "Solicitar transferências de estoque para lojas do escopo" },
+      { key: "inventory.transfer.approve", label: "Aprovar e cancelar transferências que saem de lojas do escopo" },
+      { key: "inventory.transfer.execute", label: "Despachar e receber transferências nas lojas do escopo" },
     ],
   },
   {

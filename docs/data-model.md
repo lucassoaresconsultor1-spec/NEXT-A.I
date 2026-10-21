@@ -1,6 +1,6 @@
 # Modelo de dados
 
-Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes, `0011` compras e contador de documentos, `0012` FORCE RLS de compras). Este documento explica o desenho; não repete colunas óbvias.
+Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes, `0011` compras e contador de documentos, `0012` FORCE RLS de compras, `0013` transferências e reservas, `0014` FORCE RLS de transferências e reservas). Este documento explica o desenho; não repete colunas óbvias.
 
 ## Implementado (Fase 1)
 
@@ -114,6 +114,19 @@ Migrations `0011` (tabelas, políticas, FKs, checks) e `0012` (FORCE RLS).
 | `goods_receipts`, `goods_receipt_items` | Somente inserção e leitura. Chave de idempotência única por empresa; cada item aponta para o movimento de estoque (`entry`) que criou, por FK composta |
 
 **Recebimento atômico:** numa transação, o serviço trava o pedido e os itens, confere a chave de idempotência (repetida = mesmo recebimento), recusa quantidade acima do pendente, lança a entrada no livro por `postLedgerEntry` em ordem crescente de variação, grava o custo de reposição por `recordCostInTx` (só quando muda; auditoria com `source: "purchase_receipt"`), atualiza o recebido e a situação, e audita.
+
+## Implementado (Fase 2 — transferências e reservas, módulo m30a)
+
+Migrations `0013` (tabelas novas e colunas `reserved`/`in_transit` em `inventory_balances`) e `0014` (FORCE RLS).
+
+| Tabela | Notas |
+|---|---|
+| `inventory_balances` (alterada) | `reserved` (soma das reservas ativas; check `0 ≤ reserved ≤ quantity`) e `in_transit` (enviado por transferências ainda não recebidas na loja de destino). Disponível = `quantity − reserved` |
+| `inventory_reservations` | Reserva de uma quantidade numa loja e variação, com origem (`transfer` ou `sale`) e situação `active` → `released` ou `consumed` (check de datas coerentes) |
+| `stock_transfers` | Número único por empresa; origem ≠ destino (check); `requested` → `approved` → `in_transit` → `received`, ou `cancelled` |
+| `stock_transfer_items` | Solicitado, enviado (≤ solicitado) e recebido (≤ enviado), motivo de divergência, reserva e ids dos movimentos de saída e de entrada (FKs compostas) |
+
+**Fluxo:** a aprovação reserva na origem; o despacho consome a reserva, lança `exit` na origem e soma o enviado ao `in_transit` do destino; o recebimento tira o enviado do trânsito e lança `entry` do recebido no destino. Diferença entre enviado e recebido fica no item, com motivo obrigatório, sem movimento de loja. Movimentos manuais não podem deixar a quantidade abaixo do reservado. Cada etapa trava a transferência e as linhas de saldo em ordem (loja, variação).
 
 ## Planejado (Fases 2–6)
 

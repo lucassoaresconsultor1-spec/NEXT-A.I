@@ -21,6 +21,8 @@ export interface LedgerEntryInput {
   type: MovementType;
   quantityMilli: bigint;
   reason: string;
+  /** Transfer receipts bring back stock that already left another store, even if the item was deactivated meanwhile. */
+  allowInactive?: boolean;
 }
 
 async function loadMovementTargets(tx: Tx, context: TenantContext, input: LedgerEntryInput) {
@@ -46,10 +48,10 @@ async function loadMovementTargets(tx: Tx, context: TenantContext, input: Ledger
 }
 
 /** Locks (creating at zero when missing) the balance row of the store and variant. */
-async function lockBalance(tx: Tx, organizationId: string, storeId: string, variantId: string) {
+export async function lockBalance(tx: Tx, organizationId: string, storeId: string, variantId: string) {
   await tx.insert(inventoryBalances).values({ organizationId, storeId, variantId }).onConflictDoNothing();
   const [row] = await tx
-    .select({ quantity: inventoryBalances.quantity })
+    .select({ quantity: inventoryBalances.quantity, reserved: inventoryBalances.reserved, inTransit: inventoryBalances.inTransit })
     .from(inventoryBalances)
     .where(
       and(
@@ -59,7 +61,7 @@ async function lockBalance(tx: Tx, organizationId: string, storeId: string, vari
       ),
     )
     .for("update");
-  return fromDbQuantity(row.quantity);
+  return { quantity: fromDbQuantity(row.quantity), reserved: fromDbQuantity(row.reserved), inTransit: fromDbQuantity(row.inTransit) };
 }
 
 /**
@@ -72,16 +74,22 @@ async function lockBalance(tx: Tx, organizationId: string, storeId: string, vari
 export async function postLedgerEntry(tx: Tx, context: TenantContext, input: LedgerEntryInput) {
   const orgId = context.organization.id;
   const variant = await loadMovementTargets(tx, context, input);
-  if (input.type === "entry" && !(variant.variantActive && variant.productActive)) {
+  if (input.type === "entry" && !input.allowInactive && !(variant.variantActive && variant.productActive)) {
     throw invalid("Produtos ou variações inativos não recebem entradas.");
   }
   if (variant.unit === "un" && !isWholeQuantity(input.quantityMilli)) {
     throw invalid("Revise os campos destacados.", { quantity: ["Produtos vendidos por unidade aceitam apenas quantidades inteiras."] });
   }
-  const current = await lockBalance(tx, orgId, input.storeId, input.variantId);
+  const { quantity: current, reserved } = await lockBalance(tx, orgId, input.storeId, input.variantId);
   const effect = ledgerEffect(input.type, input.quantityMilli, current);
   if (effect.balanceAfter < ZERO) {
     throw invalid("Saldo insuficiente.", { quantity: [`A loja tem ${toDbQuantity(current)} em estoque; o saldo não pode ficar negativo.`] });
+  }
+  // Reserved stock (transfers, suspended sales) cannot be moved out by other movements (ADR-015).
+  if (effect.balanceAfter < reserved) {
+    throw invalid("Saldo insuficiente.", {
+      quantity: [`A loja tem ${toDbQuantity(reserved)} reservado; o saldo não pode ficar abaixo disso.`],
+    });
   }
   if (effect.balanceAfter > MAX_QUANTITY_MILLI) throw invalid("Revise os campos destacados.", { quantity: ["Saldo acima do permitido."] });
 

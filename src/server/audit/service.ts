@@ -27,6 +27,7 @@ export const auditFiltersSchema = z.object({
       "customer",
       "purchase_order",
       "goods_receipt",
+      "stock_transfer",
     ])
     .optional()
     .catch(undefined),

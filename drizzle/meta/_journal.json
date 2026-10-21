@@ -92,6 +92,20 @@
       "when": 1792583375516,
       "tag": "0012_force_rls_purchasing",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792584014548,
+      "tag": "0013_transfers_and_reservations",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792584022116,
+      "tag": "0014_force_rls_transfers",
+      "breakpoints": true
     }
   ]
 }

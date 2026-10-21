@@ -84,6 +84,10 @@ export const inventoryBalances = pgTable(
     storeId: uuid("store_id").notNull(),
     variantId: uuid("variant_id").notNull(),
     quantity: quantity("quantity").notNull().default("0"),
+    // Sum of the active reservations (ADR-015); available = quantity - reserved.
+    reserved: quantity("reserved").notNull().default("0"),
+    // Dispatched by transfers that have this store as destination and were not received yet.
+    inTransit: quantity("in_transit").notNull().default("0"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -101,6 +105,8 @@ export const inventoryBalances = pgTable(
     index("inventory_balances_variant_idx").on(t.organizationId, t.variantId),
     // Negative stock is not allowed (product decision of Phase 2, increment 1).
     check("inventory_balances_non_negative", sql`${t.quantity} >= 0`),
+    check("inventory_balances_reserved_range", sql`${t.reserved} >= 0 and ${t.reserved} <= ${t.quantity}`),
+    check("inventory_balances_in_transit_non_negative", sql`${t.inTransit} >= 0`),
     pgPolicy("tenant_read", { for: "select", using: sql`organization_id = ${currentOrganizationId}` }),
     pgPolicy("tenant_insert", { for: "insert", withCheck: sql`organization_id = ${currentOrganizationId}` }),
     pgPolicy("tenant_update", {
