@@ -39,5 +39,26 @@ foreach ($name in 'TEST_DATABASE_URL', 'TEST_DATABASE_MIGRATION_URL') {
 }
 
 Write-Output '[test-db] URLs validadas para varejo_test (valores omitidos)'
-& $Command[0] @($Command | Select-Object -Skip 1)
-exit $LASTEXITCODE
+
+# Exclusive machine-wide lock: the suite recreates the schema, so two runs at once
+# (agents, gates in other worktrees) would corrupt each other. Waits up to 20 minutes.
+$lockPath = Join-Path ([IO.Path]::GetTempPath()) 'varejo_test.lock'
+$deadline = (Get-Date).AddMinutes(20)
+$lock = $null
+$announced = $false
+while ($null -eq $lock) {
+  try {
+    $lock = [IO.File]::Open($lockPath, [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+  } catch [IO.IOException] {
+    if ((Get-Date) -gt $deadline) { Write-Output '[test-db] varejo_test em uso ha mais de 20 minutos por outra execucao; abortado'; exit 1 }
+    if (-not $announced) { Write-Output '[test-db] aguardando outra execucao liberar o varejo_test...'; $announced = $true }
+    Start-Sleep -Seconds 5
+  }
+}
+try {
+  & $Command[0] @($Command | Select-Object -Skip 1)
+  $code = $LASTEXITCODE
+} finally {
+  $lock.Dispose()
+}
+exit $code
