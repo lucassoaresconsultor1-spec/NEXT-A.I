@@ -7,7 +7,8 @@ import { sessionCookieName, sessionCookieOptions } from "@/server/auth/cookie";
 // page and action.
 
 // The payment webhook has no session: the provider signature authenticates it.
-const PUBLIC_PATHS = ["/entrar", "/criar-conta", "/api/health", "/api/pagamentos/webhook"];
+// The web app manifest is static and public: browsers fetch it without credentials.
+const PUBLIC_PATHS = ["/entrar", "/criar-conta", "/api/health", "/api/pagamentos/webhook", "/manifest.webmanifest"];
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
