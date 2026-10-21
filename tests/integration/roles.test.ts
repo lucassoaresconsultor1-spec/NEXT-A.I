@@ -224,7 +224,7 @@ describe("roles service: hierarchy and grants", () => {
       message: "Perfis do sistema não podem ser alterados.",
     });
     await expect(deleteRole(owner, salesperson)).rejects.toMatchObject({ code: "forbidden" });
-    expect(await getRole(owner, salesperson)).toMatchObject({ isSystem: true, name: "Vendedor", permissions: ["stores.read", "catalog.read", "inventory.read", "customers.read", "customers.manage"] });
+    expect(await getRole(owner, salesperson)).toMatchObject({ isSystem: true, name: "Vendedor", permissions: ["stores.read", "catalog.read", "inventory.read", "customers.read", "customers.manage", "targets.read"] });
     expect(await storedPermissions(organizationId, salesperson)).toEqual([]);
   });
 });

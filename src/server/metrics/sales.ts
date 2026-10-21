@@ -54,12 +54,12 @@ function keyOf(context: TenantContext, groupBy: MetricsGroupBy | "all", timestam
 }
 
 /** One union of the three sources: per sale and key, the parts each metric adds. */
-function contributions(context: TenantContext, filters: Filters, groupBy: MetricsGroupBy | "all") {
+function contributions(context: TenantContext, filters: Filters, groupBy: MetricsGroupBy | "all", withVisibility = true) {
   const orgId = context.organization.id;
   const common = (timestamp: SQL | typeof sales.completedAt) =>
     and(
       eq(sales.organizationId, orgId),
-      salesVisibility(context),
+      withVisibility ? salesVisibility(context) : undefined,
       filters.storeIds ? inArray(sales.storeId, filters.storeIds) : undefined,
       filters.salespersonUserId ? eq(sales.salespersonUserId, filters.salespersonUserId) : undefined,
       filters.operatorUserId ? eq(sales.operatorUserId, filters.operatorUserId) : undefined,
@@ -107,11 +107,21 @@ function toSums(row: SumRow | undefined): MetricSums {
   };
 }
 
-async function aggregate(tx: Tx, context: TenantContext, filters: Filters, groupBy: MetricsGroupBy | "all") {
+async function aggregate(tx: Tx, context: TenantContext, filters: Filters, groupBy: MetricsGroupBy | "all", withVisibility = true) {
   const result = await tx.execute<SumRow & Record<string, unknown>>(sql`select key, sum(gross)::text as gross, sum(discount)::text as discount,
       sum(sale_count)::text as sale_count, sum(items)::numeric(20, 3)::text as items, sum(cancelled)::text as cancelled, sum(returned)::text as returned
-    from (${contributions(context, filters, groupBy)}) as c group by key order by key`);
+    from (${contributions(context, filters, groupBy, withVisibility)}) as c group by key order by key`);
   return result.rows;
+}
+
+/**
+ * Same metrics inside the caller's transaction, with the filters as the only limit
+ * (no per-operator visibility). For services that already authorized the scope the
+ * filters describe, such as the achieved value of a goal (m11a).
+ */
+export async function computeSalesMetrics(tx: Tx, context: TenantContext, rawFilters: MetricsFilters): Promise<SalesMetrics> {
+  const [row] = await aggregate(tx, context, parse(metricsFiltersSchema, rawFilters), "all", false);
+  return buildMetrics(toSums(row));
 }
 
 export async function salesSummary(context: TenantContext, rawFilters: MetricsFilters): Promise<SalesMetrics & { period: { from: string; to: string } }> {

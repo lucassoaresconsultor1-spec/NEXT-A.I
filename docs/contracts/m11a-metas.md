@@ -46,3 +46,10 @@ export async function targetProgress(context, filters): Promise<{ targetCents; a
 
 ## 6. Dependências
 m01, m10a, m16a, m32a.
+
+## 7. v2 (22/10/2026, Arquiteto, antes da implementação)
+1. **Versões somente de inserção:** a vigente é a de maior versão para (escopo, alvo, mês); não há `is_current` nem UPDATE. Índice único em (escopo, alvo, mês, versão); duas gravações simultâneas → `conflict` ("tente de novo").
+2. **Meta de vendedor é por loja** (vendedor × loja, como a escala do m10a): o realizado filtra a loja e o vendedor, e os dias úteis vêm de `workingDays` do m10a.
+3. **Dias úteis:** loja e vendedor usam o calendário da loja (m32a); região e empresa usam os dias fechados da empresa toda e a semana padrão do m01 (segunda a sexta).
+4. **Realizado** = `netRevenueCents` do m16a no escopo e mês, calculado com os filtros fixados pela meta (sem a visibilidade por operador, que vale para listagens de vendas). Allowlist acrescida: `src/server/metrics/sales.ts` (exporta `computeSalesMetrics` para uso em transação, com a mesma fórmula).
+5. **Vendedor (sem `sales.read`)** vê só as metas de vendedor dele.

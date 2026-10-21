@@ -100,6 +100,8 @@ export const PERMISSION_GROUPS = [
       { key: "members.read", label: "Ver equipe do escopo" },
       { key: "members.manage", label: "Adicionar e editar membros de nível inferior" },
       { key: "salespeople.manage", label: "Cadastrar vendedores, lojas e escalas de membros de nível inferior" },
+      { key: "targets.read", label: "Ver metas de venda e o progresso (vendedor: só as próprias)" },
+      { key: "targets.manage", label: "Definir metas de venda da empresa, regiões, lojas e vendedores do escopo" },
       { key: "roles.read", label: "Ver perfis de acesso" },
       { key: "roles.manage", label: "Criar e editar perfis personalizados" },
     ],

@@ -42,6 +42,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 80,
     defaultStoreAccess: "stores",
     permissions: [
+      "targets.read",
       "organization.settings.read",
       "stores.read",
       "regions.read",
@@ -63,6 +64,8 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 70,
     defaultStoreAccess: "regions",
     permissions: [
+      "targets.read",
+      "targets.manage",
       "organization.settings.read",
       "stores.read",
       "regions.read",
@@ -91,6 +94,8 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 50,
     defaultStoreAccess: "stores",
     permissions: [
+      "targets.read",
+      "targets.manage",
       "stores.read",
       "departments.read",
       "members.read",
@@ -131,7 +136,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     description: "Monitora equipe, atendimento e indicadores da loja.",
     rank: 40,
     defaultStoreAccess: "stores",
-    permissions: ["stores.read", "departments.read", "members.read", "catalog.read", "inventory.read", "inventory.count.record", "sales.read", "cash.read", "customers.read"],
+    permissions: ["stores.read", "departments.read", "members.read", "catalog.read", "inventory.read", "inventory.count.record", "sales.read", "cash.read", "customers.read", "targets.read"],
   },
   {
     key: "salesperson",
@@ -140,7 +145,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 20,
     defaultStoreAccess: "stores",
     // Front-line roles register the buyer at the sale (ADR-017).
-    permissions: ["stores.read", "catalog.read", "inventory.read", "customers.read", "customers.manage"],
+    permissions: ["stores.read", "catalog.read", "inventory.read", "customers.read", "customers.manage", "targets.read"],
   },
   {
     key: "cashier",

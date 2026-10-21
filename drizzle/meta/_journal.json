@@ -232,6 +232,20 @@
       "when": 1792619998540,
       "tag": "0032_force_rls_salespeople",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1792621094942,
+      "tag": "0033_sales_targets",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1792621097873,
+      "tag": "0034_force_rls_sales_targets",
+      "breakpoints": true
     }
   ]
 }
