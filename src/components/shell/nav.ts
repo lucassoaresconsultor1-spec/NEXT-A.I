@@ -12,6 +12,7 @@ import {
   Repeat,
   ReceiptText,
   ScrollText,
+  Upload,
   Wallet,
   Package,
   Settings,
@@ -50,6 +51,7 @@ export const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
       { href: "/categorias", label: "Categorias", icon: Tags },
       { href: "/marcas", label: "Marcas", icon: Award },
       { href: "/fornecedores", label: "Fornecedores", icon: Truck },
+      { href: "/importacoes", label: "Importar dados", icon: Upload },
     ],
   },
   {
