@@ -1,6 +1,6 @@
 # Modelo de dados
 
-Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque). Este documento explica o desenho; não repete colunas óbvias.
+Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação). Este documento explica o desenho; não repete colunas óbvias.
 
 ## Implementado (Fase 1)
 
@@ -80,6 +80,17 @@ erDiagram
 **Saldo atômico:** o serviço cria a linha de saldo em zero se faltar, trava com `SELECT … FOR UPDATE`, calcula em milésimos (`bigint`, sem ponto flutuante), recusa saldo negativo, atualiza o saldo e grava a movimentação e a auditoria na mesma transação. Movimentações concorrentes na mesma loja/variação são serializadas; a ordem do livro segue a ordem da trava.
 
 **Quantidades:** `numeric(14,3)`; produtos em `un` aceitam só inteiros.
+
+## Implementado (Fase 2 — regras de operação, módulo m27)
+
+Migrations `0007` (tabelas, políticas, FKs, checks) e `0008` (FORCE RLS).
+
+| Tabela | Notas |
+|---|---|
+| `organization_settings` | Uma linha por empresa (chave = `organization_id`): `customer_requirement` (`none`/`optional`/`required`), `max_discount_bps` (0 a 10 000, pontos-base), cabeçalho e rodapé do comprovante (até 240 caracteres). Linha ausente = padrão (cliente opcional, teto 0, sem textos); nada é semeado |
+| `store_settings` | Exceção por loja, chave `(organization_id, store_id)` com FK composta para `stores` (cascata). Cada coluna nula herda da empresa; a linha é apagada quando as três colunas voltam a nulo |
+
+Leitura efetiva (`loadEffectiveSettings`): campo da loja não nulo vence; senão o da empresa; senão o padrão. Gravação: a linha é criada se faltar e travada com `SELECT … FOR UPDATE` antes da comparação, então a auditoria registra só os campos que mudaram.
 
 ## Planejado (Fases 2–6)
 

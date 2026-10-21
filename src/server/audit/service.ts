@@ -23,6 +23,7 @@ export const auditFiltersSchema = z.object({
       "product",
       "product_variant",
       "inventory_movement",
+      "operational_settings",
     ])
     .optional()
     .catch(undefined),

@@ -8,6 +8,10 @@ export const PERMISSION_GROUPS = [
     permissions: [
       { key: "organization.settings.read", label: "Ver dados da empresa e do plano" },
       { key: "organization.settings.manage", label: "Editar dados da empresa" },
+      {
+        key: "settings.operations.manage",
+        label: "Alterar regras de operação do caixa e do PDV (cliente, teto de desconto, comprovante)",
+      },
     ],
   },
   {

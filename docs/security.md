@@ -35,6 +35,7 @@ A aplicação **deve** conectar com um papel sem `SUPERUSER` e sem `BYPASSRLS` (
 - **Hierarquia:** cada perfil tem nível; não-donos só gerenciam níveis estritamente inferiores e só concedem permissões que possuem — ao criar perfis e também ao **atribuir** um perfil a alguém (o perfil atribuído não pode carregar permissões que o ator não tem); só donos atribuem o perfil Dono; o Financeiro (nível 80) só é atribuído por dono ou administrador; ninguém altera o próprio acesso; a empresa nunca fica sem dono ativo.
 - **Visibilidade de equipe:** quem tem acesso a todas as lojas vê todos os vínculos; os demais veem a si e os vínculos de lojas/regiões que alcançam lojas do seu escopo, e só gerenciam membros de "lojas específicas" totalmente dentro do seu escopo.
 - **Mudanças estruturais** (criar loja, regiões, departamentos, dados da empresa, perfis) exigem acesso a todas as lojas.
+- **Regras de operação** (cliente na venda, teto de desconto sem autorização, textos do comprovante): permissão `settings.operations.manage`, só de Dono e Administrador. O padrão da empresa exige acesso a todas as lojas; a exceção de uma loja exige a loja no escopo (fora dele = "não encontrada"). Toda alteração é auditada com valor anterior e novo; o teto é guardado em pontos-base inteiros. Textos do comprovante são exibidos como texto, sem HTML.
 - O contexto (vínculo, perfil, permissões, escopo, situação da empresa) é recarregado a cada requisição: suspensão de membro ou empresa vale imediatamente.
 
 ## Autenticação e sessão (implementado)
