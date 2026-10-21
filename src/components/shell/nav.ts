@@ -8,6 +8,7 @@ import {
   History,
   LayoutDashboard,
   Map,
+  Repeat,
   Package,
   Settings,
   ShieldCheck,
@@ -52,6 +53,7 @@ export const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
     items: [
       { href: "/estoque", label: "Saldos", icon: Boxes },
       { href: "/estoque/movimentacoes", label: "Movimentações", icon: ArrowLeftRight },
+      { href: "/estoque/transferencias", label: "Transferências", icon: Repeat },
       { href: "/compras", label: "Compras", icon: ClipboardList },
     ],
   },
