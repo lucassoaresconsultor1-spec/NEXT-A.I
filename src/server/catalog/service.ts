@@ -171,26 +171,30 @@ export type ProductDetail = NonNullable<Awaited<ReturnType<typeof getProduct>>>;
 /** Product, variants and initial prices/costs in one transaction, with audit entries for each. */
 export async function createProduct(context: TenantContext, rawInput: CreateProductInput) {
   assertCanManageCatalog(context);
+  return withScope(dbScope(context), (tx) => createProductInTx(tx, context, rawInput));
+}
+
+/** Same as createProduct inside the caller's transaction (CSV import applies many rows per transaction). */
+export async function createProductInTx(tx: Tx, context: TenantContext, rawInput: CreateProductInput) {
+  assertCanManageCatalog(context);
   const input = parseOrThrow(createProductSchema, rawInput);
   if (input.variants.some((variant) => variant.costCents !== undefined)) assertCanManageCosts(context);
   const orgId = context.organization.id;
   const values = productColumns(input);
   try {
-    return await withScope(dbScope(context), async (tx) => {
-      await assertReferencesUsable(tx, orgId, values);
-      const [created] = await tx.insert(products).values({ organizationId: orgId, ...values }).returning({ id: products.id });
-      await recordAudit(tx, {
-        organizationId: orgId,
-        actorUserId: context.user.id,
-        action: "product.created",
-        entityType: "product",
-        entityId: created.id,
-        changes: filledFields(values),
-      });
-      const variantIds: string[] = [];
-      for (const variant of input.variants) variantIds.push((await insertVariant(tx, context, created.id, variant)).id);
-      return { id: created.id, variantIds };
+    await assertReferencesUsable(tx, orgId, values);
+    const [created] = await tx.insert(products).values({ organizationId: orgId, ...values }).returning({ id: products.id });
+    await recordAudit(tx, {
+      organizationId: orgId,
+      actorUserId: context.user.id,
+      action: "product.created",
+      entityType: "product",
+      entityId: created.id,
+      changes: filledFields(values),
     });
+    const variantIds: string[] = [];
+    for (const variant of input.variants) variantIds.push((await insertVariant(tx, context, created.id, variant)).id);
+    return { id: created.id, variantIds };
   } catch (error) {
     translateCatalogErrors(error);
   }

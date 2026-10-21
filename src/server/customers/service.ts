@@ -131,29 +131,33 @@ export async function getCustomer(context: TenantContext, id: string): Promise<C
 
 export async function createCustomer(context: TenantContext, input: unknown) {
   assertCan(context, "customers.manage");
+  return withScope(dbScope(context), (tx) => createCustomerInTx(tx, context, input));
+}
+
+/** Same as createCustomer inside the caller's transaction (CSV import applies many rows per transaction). */
+export async function createCustomerInTx(tx: Tx, context: TenantContext, input: unknown) {
+  assertCan(context, "customers.manage");
   const values = parse(customerInputSchema, input);
   const orgId = context.organization.id;
   try {
-    return await withScope(dbScope(context), async (tx) => {
-      const [created] = await tx
-        .insert(customers)
-        .values({
-          organizationId: orgId,
-          ...values,
-          consentAt: values.marketingConsent ? sql`now()` : null,
-          createdBy: context.user.id,
-        })
-        .returning({ id: customers.id });
-      await recordAudit(tx, {
+    const [created] = await tx
+      .insert(customers)
+      .values({
         organizationId: orgId,
-        actorUserId: context.user.id,
-        action: "customer.created",
-        entityType: "customer",
-        entityId: created.id,
-        changes: auditView(values),
-      });
-      return { id: created.id };
+        ...values,
+        consentAt: values.marketingConsent ? sql`now()` : null,
+        createdBy: context.user.id,
+      })
+      .returning({ id: customers.id });
+    await recordAudit(tx, {
+      organizationId: orgId,
+      actorUserId: context.user.id,
+      action: "customer.created",
+      entityType: "customer",
+      entityId: created.id,
+      changes: auditView(values),
     });
+    return { id: created.id };
   } catch (error) {
     translateErrors(error);
   }

@@ -1,6 +1,6 @@
 # Modelo de dados
 
-Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes, `0011` compras e contador de documentos, `0012` FORCE RLS de compras, `0013` transferências e reservas, `0014` FORCE RLS de transferências e reservas, `0015` caixa, `0016` FORCE RLS do caixa, `0017` vendas, `0018` FORCE RLS de vendas, `0019` pagamentos integrados, `0020` FORCE RLS de pagamentos, `0021` documentos fiscais, `0022` FORCE RLS de documentos fiscais, `0023` cancelamentos, devoluções e chave da suspensão, `0024` FORCE RLS das devoluções, `0025` inventários por lote, `0026` FORCE RLS dos inventários). Este documento explica o desenho; não repete colunas óbvias.
+Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes, `0011` compras e contador de documentos, `0012` FORCE RLS de compras, `0013` transferências e reservas, `0014` FORCE RLS de transferências e reservas, `0015` caixa, `0016` FORCE RLS do caixa, `0017` vendas, `0018` FORCE RLS de vendas, `0019` pagamentos integrados, `0020` FORCE RLS de pagamentos, `0021` documentos fiscais, `0022` FORCE RLS de documentos fiscais, `0023` cancelamentos, devoluções e chave da suspensão, `0024` FORCE RLS das devoluções, `0025` inventários por lote, `0026` FORCE RLS dos inventários, `0027` importações CSV, `0028` FORCE RLS das importações). Este documento explica o desenho; não repete colunas óbvias.
 
 ## Implementado (Fase 1)
 
@@ -196,6 +196,16 @@ Migrations `0025` e `0026` (FORCE RLS).
 | `inventory_count_items` | Variação, saldo do sistema na abertura (oculto na contagem cega), quantidade contada (a última registrada vale) com quem/quando, movimento `count` gerado na aprovação |
 
 **Itens do inventário:** itens ativos do catálogo (do filtro) mais qualquer variação com saldo na loja, inclusive inativa; no máximo 5.000 por inventário (acima disso, filtrar por categoria ou marca). **Aprovação:** trava os saldos em ordem de variação, recusa contado abaixo do reservado e lança `count` só onde o contado difere do saldo **atual**; itens não contados ficam como estão. A revisão sinaliza itens movimentados entre a abertura e a aprovação.
+
+## Implementado (Fase 2 — importação CSV, módulo m19)
+
+Migrations `0027` e `0028` (FORCE RLS). O arquivo nunca é guardado: só as linhas normalizadas.
+
+| Tabela | Notas |
+|---|---|
+| `imports` | Número por empresa (contador `import`), tipo (`products`, `customers`, `opening_stock` com loja), situação `previewed` → `applying` → `done` ou `discarded`, nome do arquivo, total de linhas, quem enviou/confirmou |
+| `import_mappings` | Campo da importação → coluna do arquivo |
+| `import_rows` | Linha do arquivo, situação (`ok`, `error`, `skipped`, `applied`, `failed`), mensagens e valores já normalizados pelo Zod dos serviços em colunas por tipo; id criado na aplicação. Contém dados pessoais de clientes: apagar 30 dias após a confirmação (rotina pendente da infraestrutura de tarefas); descartar a prévia apaga as linhas |
 
 ## Planejado (Fases 2–6)
 

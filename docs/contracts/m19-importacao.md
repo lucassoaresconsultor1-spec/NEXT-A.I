@@ -51,3 +51,17 @@ Menu (Maestro): seção "Administração", `{ href: "/importacoes", label: "Impo
 
 ## 7. Dependências
 Nenhuma nova (leitor CSV próprio).
+
+## 8. v2 (22/10/2026, Arquiteto, antes da implementação)
+Decisões que a v1 deixava em aberto, registradas também em `docs/DECISIONS.md`:
+
+1. **Lotes com ponto de salvamento por unidade.** A confirmação grava em lotes de até ~200 linhas por transação (um grupo de produto nunca é dividido) e aplica cada unidade (um produto com suas variações, um cliente, um saldo) num *savepoint*: um erro de domínio marca só aquela unidade como `failed`, sem desfazer o lote. Para isso os serviços ganham variantes dentro da transação, sem mudar o comportamento das funções públicas: `createProductInTx(tx, context, input)` em `src/server/catalog/service.ts` e `createCustomerInTx(tx, context, input)` em `src/server/customers/service.ts`. O saldo inicial usa `postLedgerEntry` (já em transação).
+2. **Sem estado `draft`.** O navegador lê só o cabeçalho do arquivo (com o mesmo `src/lib/csv.ts`) para propor o mapeamento; arquivo e mapeamento vão juntos ao servidor, que relê tudo e grava a prévia (`previewed`). Estados: `previewed` → `applying` → `done`, ou `discarded` (prévia descartada: as linhas são apagadas).
+3. **Mapeamento em tabela** `import_mappings` (campo → coluna do arquivo), sem JSON.
+4. **Produtos:** linhas com o mesmo nome de produto (sem diferenciar maiúsculas) formam um produto e cada linha é uma variação (nome padrão "Única"); unidade, descrição, categoria e marca têm de coincidir no grupo; categoria e marca são buscadas pelo nome entre as ativas da empresa (não são criadas); preço opcional; **custo não é importado** (exige `catalog.costs.read` e fica para a tela).
+5. **Clientes:** o consentimento de marketing **não é importado** (fica `false`): precisa ser coletado do cliente, não de uma planilha.
+6. **Saldo inicial:** loja escolhida na importação; o SKU tem de existir.
+7. **Linhas com erro** guardam só o número da linha e as mensagens; as válidas guardam os valores já normalizados pelo Zod dos serviços. Na tela, o CPF aparece mascarado para quem não tem `customers.documents.read`.
+8. **Tamanho do envio (etapa 2):** Server Actions aceitam 1 MB por padrão; para arquivos de até 2 MB o Maestro configura `experimental.serverActions.bodySizeLimit: "3mb"` em `next.config.ts` (arquivo do Maestro).
+
+Allowlist acrescida: `src/server/catalog/service.ts`, `src/server/customers/service.ts`, `src/server/imports/preview.ts` (validação linha a linha da prévia), `src/server/imports/queries.ts` (lista e detalhe).
