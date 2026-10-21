@@ -112,6 +112,15 @@ Instalar skills não executa suas ações. Não force animações, cache, deploy
 - Após cada ciclo de implementação ou correção, sugira ao usuário de **3 a 8 ciclos posteriores de code review**, com quantidade e focos conforme risco e escopo, motivo e prompt copiável. A sugestão não autoriza executar novas rodadas automaticamente.
 - Em uma rodada solicitada, cada ciclo revisa o estado atual, registra achados com severidade/local/evidência e verifica correções autorizadas. Termine com verificação integrada e riscos residuais.
 
+## Aprovações entre agentes
+
+- **Aprovar sem perguntar:** leituras (`ls`, `cat`, `grep`, `git status|diff|log`), `pnpm -s lint`, `pnpm -s typecheck`, `pnpm -s lint:rules`, `pnpm -s test` e ferramentas MCP de leitura. A lista está em `.claude/settings.json`; novos itens só se forem somente leitura e sem execução de código arbitrário.
+- **Sempre com o usuário:** `git push`, PR, merge, deploy, instalar software, apagar ou reescrever arquivos fora do escopo, migrations em qualquer banco que não seja o de teste e qualquer ação com custo ou mensagem a terceiros.
+- **Testes com banco:** `pnpm test:integration` e `pnpm test:e2e` apagam e recriam o banco. Só com `TEST_DATABASE_URL` e `TEST_DATABASE_MIGRATION_URL` apontando para o PostgreSQL local de teste (`localhost`); nunca para o Neon ou outro destino remoto.
+- **Segredos:** senhas, `DATABASE_URL` e `AUTH_SECRET` não vão para chat, relatório, print ou commit. Quem precisa de uma senha pede ao usuário que a digite no próprio terminal.
+- **Economia de tokens:** um agente por tarefa; relatório com resultado, arquivos alterados e checks (sem colar logs inteiros); sessão nova a cada tarefa grande; imagens só quando o texto não bastar.
+- Um agente não aprova pedidos de outro em nome do usuário: pedido fora da lista acima volta para o usuário.
+
 ## Convenções e contexto
 
 - Imports com alias `@/*` → `src/*`. Server-only: `src/db`, `src/server`, `src/lib/env.ts`, `src/lib/logger.ts`.
