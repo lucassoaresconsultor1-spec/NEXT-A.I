@@ -1,4 +1,4 @@
-# Contrato do módulo `m07-pagamentos` — v1
+# Contrato do módulo `m07-pagamentos` — v2
 
 > Escrito pelo Arquiteto (Opus) em 22/10/2026. O agente implementa o que está aqui e nada além.
 > Se algo estiver ambíguo, o agente PERGUNTA (ver seção 10); não presume.
@@ -28,6 +28,7 @@ src/server/sales/complete.ts                 (aceitar pagamentos pix/card_provid
 src/server/sales/schemas.ts                  (método pix/card_provider com paymentIntentId)
 src/server/sales/schemas.test.ts
 src/app/api/pagamentos/webhook/[provider]/route.ts
+src/proxy.ts                                 (v2: só incluir /api/pagamentos/webhook em PUBLIC_PATHS; o provedor não tem sessão)
 src/lib/env-schema.ts                        (só variáveis opcionais PAYMENT_PROVIDER e PAYMENT_WEBHOOK_SECRET, sem valores)
 src/server/authz/permissions.ts
 src/server/audit/labels.ts
@@ -92,7 +93,7 @@ payment_events            (somente inserção e leitura)
   id, organization_id, intent_id, provider, event_id varchar(120), status, amount_cents, received_at DEFAULT clock_timestamp()
   UNIQUE (provider, event_id); FK composta payment_intents
 ```
-O webhook chega **sem** sessão de usuário: a descoberta da empresa pela `provider_reference` usa uma função SQL `SECURITY DEFINER` mínima (`payment_intent_owner(provider, reference) returns uuid`), criada na migration custom, que devolve só o `organization_id`; todo o resto roda com `withScope({ organizationId })`. Custom: FORCE RLS nas duas tabelas + a função + `REVOKE ALL ... FROM PUBLIC` e `GRANT EXECUTE` só ao papel da aplicação.
+O webhook chega **sem** sessão de usuário. **v2:** a descoberta da empresa usa a tabela **global** `payment_provider_references` (PK `(provider, provider_reference)`, `organization_id`, `intent_id`), sem RLS como `auth_rate_limits`, que guarda só esse mapeamento de ids (nenhum valor, status ou dado de cliente). Todo o resto roda com `withScope({ organizationId })`. Motivo da troca: com `FORCE ROW LEVEL SECURITY` o dono da tabela também obedece às políticas, então uma função `SECURITY DEFINER` não enxergaria as intenções sem `BYPASSRLS`, que não deve existir. Custom: FORCE RLS em `payment_intents` e `payment_events`.
 
 ## 6. Invariantes
 - Pagamento externo só vira `confirmed` por webhook autenticado ou por `getStatus` do provedor — nunca pelo cliente.

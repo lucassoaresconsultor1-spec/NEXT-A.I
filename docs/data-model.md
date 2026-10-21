@@ -1,6 +1,6 @@
 # Modelo de dados
 
-Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes, `0011` compras e contador de documentos, `0012` FORCE RLS de compras, `0013` transferências e reservas, `0014` FORCE RLS de transferências e reservas, `0015` caixa, `0016` FORCE RLS do caixa, `0017` vendas, `0018` FORCE RLS de vendas). Este documento explica o desenho; não repete colunas óbvias.
+Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes, `0011` compras e contador de documentos, `0012` FORCE RLS de compras, `0013` transferências e reservas, `0014` FORCE RLS de transferências e reservas, `0015` caixa, `0016` FORCE RLS do caixa, `0017` vendas, `0018` FORCE RLS de vendas, `0019` pagamentos integrados, `0020` FORCE RLS de pagamentos). Este documento explica o desenho; não repete colunas óbvias.
 
 ## Implementado (Fase 1)
 
@@ -152,6 +152,18 @@ Migrations `0017` (tabelas, enums, políticas, checks) e `0018` (FORCE RLS).
 | `sale_payments` | Somente inserção e leitura. Dinheiro (recebido e troco com check) e cartão em maquininha externa (NSU obrigatório); `pix`/`card_provider` e os status `pending`/`failed`/`refunded` ficam previstos para o m07 |
 
 **Finalização:** uma transação trava a sessão de caixa do operador, confere a chave (repetida = mesma venda), aplica a regra de cliente da loja (m27), lê preço e custo no servidor (preço diferente do carrinho = conflito), confere desconto e acréscimo pelo teto da loja e pelas permissões, exige soma exata dos pagamentos, numera (`sale:{loja}` no contador), baixa o estoque em ordem de variação, lança no caixa só o dinheiro aplicado, grava itens, pagamentos e auditoria. **Suspensão:** grava a venda `suspended` com os itens reservados; retomar e finalizar consome as reservas antes da baixa; descartar as libera.
+
+## Implementado (Fase 2 — pagamentos integrados, módulo m07)
+
+Migrations `0019` e `0020` (FORCE RLS em `payment_intents` e `payment_events`).
+
+| Tabela | Notas |
+|---|---|
+| `payment_intents` | Intenção de PIX ou cartão integrado criada pelo operador antes da venda (loja, sessão de caixa, valor, chave de idempotência única), com o estado que **só o provedor** muda: `pending` → `confirmed`/`failed`/`cancelled`; `confirmed` → `refunded`. `sale_id` marca a venda que a usou (check: só confirmada). Referência única por provedor |
+| `payment_events` | Somente inserção e leitura: cada evento recebido (webhook ou consulta), único por `(provider, event_id)` — repetição não tem efeito |
+| `payment_provider_references` | Tabela **global** sem RLS (como `auth_rate_limits`): mapa `(provedor, referência) → empresa, intenção`, lido pelo webhook, que chega sem sessão. Só ids |
+
+Nenhum provedor real está ligado: sem `PAYMENT_PROVIDER`, PIX e cartão integrado ficam indisponíveis com mensagem clara, e nada é simulado.
 
 ## Planejado (Fases 2–6)
 

@@ -85,6 +85,15 @@ Ponto de partida sem custo: Vercel Hobby (app) e Neon Free (PostgreSQL). O Hobby
 
 O pool do Neon (modo transação) é compatível com o contexto de RLS, que usa `set_config(..., true)` dentro de cada transação. Se a conexão falhar por causa do parâmetro `channel_binding=require` da URL do Neon, remova-o e mantenha `sslmode=require`.
 
+## Pagamentos por PIX e cartão integrado
+
+Nenhum provedor está ligado nesta versão: o PDV aceita dinheiro e cartão em maquininha externa (com NSU). Para ligar um provedor, quando ele for escolhido:
+
+1. Implementar o adaptador em `src/server/payments/` seguindo `port.ts` (cobrança, consulta, estorno e verificação da assinatura do webhook) e registrá-lo em `registry.ts`.
+2. Configurar no ambiente (Vercel, nunca no repositório) `PAYMENT_PROVIDER=<chave do adaptador>` e as credenciais e o segredo de webhook que o adaptador ler.
+3. Cadastrar no painel do provedor a URL `https://<domínio>/api/pagamentos/webhook/<chave do adaptador>`.
+4. Homologar em modo de teste do provedor antes de produção.
+
 ## Verificar
 
 ```bash

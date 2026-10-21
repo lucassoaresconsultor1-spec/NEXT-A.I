@@ -1,7 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { and, asc, eq } from "drizzle-orm";
-import { saleItems, salePayments, sales } from "@/db/schema";
+import { paymentIntents, saleItems, salePayments, sales } from "@/db/schema";
 import { withScope, type Tx } from "@/db/tenant";
 import { formatCurrencyCents } from "@/lib/format";
 import { recordAudit } from "@/server/audit/record";
@@ -91,6 +91,38 @@ async function lockSuspended(tx: Tx, organizationId: string, saleId: string, inp
   return rows;
 }
 
+/** Provider payments must use confirmed, unused intents of this store, operator, session and amount. */
+async function lockConfirmedIntents(tx: Tx, context: TenantContext, input: ParsedCompleteSale, sessionId: string) {
+  const references = new Map<string, string | null>();
+  for (const [index, payment] of input.payments.entries()) {
+    if (payment.method !== "pix" && payment.method !== "card_provider") continue;
+    const [intent] = await tx
+      .select({
+        status: paymentIntents.status,
+        method: paymentIntents.method,
+        amountCents: paymentIntents.amountCents,
+        storeId: paymentIntents.storeId,
+        operatorUserId: paymentIntents.operatorUserId,
+        cashSessionId: paymentIntents.cashSessionId,
+        saleId: paymentIntents.saleId,
+        providerReference: paymentIntents.providerReference,
+      })
+      .from(paymentIntents)
+      .where(and(eq(paymentIntents.organizationId, context.organization.id), eq(paymentIntents.id, payment.paymentIntentId)))
+      .for("update");
+    const field = `payments.${index}.paymentIntentId`;
+    if (!intent || intent.storeId !== input.storeId || intent.operatorUserId !== context.user.id || intent.cashSessionId !== sessionId || intent.method !== payment.method) {
+      throw invalid("Revise os pagamentos.", { [field]: ["Pagamento integrado não encontrado neste caixa."] });
+    }
+    if (intent.saleId) throw invalid("Revise os pagamentos.", { [field]: ["Este pagamento já foi usado em outra venda."] });
+    if (intent.status === "pending") throw invalid("Revise os pagamentos.", { [field]: ["Aguardando a confirmação do pagamento."] });
+    if (intent.status !== "confirmed") throw invalid("Revise os pagamentos.", { [field]: ["Este pagamento não foi aprovado."] });
+    if (intent.amountCents !== payment.amountCents) throw invalid("Revise os pagamentos.", { [field]: ["O valor não confere com o pagamento aprovado."] });
+    references.set(payment.paymentIntentId, intent.providerReference);
+  }
+  return references;
+}
+
 export async function completeSale(context: TenantContext, rawInput: unknown): Promise<Outcome> {
   assertCan(context, "sales.create");
   const input = parse(completeSaleSchema, rawInput);
@@ -134,6 +166,7 @@ export async function completeSale(context: TenantContext, rawInput: unknown): P
       const cashCents = input.payments.reduce((sum, payment) => sum + (payment.method === "cash" ? payment.amountCents : 0), 0);
       const changeCents = input.payments.reduce((sum, payment) => sum + (payment.method === "cash" ? cashChange(payment.amountCents, payment.tenderedCents) : 0), 0);
 
+      const providerReferences = await lockConfirmedIntents(tx, context, input, sessionId);
       const suspended = input.suspendedSaleId ? await lockSuspended(tx, orgId, input.suspendedSaleId, input) : null;
       const saleId = input.suspendedSaleId ?? randomUUID();
       const number = await nextDocumentNumber(tx, orgId, `sale:${input.storeId}`);
@@ -197,10 +230,16 @@ export async function completeSale(context: TenantContext, rawInput: unknown): P
           amountCents: payment.amountCents,
           ...(payment.method === "cash"
             ? { tenderedCents: payment.tenderedCents, changeCents: cashChange(payment.amountCents, payment.tenderedCents) }
-            : { nsu: payment.nsu, brand: payment.brand ?? null }),
+            : payment.method === "card_external"
+              ? { nsu: payment.nsu, brand: payment.brand ?? null }
+              : { providerReference: providerReferences.get(payment.paymentIntentId) ?? null }),
           createdBy: context.user.id,
         })),
       );
+      for (const payment of input.payments) {
+        if (payment.method !== "pix" && payment.method !== "card_provider") continue;
+        await tx.update(paymentIntents).set({ saleId, updatedAt: now }).where(and(eq(paymentIntents.organizationId, orgId), eq(paymentIntents.id, payment.paymentIntentId)));
+      }
       await recordAudit(tx, {
         organizationId: orgId,
         actorUserId: context.user.id,

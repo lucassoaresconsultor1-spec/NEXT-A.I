@@ -134,6 +134,20 @@
       "when": 1792585246063,
       "tag": "0018_force_rls_sales",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792598935957,
+      "tag": "0019_payments",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1792598938056,
+      "tag": "0020_force_rls_payments",
+      "breakpoints": true
     }
   ]
 }

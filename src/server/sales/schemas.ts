@@ -81,6 +81,12 @@ const payment = z.discriminatedUnion(
         .regex(/^[A-Za-z0-9]{4,20}$/, { error: "Informe o NSU com 4 a 20 letras ou números." }),
       brand: optionalText(30),
     }),
+    // Provider payments (m07): only an intent the provider already confirmed.
+    z.object({
+      method: z.enum(["pix", "card_provider"]),
+      amountCents: cents(1),
+      paymentIntentId: z.uuid({ error: "Pagamento integrado inválido." }),
+    }),
   ],
   { error: "Forma de pagamento não disponível no PDV." },
 );

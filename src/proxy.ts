@@ -6,7 +6,8 @@ import { sessionCookieName, sessionCookieOptions } from "@/server/auth/cookie";
 // in the database, membership, permissions) happens on the server for every
 // page and action.
 
-const PUBLIC_PATHS = ["/entrar", "/criar-conta", "/api/health"];
+// The payment webhook has no session: the provider signature authenticates it.
+const PUBLIC_PATHS = ["/entrar", "/criar-conta", "/api/health", "/api/pagamentos/webhook"];
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
