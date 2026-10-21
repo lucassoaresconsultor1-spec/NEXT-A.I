@@ -1,7 +1,7 @@
 # SPEC — NEXT A.I
 
 > Dono: Arquiteto (Opus/Codex). Workers (Antigravity) NÃO editam este arquivo.
-> Versão: 1 · Atualizar a versão a cada mudança de contrato (ver seção 6).
+> Versão: 3 · Atualizar a versão a cada mudança de contrato (ver seção 6).
 > Primeiro preenchimento escrito pelo Maestro a pedido do usuário (20/10/2026); a revisão do Arquiteto está pendente e pode alterar a seção 1 antes de qualquer delegação.
 
 Este documento organiza o **trabalho restante** em módulos entregáveis. Escopo, requisitos e critérios de aceite estão em [PRODUCT.md](../PRODUCT.md); fases, estado atual e riscos de produto em [roadmap.md](roadmap.md); estrutura e decisões já tomadas em [architecture.md](architecture.md); controles em [security.md](security.md). Nada disso é repetido aqui: a SPEC só acrescenta a divisão em módulos, a classificação de risco para delegação e o modelo de ameaças por superfície nova.
@@ -48,6 +48,21 @@ Risco **SENSÍVEL** = auth, autorização, pagamentos, criptografia, migrações
 Fora do mapa por dependerem de decisão externa registrada em [PRODUCT.md](../PRODUCT.md#hipóteses-e-pendências): e-mail transacional, provedores de pagamento/fiscal/IA, hospedagem e cobrança. O módulo que usa cada um fica bloqueado até a decisão.
 
 **Pendência de produção (m01, ver ADR-003):** a lista de feriados nacionais fixos do contrato `m01-dias-uteis` precisa de confirmação profissional antes de produção. Até lá o módulo pode ser implementado e testado, mas nenhum módulo que dependa dele (m10, m11, m12) vai para produção com a lista sem confirmar.
+
+**Dados de referência: feriados de Araruama/RJ** (pesquisa de 21/10/2026 em fontes oficiais). Não fazem parte do código do m01: entram como `extraHolidays` pelo chamador, quando existir a configuração de calendário por empresa/loja (módulo ainda não mapeado). Ponto facultativo **não** é feriado e não entra em `extraHolidays` por padrão; a decisão de dar folga é da empresa.
+
+| Data | Nome | Nível | Situação | Fonte |
+|------|------|-------|----------|-------|
+| 20/01 | Dia de São Sebastião (padroeiro) | Municipal | Feriado no calendário oficial de 2026; **lei de origem não localizada** | Decreto nº 5, de 14/01/2026, e site da Prefeitura |
+| 06/02 | Aniversário / emancipação de Araruama | Municipal | Feriado no calendário oficial de 2026; **lei de origem não localizada** | idem |
+| 23/04 | Dia de São Jorge | Estadual (RJ) | Feriado; Lei estadual 5.198/2008, declarada constitucional pelo STF (ADI 4092) | ALERJ, STF |
+| 20/11 | Dia da Consciência Negra | Estadual (RJ) até 2023; nacional desde 2024 | Lei estadual 4.007/2002 (em vigor). O m01 embute a data só a partir de 2024; para anos anteriores o chamador a informa | ALERJ |
+| Páscoa + 60 dias (04/06/2026) | Corpus Christi | Municipal | **Ponto facultativo**, como no Decreto nº 5/2026 e por orientação do usuário. **Divergência a confirmar com a Prefeitura:** a Lei municipal 2709/2025 o institui como feriado religioso. Até a confirmação, não entra como feriado | Decreto nº 5/2026; Lei 2709/2025 |
+| 16 a 18/02/2026 | Carnaval | - | Ponto facultativo no decreto; não entra | Decreto nº 5/2026 |
+| 28/10 | Dia do Servidor Público | - | Feriado só para as repartições municipais; não se aplica a empresas privadas; não entra | Decreto nº 5/2026 |
+| Páscoa - 2 dias | Sexta-feira Santa | - | Sem lei municipal localizada e ausente do calendário de 2026; não entra | - |
+
+Limites da pesquisa: li a matéria da Prefeitura que reproduz o Decreto nº 5/2026 e o texto da Lei 2709/2025, não o PDF do decreto; a lista do 20/01 e do 06/02 depende de lei que não encontrei; a lei estadual do Carnaval (5.243/2008, citada por sites de calendário) não foi confirmada. Tudo isso precisa de confirmação profissional antes de produção.
 
 ## 2. Decisões de arquitetura (ADRs curtos)
 As decisões estruturais já tomadas estão em [architecture.md](architecture.md#decisões) (RLS forçado, autenticação própria, permissões no código, hierarquia por `rank`, planos em `entitlements.ts`). Os ADRs abaixo valem **para a delegação**.
@@ -101,3 +116,4 @@ Um arquivo por módulo em `docs/contracts/<id>.md`, a partir de [_TEMPLATE.md](c
 |--------|------|--------|---------|--------|
 | 1 | 20/10/2026 | SPEC, m01-dias-uteis | Mapa de módulos, ADRs, modelo de ameaças e primeiro contrato | Preenchimento inicial a pedido do usuário |
 | 2 | 21/10/2026 | m01-dias-uteis | Opções hostis com `RangeError`, `isValidCalendarDay(unknown)`, `MAX_EXTRA_HOLIDAYS`, `NaN`/`Infinity`, borda de 3660/3661 dias, comandos de fuso e motivo de `easterSunday` | Revisão do Arquiteto (Opus): sete ajustes |
+| 3 | 21/10/2026 | SPEC | Dados de referência dos feriados de Araruama/RJ (Corpus Christi como ponto facultativo, divergência com a Lei 2709/2025 registrada) | Pedido do usuário após pesquisa em fontes oficiais |
