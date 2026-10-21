@@ -1,6 +1,6 @@
 # Modelo de dados
 
-Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes, `0011` compras e contador de documentos, `0012` FORCE RLS de compras, `0013` transferências e reservas, `0014` FORCE RLS de transferências e reservas, `0015` caixa, `0016` FORCE RLS do caixa). Este documento explica o desenho; não repete colunas óbvias.
+Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes, `0011` compras e contador de documentos, `0012` FORCE RLS de compras, `0013` transferências e reservas, `0014` FORCE RLS de transferências e reservas, `0015` caixa, `0016` FORCE RLS do caixa, `0017` vendas, `0018` FORCE RLS de vendas). Este documento explica o desenho; não repete colunas óbvias.
 
 ## Implementado (Fase 1)
 
@@ -140,6 +140,18 @@ Migrations `0015` (tabelas, políticas, índices, checks) e `0016` (FORCE RLS).
 | `cash_session_events` | Somente inserção e leitura: abertura, fechamento (com contado, esperado e diferença) e reabertura (com motivo) |
 
 **Esperado:** abertura + suprimentos − sangrias + vendas em dinheiro − devoluções em dinheiro, sempre somado do livro no servidor. Sangria e devolução em dinheiro não passam do esperado. A reabertura volta a sessão para `open`, limpa os campos de fechamento (o fechamento anterior fica no evento) e só vale para a sessão mais recente do caixa.
+
+## Implementado (Fase 2 — vendas do PDV, módulo m06a)
+
+Migrations `0017` (tabelas, enums, políticas, checks) e `0018` (FORCE RLS).
+
+| Tabela | Notas |
+|---|---|
+| `sales` | Venda da loja: `suspended` → `completed` (ou `discarded`; `cancelled` fica para o m08). Finalizada tem número sequencial por loja (`UNIQUE (organization_id, store_id, number)`), chave de finalização única por empresa (ADR-013), sessão de caixa, totais em centavos com check `total = subtotal − desconto + acréscimo`, troco e cópia do cabeçalho/rodapé do comprovante |
+| `sale_items` | Linha com cópia de nome, SKU, unidade, preço e **custo vigentes** na finalização (ADR-016), desconto e total; reserva (venda suspensa) e movimento de saída do estoque por FK composta |
+| `sale_payments` | Somente inserção e leitura. Dinheiro (recebido e troco com check) e cartão em maquininha externa (NSU obrigatório); `pix`/`card_provider` e os status `pending`/`failed`/`refunded` ficam previstos para o m07 |
+
+**Finalização:** uma transação trava a sessão de caixa do operador, confere a chave (repetida = mesma venda), aplica a regra de cliente da loja (m27), lê preço e custo no servidor (preço diferente do carrinho = conflito), confere desconto e acréscimo pelo teto da loja e pelas permissões, exige soma exata dos pagamentos, numera (`sale:{loja}` no contador), baixa o estoque em ordem de variação, lança no caixa só o dinheiro aplicado, grava itens, pagamentos e auditoria. **Suspensão:** grava a venda `suspended` com os itens reservados; retomar e finalizar consome as reservas antes da baixa; descartar as libera.
 
 ## Planejado (Fases 2–6)
 

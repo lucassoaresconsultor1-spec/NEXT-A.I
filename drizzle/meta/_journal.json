@@ -120,6 +120,20 @@
       "when": 1792584664592,
       "tag": "0016_force_rls_cash",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792585244435,
+      "tag": "0017_sales",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792585246063,
+      "tag": "0018_force_rls_sales",
+      "breakpoints": true
     }
   ]
 }

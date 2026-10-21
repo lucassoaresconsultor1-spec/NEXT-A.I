@@ -58,6 +58,9 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "cash_session.movement_recorded": "Suprimento ou sangria registrado",
   "cash_session.closed": "Caixa fechado",
   "cash_session.reopened": "Caixa reaberto",
+  "sale.completed": "Venda finalizada",
+  "sale.suspended": "Venda suspensa",
+  "sale.discarded": "Venda suspensa descartada",
 };
 
 export const AUDIT_ENTITY_LABELS: Record<string, string> = {
@@ -80,6 +83,7 @@ export const AUDIT_ENTITY_LABELS: Record<string, string> = {
   stock_transfer: "Transferência de estoque",
   cash_register: "Caixa",
   cash_session: "Sessão de caixa",
+  sale: "Venda",
 };
 
 export function auditActionLabel(action: string) {

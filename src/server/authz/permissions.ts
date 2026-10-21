@@ -57,6 +57,17 @@ export const PERMISSION_GROUPS = [
     ],
   },
   {
+    key: "sales",
+    label: "Vendas",
+    permissions: [
+      { key: "sales.create", label: "Vender no PDV (finalizar e suspender vendas) com o próprio caixa aberto" },
+      { key: "sales.read", label: "Ver as vendas das lojas do escopo" },
+      { key: "sales.discount", label: "Dar desconto até o teto da loja" },
+      { key: "sales.discount.override", label: "Dar desconto acima do teto da loja" },
+      { key: "sales.surcharge", label: "Aplicar acréscimo na venda" },
+    ],
+  },
+  {
     key: "cash",
     label: "Caixa",
     permissions: [

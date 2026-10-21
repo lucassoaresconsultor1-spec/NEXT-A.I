@@ -2,11 +2,15 @@ import { randomInt, randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
+  cashMovements,
   cashRegisters,
+  cashSessions,
   customers,
   membershipRegions,
   membershipStores,
   organizationMemberships,
+  productCosts,
+  productPrices,
   products,
   productVariants,
   regions,
@@ -199,5 +203,26 @@ export async function createCashRegisterFixture(organizationId: string, storeId:
       .values({ organizationId, storeId, name: values.name ?? `Caixa ${uniqueSuffix()}`, isActive: values.isActive ?? true })
       .returning({ id: cashRegisters.id });
     return register.id;
+  });
+}
+
+/** Current price (and optionally cost) of a variant, inserted directly into the history tables. */
+export async function setPriceFixture(organizationId: string, variantId: string, priceCents: number, costCents?: number) {
+  await withScope({ organizationId }, async (tx) => {
+    await tx.insert(productPrices).values({ organizationId, variantId, priceCents });
+    if (costCents !== undefined) await tx.insert(productCosts).values({ organizationId, variantId, costCents });
+  });
+}
+
+/** Open cash session of `userId` on a new register of the store, with its opening movement. */
+export async function openCashSessionFixture(organizationId: string, storeId: string, userId: string, openingAmountCents = 0) {
+  const registerId = await createCashRegisterFixture(organizationId, storeId);
+  return withScope({ organizationId }, async (tx) => {
+    const [session] = await tx
+      .insert(cashSessions)
+      .values({ organizationId, registerId, storeId, openedBy: userId, openingAmountCents, openIdempotencyKey: randomUUID() })
+      .returning({ id: cashSessions.id });
+    await tx.insert(cashMovements).values({ organizationId, sessionId: session.id, storeId, type: "opening", amountCents: openingAmountCents, createdBy: userId });
+    return session.id;
   });
 }
