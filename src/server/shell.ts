@@ -20,6 +20,7 @@ const NAV_PERMISSIONS: Record<string, Permission | null> = {
   "/fornecedores": "catalog.read",
   "/estoque": "inventory.read",
   "/estoque/movimentacoes": "inventory.read",
+  "/clientes": "customers.read",
   "/equipe": "members.read",
   "/perfis": "roles.read",
   "/auditoria": "audit.read",

@@ -2,6 +2,7 @@ import {
   ArrowLeftRight,
   Award,
   Boxes,
+  Contact,
   Building2,
   History,
   LayoutDashboard,
@@ -51,6 +52,10 @@ export const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
       { href: "/estoque", label: "Saldos", icon: Boxes },
       { href: "/estoque/movimentacoes", label: "Movimentações", icon: ArrowLeftRight },
     ],
+  },
+  {
+    label: "Vendas",
+    items: [{ href: "/clientes", label: "Clientes", icon: Contact }],
   },
   {
     label: "Pessoas e acesso",
