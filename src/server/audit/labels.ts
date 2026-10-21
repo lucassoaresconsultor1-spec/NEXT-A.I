@@ -66,6 +66,8 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "payment_intent.failed": "Pagamento integrado recusado",
   "payment_intent.cancelled": "Pagamento integrado cancelado",
   "payment_intent.refunded": "Pagamento integrado estornado",
+  "fiscal_document.requested": "Documento fiscal solicitado",
+  "fiscal_document.status_changed": "Situação do documento fiscal alterada",
 };
 
 export const AUDIT_ENTITY_LABELS: Record<string, string> = {
@@ -90,6 +92,7 @@ export const AUDIT_ENTITY_LABELS: Record<string, string> = {
   cash_session: "Sessão de caixa",
   sale: "Venda",
   payment_intent: "Pagamento integrado",
+  fiscal_document: "Documento fiscal",
 };
 
 export function auditActionLabel(action: string) {

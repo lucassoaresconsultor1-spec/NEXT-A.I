@@ -1,6 +1,6 @@
 # Modelo de dados
 
-Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes, `0011` compras e contador de documentos, `0012` FORCE RLS de compras, `0013` transferências e reservas, `0014` FORCE RLS de transferências e reservas, `0015` caixa, `0016` FORCE RLS do caixa, `0017` vendas, `0018` FORCE RLS de vendas, `0019` pagamentos integrados, `0020` FORCE RLS de pagamentos). Este documento explica o desenho; não repete colunas óbvias.
+Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes, `0011` compras e contador de documentos, `0012` FORCE RLS de compras, `0013` transferências e reservas, `0014` FORCE RLS de transferências e reservas, `0015` caixa, `0016` FORCE RLS do caixa, `0017` vendas, `0018` FORCE RLS de vendas, `0019` pagamentos integrados, `0020` FORCE RLS de pagamentos, `0021` documentos fiscais, `0022` FORCE RLS de documentos fiscais). Este documento explica o desenho; não repete colunas óbvias.
 
 ## Implementado (Fase 1)
 
@@ -164,6 +164,16 @@ Migrations `0019` e `0020` (FORCE RLS em `payment_intents` e `payment_events`).
 | `payment_provider_references` | Tabela **global** sem RLS (como `auth_rate_limits`): mapa `(provedor, referência) → empresa, intenção`, lido pelo webhook, que chega sem sessão. Só ids |
 
 Nenhum provedor real está ligado: sem `PAYMENT_PROVIDER`, PIX e cartão integrado ficam indisponíveis com mensagem clara, e nada é simulado.
+
+## Implementado (Fase 2 — interface fiscal, módulo m09)
+
+Migrations `0021` e `0022` (FORCE RLS).
+
+| Tabela | Notas |
+|---|---|
+| `fiscal_documents` | Um documento (NFC-e) por venda (`UNIQUE (organization_id, sale_id, kind)`), com estado `not_configured` (sem provedor), `pending`, `authorized`, `rejected`, `cancelled` ou `contingency`. Chave de acesso, número, série e protocolo só vêm da resposta do provedor; o banco recusa `authorized` sem chave de 44 dígitos, número e protocolo, e `not_configured` com provedor |
+
+Nenhum provedor fiscal está ligado: o pedido fica `not_configured` e o comprovante do PDV continua "Documento sem valor fiscal".
 
 ## Planejado (Fases 2–6)
 

@@ -65,6 +65,7 @@ export const PERMISSION_GROUPS = [
       { key: "sales.discount", label: "Dar desconto até o teto da loja" },
       { key: "sales.discount.override", label: "Dar desconto acima do teto da loja" },
       { key: "sales.surcharge", label: "Aplicar acréscimo na venda" },
+      { key: "fiscal.read", label: "Ver documentos fiscais das lojas do escopo" },
     ],
   },
   {

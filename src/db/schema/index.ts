@@ -13,3 +13,4 @@ export * from "./transfers";
 export * from "./cash";
 export * from "./sales";
 export * from "./payments";
+export * from "./fiscal";

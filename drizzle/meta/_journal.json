@@ -148,6 +148,20 @@
       "when": 1792598938056,
       "tag": "0020_force_rls_payments",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1792600774871,
+      "tag": "0021_fiscal_documents",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1792600776931,
+      "tag": "0022_force_rls_fiscal",
+      "breakpoints": true
     }
   ]
 }
