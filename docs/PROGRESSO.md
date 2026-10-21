@@ -1,11 +1,11 @@
 # Progresso do desenvolvimento autônomo
 
-Resumo das etapas concluídas até **22/10/2026**, no commit `d247855` da branch `build/fases-1-8` (enviada ao GitHub). **Nada foi mesclado na `main` nem publicado.** O plano completo é o [SPEC](SPEC.md) (61 módulos, 8 fases); o registro de decisões é o [DECISIONS](DECISIONS.md); o estado por fase continua no [roadmap](roadmap.md).
+Resumo das etapas concluídas até **22/10/2026**, no commit `0065a87` da branch `build/fases-1-8` (enviada ao GitHub). **Nada foi mesclado na `main` nem publicado.** O plano completo é o [SPEC](SPEC.md) (61 módulos, 8 fases); o registro de decisões é o [DECISIONS](DECISIONS.md); o estado por fase continua no [roadmap](roadmap.md).
 
 ## 1. Resumo em números
-- **Módulos integrados nesta rodada:** 8 (m01, m02a, m02b, m27, m28a, m29a, m30a e o m44 de correção de teste), mais o back-end de catálogo e estoque e a infraestrutura de esteira.
-- **Migrações novas:** 0005 a 0014 (catálogo/estoque, configurações operacionais, clientes, compras, transferências e reservas), todas com RLS forçado.
-- **Testes verdes no último módulo integrado:** 260 unitários e **152 de integração** (PostgreSQL real, `varejo_test`).
+- **Módulos integrados nesta rodada:** 8 (m01, m02a, m02b, m27, m28a, m29a, m30a, m05a e o m44 de correção de teste), mais o back-end de catálogo e estoque e a infraestrutura de esteira.
+- **Migrações novas:** 0005 a 0016 (catálogo/estoque, configurações operacionais, clientes, compras, transferências e reservas, caixa), todas com RLS forçado.
+- **Testes verdes no último módulo integrado:** 268 unitários e **163 de integração** (PostgreSQL real, `varejo_test`).
 - **Contratos escritos:** 17 (m01, m02a, m02b, m03, m04, m05a, m06a, m14, m26, m27, m28a, m28b, m29a, m29b, m30a, m30b, m44).
 - **Ainda sem verificação manual no navegador** (celular, perfis, acessibilidade): fica para o marco de cada fase.
 
@@ -25,6 +25,7 @@ Resumo das etapas concluídas até **22/10/2026**, no commit `d247855` da branch
 | **m44 teste de autenticação estável** | `82d56b9` | Tentativas sem `.catch` que escondia erros, IPs determinísticos, mesma cobertura e limites | 130/130; arquivo 3 vezes mais rápido |
 | **m29a compras** (3ª migração) | `77c217a` | Pedidos, recebimento contra pedido (entrada no livro e custo de reposição na mesma transação, idempotente por chave), contador de documentos (0011/0012) | PASS+REVIEW, 142 testes; revisão do recebimento |
 | **m30a transferências e reservas** (4ª migração) | `d247855` | Transferências (solicitada → aprovada → em trânsito → recebida/cancelada), reservas, colunas `reserved` e `in_transit`, regra "saldo nunca abaixo do reservado" (0013/0014) | PASS+REVIEW, 152 testes |
+| **m05a caixa** (5ª migração) | `0065a87` | Caixas, sessões e livro de dinheiro só de inserção (0015/0016); uma sessão aberta por caixa e por operador; esperado sempre somado do livro no servidor; diferença exige justificativa; reabertura autorizada | PASS+REVIEW, 163 testes; revisão do livro e do ciclo da sessão |
 | Planejamento | `2eaf3b5`, `4a08335`, `fe7f9d6` | SPEC v8 com 61 módulos, ADR-008 a ADR-020, contratos dos lotes 1 e 2 e do m14 | Revisões do Arquiteto (Opus) |
 
 ## 3. Como a esteira funciona
@@ -39,7 +40,7 @@ Resumo das etapas concluídas até **22/10/2026**, no commit `d247855` da branch
 4. Mudanças pedidas ao próprio gate (ignorar arquivos de outros módulos) foram recusadas: a verificação passou a ser isolada, sem enfraquecer o gate.
 
 ## 5. Em andamento e bloqueios
-- **Em andamento (Opus):** m05a caixa (5ª migração, arquivos já na árvore sem commit) e o lote 3 de contratos (m06a escrito; faltam m05b, m06b, m06c). O m06a (PDV) é o próximo grande.
+- **Em andamento (Opus):** m06a PDV (6ª migração, 0017/0018). A etapa 1 (venda completa: preço e custo congelados, pagamentos locais, idempotência, numeração por loja, estoque e caixa na mesma transação) está pronta e revisada, 171 testes de integração; a etapa 2 (suspensão e retomada com reserva) vem em seguida e o módulo só é commitado inteiro. Faltam os contratos m05b, m06b e m06c.
 - **Parados:** m26 (arquivos na árvore, não verificados), m14, m28b, m29b, m30b, m03 e m04. **Motivo:** o terminal "Codex — Apoio" está ocupado por uma sessão do Claude Code em somente leitura, não pelo Codex CLI. É preciso abrir o Codex CLI nele.
 - **Antigravity:** sem cota até cerca de 27/10/2026.
 
