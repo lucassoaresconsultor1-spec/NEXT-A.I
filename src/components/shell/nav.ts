@@ -4,6 +4,7 @@ import {
   History,
   LayoutDashboard,
   Map,
+  Package,
   Settings,
   ShieldCheck,
   Store,
@@ -36,6 +37,7 @@ export const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
   {
     label: "Catálogo",
     items: [
+      { href: "/produtos", label: "Produtos", icon: Package },
       { href: "/categorias", label: "Categorias", icon: Tags },
       { href: "/marcas", label: "Marcas", icon: Award },
       { href: "/fornecedores", label: "Fornecedores", icon: Truck },
