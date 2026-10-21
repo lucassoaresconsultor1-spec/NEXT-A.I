@@ -1,4 +1,4 @@
-# Contrato do módulo `m28a-clientes` — v1
+# Contrato do módulo `m28a-clientes` — v2
 
 > Escrito pelo Arquiteto (Opus) em 21/10/2026. O agente implementa o que está aqui e nada além.
 > Se algo estiver ambíguo, o agente PERGUNTA (ver seção 10); não presume.
@@ -29,6 +29,7 @@ src/server/audit/labels.ts
 src/server/audit/service.ts
 tests/integration/customers.test.ts
 tests/integration/fixtures.ts               (só acrescentar createCustomerFixture)
+tests/integration/roles.test.ts             (v2: só a lista esperada de permissões do Vendedor, ~linha 227, que passa a incluir customers.read e customers.manage)
 docs/data-model.md
 docs/security.md
 ```
