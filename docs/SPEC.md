@@ -1,7 +1,7 @@
 # SPEC — NEXT A.I
 
 > Dono: Arquiteto (Opus/Codex). Workers (Antigravity) NÃO editam este arquivo.
-> Versão: 9 · Atualizar a versão a cada mudança de contrato (ver seção 6).
+> Versão: 10 · Atualizar a versão a cada mudança de contrato (ver seção 6).
 > Primeiro preenchimento escrito pelo Maestro (20/10/2026); seção 1 refeita pelo Arquiteto (Opus) em 21/10/2026 com o plano completo das Fases 2 a 8, aceito pelo Maestro.
 
 Este documento organiza o **trabalho restante** em módulos entregáveis. Escopo, requisitos e critérios de aceite estão em [PRODUCT.md](../PRODUCT.md); fases, estado atual e riscos de produto em [roadmap.md](roadmap.md); estrutura e decisões já tomadas em [architecture.md](architecture.md); controles em [security.md](security.md). Nada disso é repetido aqui: a SPEC só acrescenta a divisão em módulos, a classificação de risco para delegação e o modelo de ameaças por superfície nova.
@@ -189,13 +189,16 @@ Um arquivo por módulo em `docs/contracts/<id>.md`, a partir de [_TEMPLATE.md](c
 | [m29a-compras](contracts/m29a-compras.md) | v1 · integrado (77c217a) |
 | [m28b-telas-clientes](contracts/m28b-telas-clientes.md) | v1 · lote 2 · pronto (I) depois do m28a |
 | [m30a-transferencias-reservas](contracts/m30a-transferencias-reservas.md) | v2 · integrado |
-| [m06a-pdv-vendas](contracts/m06a-pdv-vendas.md) | v1 · lote 3 · pronto (A) · 6ª migração da fila A |
+| [m06a-pdv-vendas](contracts/m06a-pdv-vendas.md) | v1 · integrado (2bd28c2) |
 | [m30b-telas-transferencias](contracts/m30b-telas-transferencias.md) | v1 · lote 3 · pronto (I) depois do m30a, m29b e m04 |
 | [m05b-telas-caixa](contracts/m05b-telas-caixa.md) | v1 · lote 3 · pronto (A) depois do m05a |
 | [m06b-pdv-tela](contracts/m06b-pdv-tela.md) | v1 · lote 3 · pronto (A) depois do m06a, m05b e m28b |
 | [m06c-telas-vendas](contracts/m06c-telas-vendas.md) | v1 · lote 3 · pronto (I) depois do m06a |
+| [m07-pagamentos](contracts/m07-pagamentos.md) | v1 · lote 4 · pronto (A) · 7ª migração da fila A |
+| [m09-fiscal-interface](contracts/m09-fiscal-interface.md) | v1 · lote 4 · pronto (A) · 8ª migração da fila A |
+| [m08-cancelamentos](contracts/m08-cancelamentos.md) | v1 · lote 4 · pronto (A) · 9ª migração da fila A |
 | [m29b-telas-compras](contracts/m29b-telas-compras.md) | v1 · lote 2 · pronto (I) depois do m29a, m03 e m04 |
-| [m05a-caixa](contracts/m05a-caixa.md) | v1 · lote 2 · pronto (A) · 5ª migração da fila A |
+| [m05a-caixa](contracts/m05a-caixa.md) | v1 · integrado (0065a87) |
 | Demais | Não escritos; o Arquiteto escreve por lotes na ordem da coluna **#** |
 
 ## 5. Definição de pronto global
@@ -218,3 +221,4 @@ Um arquivo por módulo em `docs/contracts/<id>.md`, a partir de [_TEMPLATE.md](c
 | 7 | 22/10/2026 | m28a-clientes (v2) | Allowlist ampliada com `tests/integration/roles.test.ts`, só para a lista esperada de permissões do Vendedor (inclui `customers.read` e `customers.manage`) | O teste fixava as permissões antigas do perfil do sistema; o que ele prova (perfil imutável, sem exclusão, sem linhas em `role_permissions`) não muda |
 | 8 | 22/10/2026 | m29a, m28b, m30a, m29b, m05a; ADR-015 | Contratos do lote 2; ADR-015 detalhado (reservas em tabela própria, despacho/recebimento com `exit`/`entry` sem tipos novos no enum, divergência registrada no item); ameaça de compras ajustada (excesso recusado) | Plano do Arquiteto; enum novo não pode ser usado num CHECK na mesma transação de migração |
 | 9 | 22/10/2026 | m30a-transferencias-reservas (v2); m06a, m30b | Allowlist do m30a ampliada com `src/server/inventory/transfer-queries.ts` (leitura de transferências separada para respeitar o teto de 350 linhas); contratos m06a e m30b do lote 3 | Teto de linhas; plano do Arquiteto |
+| 10 | 22/10/2026 | m07, m09, m08 | Contratos do lote 4: pagamentos por porta com intenção confirmada só por webhook autenticado ou consulta (sem provedor real ligado), interface fiscal sem emissão, cancelamento e devolução com estorno e retorno ao estoque | Plano do Arquiteto; ADR-005 |
