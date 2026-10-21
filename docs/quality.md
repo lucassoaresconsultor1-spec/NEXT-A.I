@@ -63,3 +63,11 @@ pwsh tools/gate/gate.ps1 -Module <id> -Allowed 'src/server/<modulo>/**','tests/i
 Confira auditorias completas e de produção (`pnpm audit --prod` e `pnpm audit`). Investigue advisories e registre risco conhecido e correção disponível em [setup.md](setup.md). Lint/build aprovados não significam auditoria zerada.
 
 Checks são comandos explícitos. Hooks Git, bloqueios de push e exigências de branch não fazem parte do padrão. Atualize este documento junto dos scripts e regras que mudarem.
+
+## Banco de testes local e gate de integração
+
+A suíte de integração **apaga e recria** o schema do banco de teste. Para rodá-la com o gate:
+
+1. Crie o banco descartável `varejo_test` com os papéis `varejo_owner` (dono do schema) e `varejo_app` (sem `SUPERUSER` e sem `BYPASSRLS`), como em [onboarding.md](onboarding.md).
+2. Crie `.env.test-db.local` na raiz (ignorado pelo Git) com `TEST_DATABASE_URL` (papel `varejo_app`) e `TEST_DATABASE_MIGRATION_URL` (papel `varejo_owner`), ambos apontando para `varejo_test` em localhost.
+3. `pwsh -NoProfile -File tools/gate/with-test-db.ps1 corepack pnpm test:integration` roda a suíte; o script recusa qualquer banco que não seja `varejo_test` em localhost e nunca imprime as credenciais. O gate usa esse mesmo script em `sensitiveCommands.integration` quando um arquivo sensível muda.

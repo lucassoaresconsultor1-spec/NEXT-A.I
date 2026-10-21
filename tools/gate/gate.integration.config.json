@@ -6,7 +6,7 @@
     "test": "corepack pnpm test"
   },
   "sensitiveCommands": {
-    "integration": "corepack pnpm test:integration"
+    "integration": "pwsh -NoProfile -File tools/gate/with-test-db.ps1 corepack pnpm test:integration"
   },
   "maxOutputLines": 30,
   "ignoreGlobs": [".maestri/**", "node_modules/**", ".next/**", "dist/**", "build/**", "coverage/**", "*.tsbuildinfo"],
