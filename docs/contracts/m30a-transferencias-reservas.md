@@ -1,4 +1,4 @@
-# Contrato do módulo `m30a-transferencias-reservas` — v1
+# Contrato do módulo `m30a-transferencias-reservas` — v2
 
 > Escrito pelo Arquiteto (Opus) em 22/10/2026. O agente implementa o que está aqui e nada além.
 > Se algo estiver ambíguo, o agente PERGUNTA (ver seção 10); não presume.
@@ -23,6 +23,7 @@ src/server/inventory/ledger.ts              (regra de disponível = quantidade �
 src/server/inventory/service.ts             (listBalances devolve reserved, inTransit, available)
 src/server/inventory/reservations.ts
 src/server/inventory/transfers.ts
+src/server/inventory/transfer-queries.ts    (v2: listTransfers/getTransfer, para transfers.ts caber em 350 linhas)
 src/server/inventory/transfer-schemas.ts
 src/server/inventory/transfer-schemas.test.ts
 src/server/authz/permissions.ts
