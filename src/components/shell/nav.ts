@@ -1,5 +1,7 @@
 import {
+  ArrowLeftRight,
   Award,
+  Boxes,
   Building2,
   History,
   LayoutDashboard,
@@ -41,6 +43,13 @@ export const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
       { href: "/categorias", label: "Categorias", icon: Tags },
       { href: "/marcas", label: "Marcas", icon: Award },
       { href: "/fornecedores", label: "Fornecedores", icon: Truck },
+    ],
+  },
+  {
+    label: "Estoque",
+    items: [
+      { href: "/estoque", label: "Saldos", icon: Boxes },
+      { href: "/estoque/movimentacoes", label: "Movimentações", icon: ArrowLeftRight },
     ],
   },
   {
