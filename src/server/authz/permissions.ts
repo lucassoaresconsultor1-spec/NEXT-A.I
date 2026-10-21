@@ -99,6 +99,7 @@ export const PERMISSION_GROUPS = [
     permissions: [
       { key: "members.read", label: "Ver equipe do escopo" },
       { key: "members.manage", label: "Adicionar e editar membros de nível inferior" },
+      { key: "salespeople.manage", label: "Cadastrar vendedores, lojas e escalas de membros de nível inferior" },
       { key: "roles.read", label: "Ver perfis de acesso" },
       { key: "roles.manage", label: "Criar e editar perfis personalizados" },
     ],

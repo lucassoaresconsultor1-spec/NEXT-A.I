@@ -18,3 +18,4 @@ export * from "./refunds";
 export * from "./counts";
 export * from "./imports";
 export * from "./calendar";
+export * from "./salespeople";

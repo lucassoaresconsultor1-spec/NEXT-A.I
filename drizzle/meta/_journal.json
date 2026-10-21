@@ -218,6 +218,20 @@
       "when": 1792619361109,
       "tag": "0030_force_rls_company_calendar",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1792619996102,
+      "tag": "0031_salespeople",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1792619998540,
+      "tag": "0032_force_rls_salespeople",
+      "breakpoints": true
     }
   ]
 }

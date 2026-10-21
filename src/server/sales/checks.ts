@@ -1,7 +1,7 @@
 import "server-only";
 import { and, eq, inArray } from "drizzle-orm";
 import type { z } from "zod";
-import { cashSessions, organizationMemberships, products, productVariants, stores } from "@/db/schema";
+import { cashSessions, organizationMemberships, products, productVariants, salespeople, salespersonStores, stores } from "@/db/schema";
 import type { Tx } from "@/db/tenant";
 import { resolveMembershipStores, type TenantContext } from "@/server/authz/context";
 import { currentCostCents, currentPriceCents } from "@/server/catalog/queries";
@@ -43,6 +43,18 @@ export async function lockOwnOpenSession(tx: Tx, context: TenantContext, storeId
 
 /** Salesperson must be an active member of the organization who reaches the store. */
 export async function assertSalesperson(tx: Tx, organizationId: string, userId: string, storeId: string) {
+  // With salespeople registered (m10a), only an active salesperson linked to the store counts.
+  const [registered] = await tx.select({ id: salespeople.id }).from(salespeople).where(eq(salespeople.organizationId, organizationId)).limit(1);
+  if (registered) {
+    const [salesperson] = await tx
+      .select({ id: salespeople.id })
+      .from(salespeople)
+      .innerJoin(organizationMemberships, and(eq(organizationMemberships.organizationId, salespeople.organizationId), eq(organizationMemberships.id, salespeople.membershipId)))
+      .innerJoin(salespersonStores, and(eq(salespersonStores.organizationId, salespeople.organizationId), eq(salespersonStores.salespersonId, salespeople.id), eq(salespersonStores.storeId, storeId)))
+      .where(and(eq(salespeople.organizationId, organizationId), eq(organizationMemberships.userId, userId), eq(salespeople.isActive, true), eq(organizationMemberships.status, "active")));
+    if (!salesperson) throw invalid("Revise os campos destacados.", { salespersonUserId: ["Selecione um vendedor ativo desta loja."] });
+    return;
+  }
   const [membership] = await tx
     .select({ id: organizationMemberships.id, status: organizationMemberships.status, storeAccess: organizationMemberships.storeAccess })
     .from(organizationMemberships)

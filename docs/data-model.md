@@ -1,6 +1,6 @@
 # Modelo de dados
 
-Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes, `0011` compras e contador de documentos, `0012` FORCE RLS de compras, `0013` transferências e reservas, `0014` FORCE RLS de transferências e reservas, `0015` caixa, `0016` FORCE RLS do caixa, `0017` vendas, `0018` FORCE RLS de vendas, `0019` pagamentos integrados, `0020` FORCE RLS de pagamentos, `0021` documentos fiscais, `0022` FORCE RLS de documentos fiscais, `0023` cancelamentos, devoluções e chave da suspensão, `0024` FORCE RLS das devoluções, `0025` inventários por lote, `0026` FORCE RLS dos inventários, `0027` importações CSV, `0028` FORCE RLS das importações, `0029` calendário da empresa, `0030` FORCE RLS do calendário). Este documento explica o desenho; não repete colunas óbvias.
+Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes, `0011` compras e contador de documentos, `0012` FORCE RLS de compras, `0013` transferências e reservas, `0014` FORCE RLS de transferências e reservas, `0015` caixa, `0016` FORCE RLS do caixa, `0017` vendas, `0018` FORCE RLS de vendas, `0019` pagamentos integrados, `0020` FORCE RLS de pagamentos, `0021` documentos fiscais, `0022` FORCE RLS de documentos fiscais, `0023` cancelamentos, devoluções e chave da suspensão, `0024` FORCE RLS das devoluções, `0025` inventários por lote, `0026` FORCE RLS dos inventários, `0027` importações CSV, `0028` FORCE RLS das importações, `0029` calendário da empresa, `0030` FORCE RLS do calendário, `0031` vendedores e escalas, `0032` FORCE RLS dos vendedores). Este documento explica o desenho; não repete colunas óbvias.
 
 ## Implementado (Fase 1)
 
@@ -217,6 +217,18 @@ Migrations `0029` e `0030` (FORCE RLS).
 | `store_work_weeks` | Dias de trabalho da loja (0 = domingo … 6 = sábado, 1 a 7 valores); ausente = segunda a sexta |
 
 `loadCalendarOptions` monta as opções do m01 (`src/lib/business-days.ts`) para escalas e metas: dias fechados da empresa e da loja no período, e a semana da loja.
+
+## Implementado (Fase 3 — vendedores e escalas, módulo m10a)
+
+Migrations `0031` e `0032` (FORCE RLS).
+
+| Tabela | Notas |
+|---|---|
+| `salespeople` | Membro da empresa (um por membro, sem dado pessoal novo), código único por empresa (1 a 10 letras/números, maiúsculas), apelido, ativo/inativo |
+| `salesperson_stores` | Lojas do vendedor (FKs compostas) |
+| `work_schedules` | Folgas do vendedor numa loja por mês (`YYYY-MM`, até 31 datas); FK para o vínculo vendedor × loja. `workingDays` = dias úteis da loja (m01 + m32a) menos as folgas |
+
+Com vendedores cadastrados, o PDV só aceita vendedor ativo vinculado à loja; sem cadastro, vale a regra anterior (membro ativo que alcança a loja).
 
 ## Planejado (Fases 2–6)
 
