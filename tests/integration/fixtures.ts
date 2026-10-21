@@ -1,7 +1,17 @@
 import { randomInt, randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { membershipRegions, membershipStores, organizationMemberships, regions, roles, stores, users } from "@/db/schema";
+import {
+  membershipRegions,
+  membershipStores,
+  organizationMemberships,
+  products,
+  productVariants,
+  regions,
+  roles,
+  stores,
+  users,
+} from "@/db/schema";
 import { withScope, type Tx } from "@/db/tenant";
 import { isValidCnpj } from "@/lib/documents";
 import { hashPassword } from "@/server/auth/password";
@@ -129,4 +139,22 @@ export async function addMemberFixture(
     return membership.id;
   });
   return { userId, email, membershipId, context: await contextFor(userId, organizationId) };
+}
+
+export async function createVariantFixture(
+  organizationId: string,
+  values: { unit?: "un" | "kg" | "l" | "m"; productActive?: boolean; variantActive?: boolean; sku?: string } = {},
+) {
+  const suffix = uniqueSuffix().toUpperCase();
+  return withScope({ organizationId }, async (tx) => {
+    const [product] = await tx
+      .insert(products)
+      .values({ organizationId, name: `Produto ${suffix}`, unit: values.unit ?? "un", isActive: values.productActive ?? true })
+      .returning({ id: products.id });
+    const [variant] = await tx
+      .insert(productVariants)
+      .values({ organizationId, productId: product.id, name: "Única", sku: values.sku ?? `SKU-${suffix}`, isActive: values.variantActive ?? true })
+      .returning({ id: productVariants.id });
+    return { productId: product.id, variantId: variant.id };
+  });
 }

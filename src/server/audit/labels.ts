@@ -21,6 +21,19 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "role.created": "Perfil criado",
   "role.updated": "Perfil alterado",
   "role.deleted": "Perfil excluído",
+  "category.created": "Categoria criada",
+  "category.updated": "Categoria alterada",
+  "brand.created": "Marca criada",
+  "brand.updated": "Marca alterada",
+  "supplier.created": "Fornecedor criado",
+  "supplier.updated": "Fornecedor alterado",
+  "product.created": "Produto criado",
+  "product.updated": "Produto alterado",
+  "product_variant.created": "Variação de produto criada",
+  "product_variant.updated": "Variação de produto alterada",
+  "product_variant.price_changed": "Preço de venda alterado",
+  "product_variant.cost_changed": "Custo alterado",
+  "inventory.movement_recorded": "Movimentação de estoque lançada",
 };
 
 export const AUDIT_ENTITY_LABELS: Record<string, string> = {
@@ -30,6 +43,12 @@ export const AUDIT_ENTITY_LABELS: Record<string, string> = {
   department: "Departamento",
   member: "Membro",
   role: "Perfil",
+  category: "Categoria",
+  brand: "Marca",
+  supplier: "Fornecedor",
+  product: "Produto",
+  product_variant: "Variação de produto",
+  inventory_movement: "Movimentação de estoque",
 };
 
 export function auditActionLabel(action: string) {

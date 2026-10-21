@@ -51,10 +51,11 @@ src/
     ├── authz/                    # catálogo de permissões, perfis do sistema, contexto, guardas
     ├── organizations/, plans/    # provisionamento, perfil da empresa, limites e recursos
     ├── regions/, stores/, departments/, members/, roles/
+    ├── catalog/, inventory/      # produtos, variações, preço/custo versionados; livro e saldo de estoque
     ├── audit/, dashboard/, search/, platform/
     └── actions.ts, forms.ts, errors.ts, pagination.ts, http.ts, shell.ts
 demo/                             # demonstração estática com dados fictícios (fora do app; ver demo/README.md)
-drizzle/                          # SQL versionado (0000 schema, 0001 FORCE RLS, 0002 planos, 0003 dono da conta)
+drizzle/                          # SQL versionado (0000 schema, 0001 FORCE RLS, 0002 planos, 0003 dono da conta, 0004 perfis, 0005/0006 catálogo e estoque)
 tests/integration/                # PostgreSQL real; fixtures por inserção direta
 tests/e2e/                        # Playwright sobre build de produção
 scripts/                          # verify-quality-rules, platform-admin, SQL local

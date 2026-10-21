@@ -41,7 +41,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     description: "Faturamento, recebimentos, conciliação, caixa e despesas das lojas autorizadas, sem configurações operacionais.",
     rank: 80,
     defaultStoreAccess: "stores",
-    permissions: ["organization.settings.read", "stores.read", "regions.read"],
+    permissions: ["organization.settings.read", "stores.read", "regions.read", "catalog.read", "catalog.costs.read", "inventory.read"],
   },
   {
     key: "regional_manager",
@@ -57,6 +57,9 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
       "members.read",
       "members.manage",
       "roles.read",
+      "catalog.read",
+      "catalog.costs.read",
+      "inventory.read",
     ],
   },
   {
@@ -65,7 +68,16 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     description: "Gerencia a equipe e a operação das lojas autorizadas.",
     rank: 50,
     defaultStoreAccess: "stores",
-    permissions: ["stores.read", "departments.read", "members.read", "members.manage", "roles.read"],
+    permissions: [
+      "stores.read",
+      "departments.read",
+      "members.read",
+      "members.manage",
+      "roles.read",
+      "catalog.read",
+      "inventory.read",
+      "inventory.manage",
+    ],
   },
   {
     key: "supervisor",
@@ -73,7 +85,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     description: "Monitora equipe, atendimento e indicadores da loja.",
     rank: 40,
     defaultStoreAccess: "stores",
-    permissions: ["stores.read", "departments.read", "members.read"],
+    permissions: ["stores.read", "departments.read", "members.read", "catalog.read", "inventory.read"],
   },
   {
     key: "salesperson",
@@ -81,7 +93,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     description: "Consulta o próprio desempenho e os atendimentos atribuídos.",
     rank: 20,
     defaultStoreAccess: "stores",
-    permissions: ["stores.read"],
+    permissions: ["stores.read", "catalog.read", "inventory.read"],
   },
   {
     key: "cashier",
@@ -89,7 +101,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     description: "Opera o PDV e o próprio caixa.",
     rank: 20,
     defaultStoreAccess: "stores",
-    permissions: ["stores.read"],
+    permissions: ["stores.read", "catalog.read", "inventory.read"],
   },
 ];
 

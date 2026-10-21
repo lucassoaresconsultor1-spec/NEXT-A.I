@@ -23,6 +23,23 @@ export const PERMISSION_GROUPS = [
     ],
   },
   {
+    key: "catalog",
+    label: "Catálogo",
+    permissions: [
+      { key: "catalog.read", label: "Ver produtos, variações e preços" },
+      { key: "catalog.manage", label: "Cadastrar e editar produtos, categorias, marcas, fornecedores e preços" },
+      { key: "catalog.costs.read", label: "Ver custos de produtos (alterar exige também cadastrar produtos)" },
+    ],
+  },
+  {
+    key: "inventory",
+    label: "Estoque",
+    permissions: [
+      { key: "inventory.read", label: "Ver saldos e movimentações das lojas do escopo" },
+      { key: "inventory.manage", label: "Lançar entradas, saídas, ajustes, perdas e inventários nas lojas do escopo" },
+    ],
+  },
+  {
     key: "people",
     label: "Pessoas e acesso",
     permissions: [

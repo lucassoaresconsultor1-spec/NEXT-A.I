@@ -9,7 +9,23 @@ import { pageResult, pageWindow, parsePage } from "@/server/pagination";
 import { zonedDayStart } from "@/lib/dates";
 
 export const auditFiltersSchema = z.object({
-  entityType: z.enum(["organization", "region", "store", "department", "member", "role"]).optional().catch(undefined),
+  entityType: z
+    .enum([
+      "organization",
+      "region",
+      "store",
+      "department",
+      "member",
+      "role",
+      "category",
+      "brand",
+      "supplier",
+      "product",
+      "product_variant",
+      "inventory_movement",
+    ])
+    .optional()
+    .catch(undefined),
   from: z.iso.date().optional().catch(undefined),
   to: z.iso.date().optional().catch(undefined),
   page: z.unknown().optional().transform(parsePage),

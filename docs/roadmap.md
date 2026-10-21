@@ -14,8 +14,8 @@ Classificação do estado no produto (`src/`): **existente**, **parcial**, **aus
 | Pessoas e acesso | Vínculos, escopo de lojas, perfis do sistema (Dono, Administrador, Financeiro, Coordenador, Gerente de loja, Supervisor, Vendedor, Operador de caixa) e personalizados, permissões | 1 | Existente (permissões financeiras e do vendedor entram com seus módulos) |
 | Auditoria | Trilha imutável de alterações | 1 | Existente |
 | Plataforma | Cadastro de empresas com o acesso do dono, planos e situação | 1 | Existente |
-| Catálogo | Produtos, variações, categorias, marcas, fornecedores, histórico de preço/custo | 2 | Ausente · protótipo na demo (sem variações nem histórico de preço) |
-| Estoque | Livro de movimentações, saldo/reserva/trânsito por loja, inventário, transferências, recebimento, pedidos de compra | 2 | Ausente · protótipo na demo (livro, transferências; sem pedidos de compra) |
+| Catálogo | Produtos, variações, categorias, marcas, fornecedores, histórico de preço/custo | 2 | Parcial: banco, serviços e testes (`src/server/catalog/`), sem telas · protótipo na demo |
+| Estoque | Livro de movimentações, saldo/reserva/trânsito por loja, inventário, transferências, recebimento, pedidos de compra | 2 | Parcial: livro (entrada, saída, ajuste, perda, inventário) e saldo por loja em banco, serviços e testes (`src/server/inventory/`); sem telas, reserva, trânsito, transferências nem pedidos de compra · protótipo na demo |
 | PDV e caixa | Venda, carrinho, descontos autorizados, suspensão, sessões de caixa, sangria/suprimento, fechamento e divergência | 2 | Ausente · protótipo na demo |
 | Compras e fornecedores | Fornecedores, pedidos de compra, recebimento contra pedido, custo de reposição | 2 (estrutura) · evolução | Ausente |
 | Financeiro | Faturamento, recebimentos, conciliação, fechamento de caixa, despesas, relatórios financeiros | 2–4 | Ausente (perfil Financeiro existe) |
@@ -42,7 +42,7 @@ Estrutura Next.js, banco com RLS forçado, autenticação, organizações e loja
 
 Incrementos, nesta ordem:
 
-1. **Catálogo + estoque por livro:** `products`, `product_variants`, `categories`, `brands`, `suppliers`, `inventory_movements` (entrada, saída, ajuste, perda, inventário) e `inventory_balances` derivado em transação. Saldo nunca é editado diretamente. Histórico de preço/custo versionado.
+1. **Catálogo + estoque por livro:** `products`, `product_variants`, `categories`, `brands`, `suppliers`, `inventory_movements` (entrada, saída, ajuste, perda, inventário) e `inventory_balances` derivado em transação. Saldo nunca é editado diretamente. Histórico de preço/custo versionado. *Back-end entregue: schema, migrations `0005`/`0006`, serviços, permissões e testes unitários; testes de integração escritos, execução pendente de PostgreSQL. Faltam as telas.*
 2. **Caixa:** `cash_registers`, `cash_sessions` (abertura, saldo inicial, fechamento, conferência, divergência, reabertura autorizada), `cash_movements` (suprimento, sangria, reforço com justificativa).
 3. **PDV online:** interface própria por teclado e leitor (o leitor de código de barras emula teclado), carrinho, vendedor associado, cliente opcional/obrigatório por configuração, descontos e acréscimos sujeitos a permissão, suspensão/recuperação, comprovante não fiscal. `sales`, `sale_items`, `payments` gravados numa transação com a baixa de estoque; chave de idempotência por tentativa de finalização para impedir duplicidade.
 4. **Pagamentos:** adaptador por provedor; dinheiro e troco locais; PIX/cartão só confirmados por webhook autenticado ou consulta de status. Nenhum dado sensível de cartão é armazenado. Estorno e conciliação conforme o provedor.

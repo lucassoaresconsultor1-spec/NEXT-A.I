@@ -37,6 +37,26 @@ const LIMIT_MESSAGES: Record<PlanLimit, (max: number) => string> = {
   members: (max) => `O plano atual permite até ${max} membro(s) ativo(s). Fale com o suporte para alterar o plano.`,
 };
 
+/** Plan features checked by modules (keys seeded in plan_features by migration 0002). */
+export type PlanFeature = "inventory";
+
+const FEATURE_MESSAGES: Record<PlanFeature, string> = {
+  inventory: "O plano atual não inclui o controle de estoque. Fale com o suporte para alterar o plano.",
+};
+
+export async function hasFeature(tx: Tx, organizationId: string, feature: PlanFeature) {
+  const [found] = await tx
+    .select({ feature: planFeatures.feature })
+    .from(organizations)
+    .innerJoin(planFeatures, and(eq(planFeatures.planKey, organizations.planKey), eq(planFeatures.feature, feature)))
+    .where(eq(organizations.id, organizationId));
+  return Boolean(found);
+}
+
+export async function assertFeature(tx: Tx, organizationId: string, feature: PlanFeature) {
+  if (!(await hasFeature(tx, organizationId, feature))) throw limitReached(FEATURE_MESSAGES[feature]);
+}
+
 /** Throws when adding `adding` units would exceed the plan; NULL limits mean unlimited. */
 export async function assertWithinLimit(tx: Tx, organizationId: string, limit: PlanLimit, adding = 1) {
   // Serializes concurrent creations in the same organization until commit.
