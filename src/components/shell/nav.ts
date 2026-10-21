@@ -10,7 +10,9 @@ import {
   LayoutDashboard,
   Map,
   Repeat,
+  ReceiptText,
   ScrollText,
+  Wallet,
   Package,
   Settings,
   ShieldCheck,
@@ -64,6 +66,8 @@ export const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
     label: "Vendas",
     items: [
       { href: "/vendas", label: "Histórico de vendas", icon: ScrollText },
+      { href: "/caixa", label: "Caixa", icon: Wallet },
+      { href: "/caixa/sessoes", label: "Sessões de caixa", icon: ReceiptText },
       { href: "/clientes", label: "Clientes", icon: Contact },
     ],
   },
