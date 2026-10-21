@@ -4,6 +4,7 @@ import {
   Boxes,
   Contact,
   Building2,
+  ClipboardList,
   History,
   LayoutDashboard,
   Map,
@@ -51,6 +52,7 @@ export const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
     items: [
       { href: "/estoque", label: "Saldos", icon: Boxes },
       { href: "/estoque/movimentacoes", label: "Movimentações", icon: ArrowLeftRight },
+      { href: "/compras", label: "Compras", icon: ClipboardList },
     ],
   },
   {
