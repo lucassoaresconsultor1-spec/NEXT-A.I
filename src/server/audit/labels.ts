@@ -51,6 +51,13 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "stock_transfer.dispatched": "Transferência despachada",
   "stock_transfer.received": "Transferência recebida",
   "stock_transfer.cancelled": "Transferência cancelada",
+  "cash_register.created": "Caixa cadastrado",
+  "cash_register.updated": "Caixa alterado",
+  "cash_register.status_changed": "Situação de caixa alterada",
+  "cash_session.opened": "Caixa aberto",
+  "cash_session.movement_recorded": "Suprimento ou sangria registrado",
+  "cash_session.closed": "Caixa fechado",
+  "cash_session.reopened": "Caixa reaberto",
 };
 
 export const AUDIT_ENTITY_LABELS: Record<string, string> = {
@@ -71,6 +78,8 @@ export const AUDIT_ENTITY_LABELS: Record<string, string> = {
   purchase_order: "Pedido de compra",
   goods_receipt: "Recebimento de mercadorias",
   stock_transfer: "Transferência de estoque",
+  cash_register: "Caixa",
+  cash_session: "Sessão de caixa",
 };
 
 export function auditActionLabel(action: string) {

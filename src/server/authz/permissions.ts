@@ -57,6 +57,15 @@ export const PERMISSION_GROUPS = [
     ],
   },
   {
+    key: "cash",
+    label: "Caixa",
+    permissions: [
+      { key: "cash.read", label: "Ver caixas e sessões das lojas do escopo" },
+      { key: "cash.operate", label: "Abrir, movimentar e fechar o próprio caixa" },
+      { key: "cash.manage", label: "Cadastrar caixas, fechar sessões de outros operadores e reabrir sessões" },
+    ],
+  },
+  {
     key: "customers",
     label: "Clientes",
     permissions: [

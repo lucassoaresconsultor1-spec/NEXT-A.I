@@ -1,6 +1,6 @@
 # Modelo de dados
 
-Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes, `0011` compras e contador de documentos, `0012` FORCE RLS de compras, `0013` transferências e reservas, `0014` FORCE RLS de transferências e reservas). Este documento explica o desenho; não repete colunas óbvias.
+Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes, `0011` compras e contador de documentos, `0012` FORCE RLS de compras, `0013` transferências e reservas, `0014` FORCE RLS de transferências e reservas, `0015` caixa, `0016` FORCE RLS do caixa). Este documento explica o desenho; não repete colunas óbvias.
 
 ## Implementado (Fase 1)
 
@@ -127,6 +127,19 @@ Migrations `0013` (tabelas novas e colunas `reserved`/`in_transit` em `inventory
 | `stock_transfer_items` | Solicitado, enviado (≤ solicitado) e recebido (≤ enviado), motivo de divergência, reserva e ids dos movimentos de saída e de entrada (FKs compostas) |
 
 **Fluxo:** a aprovação reserva na origem; o despacho consome a reserva, lança `exit` na origem e soma o enviado ao `in_transit` do destino; o recebimento tira o enviado do trânsito e lança `entry` do recebido no destino. Diferença entre enviado e recebido fica no item, com motivo obrigatório, sem movimento de loja. Movimentos manuais não podem deixar a quantidade abaixo do reservado. Cada etapa trava a transferência e as linhas de saldo em ordem (loja, variação).
+
+## Implementado (Fase 2 — caixa, módulo m05a)
+
+Migrations `0015` (tabelas, políticas, índices, checks) e `0016` (FORCE RLS).
+
+| Tabela | Notas |
+|---|---|
+| `cash_registers` | Caixas por loja; nome único na loja sem diferenciar maiúsculas; ativo/inativo (não desativa com sessão aberta) |
+| `cash_sessions` | Abertura (troco inicial, operador, chave de idempotência única), fechamento (contado, esperado, diferença, observação) com check de coerência por situação. Índices únicos parciais: uma sessão aberta por caixa e uma por operador |
+| `cash_movements` | Livro de dinheiro, somente inserção e leitura: `opening`, `supply`, `withdrawal` (motivo obrigatório), `sale` e `refund` (referência obrigatória, alimentados pelo PDV e pelas devoluções). Chave de idempotência única quando informada |
+| `cash_session_events` | Somente inserção e leitura: abertura, fechamento (com contado, esperado e diferença) e reabertura (com motivo) |
+
+**Esperado:** abertura + suprimentos − sangrias + vendas em dinheiro − devoluções em dinheiro, sempre somado do livro no servidor. Sangria e devolução em dinheiro não passam do esperado. A reabertura volta a sessão para `open`, limpa os campos de fechamento (o fechamento anterior fica no evento) e só vale para a sessão mais recente do caixa.
 
 ## Planejado (Fases 2–6)
 

@@ -10,3 +10,4 @@ export * from "./customers";
 export * from "./counters";
 export * from "./purchasing";
 export * from "./transfers";
+export * from "./cash";
