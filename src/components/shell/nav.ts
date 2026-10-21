@@ -12,6 +12,7 @@ import {
   Repeat,
   ReceiptText,
   ScrollText,
+  ShoppingCart,
   Upload,
   Wallet,
   Package,
@@ -67,6 +68,7 @@ export const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
   {
     label: "Vendas",
     items: [
+      { href: "/pdv", label: "PDV", icon: ShoppingCart },
       { href: "/vendas", label: "Histórico de vendas", icon: ScrollText },
       { href: "/caixa", label: "Caixa", icon: Wallet },
       { href: "/caixa/sessoes", label: "Sessões de caixa", icon: ReceiptText },
