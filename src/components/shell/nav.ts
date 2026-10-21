@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Store,
   Tags,
+  Truck,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -37,6 +38,7 @@ export const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
     items: [
       { href: "/categorias", label: "Categorias", icon: Tags },
       { href: "/marcas", label: "Marcas", icon: Award },
+      { href: "/fornecedores", label: "Fornecedores", icon: Truck },
     ],
   },
   {
