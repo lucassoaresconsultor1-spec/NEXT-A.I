@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Urbanist } from "next/font/google";
 import "./globals.css";
 
@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   title: { default: "NEXT A.I", template: "%s · NEXT A.I" },
   description: "Gestão de lojas, equipes e operação de varejo.",
 };
+
+export const viewport: Viewport = { themeColor: "#062F28" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
