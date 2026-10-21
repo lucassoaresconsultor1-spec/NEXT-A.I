@@ -23,6 +23,9 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 const single = (value: string | string[] | undefined) => (typeof value === "string" ? value : undefined);
 
+// Quantities come from the service as numeric strings ("0.000").
+const isZero = (value: string) => /^-?0+(\.0+)?$/.test(value);
+
 function NewMovementButton() {
   return (
     <LinkButton href="/estoque/lancar">
@@ -103,6 +106,9 @@ export default async function StockPage({ searchParams }: { searchParams: Search
                     <Th>Produto</Th>
                     <Th>Loja</Th>
                     <Th className="text-right">Quantidade</Th>
+                    <Th className="text-right">Reservado</Th>
+                    <Th className="text-right">Em trânsito</Th>
+                    <Th className="text-right">Disponível</Th>
                     <Th>Atualizado em</Th>
                     <Th className="text-right">Ações</Th>
                   </tr>
@@ -119,9 +125,16 @@ export default async function StockPage({ searchParams }: { searchParams: Search
                       <Td className="text-ink-soft">
                         {row.storeCode} · {row.storeName}
                       </Td>
-                      <Td className={`text-right tabular-nums ${/^0(\.0+)?$/.test(row.quantity) ? "text-ink-muted" : ""}`}>
+                      <Td className={`text-right tabular-nums ${isZero(row.quantity) ? "text-ink-muted" : ""}`}>
                         {formatQuantity(row.quantity, row.unit)}
                       </Td>
+                      <Td className={`text-right tabular-nums ${isZero(row.reserved) ? "text-ink-muted" : ""}`}>
+                        {formatQuantity(row.reserved, row.unit)}
+                      </Td>
+                      <Td className={`text-right tabular-nums ${isZero(row.inTransit) ? "text-ink-muted" : ""}`}>
+                        {formatQuantity(row.inTransit, row.unit)}
+                      </Td>
+                      <Td className="text-right font-medium tabular-nums">{formatQuantity(row.available, row.unit)}</Td>
                       <Td className="text-ink-soft">{formatDateTime(row.updatedAt, tz)}</Td>
                       <Td className="text-right">
                         <Link
