@@ -1,7 +1,7 @@
 # SPEC — NEXT A.I
 
 > Dono: Arquiteto (Opus/Codex). Workers (Antigravity) NÃO editam este arquivo.
-> Versão: 3 · Atualizar a versão a cada mudança de contrato (ver seção 6).
+> Versão: 5 · Atualizar a versão a cada mudança de contrato (ver seção 6).
 > Primeiro preenchimento escrito pelo Maestro a pedido do usuário (20/10/2026); a revisão do Arquiteto está pendente e pode alterar a seção 1 antes de qualquer delegação.
 
 Este documento organiza o **trabalho restante** em módulos entregáveis. Escopo, requisitos e critérios de aceite estão em [PRODUCT.md](../PRODUCT.md); fases, estado atual e riscos de produto em [roadmap.md](roadmap.md); estrutura e decisões já tomadas em [architecture.md](architecture.md); controles em [security.md](security.md). Nada disso é repetido aqui: a SPEC só acrescenta a divisão em módulos, a classificação de risco para delegação e o modelo de ameaças por superfície nova.
@@ -18,8 +18,9 @@ Módulos já entregues (Fase 1 e Fase 2, incremento 1 em back-end) estão no [ro
 | ID | Responsabilidade | Fase | Depende de | Risco | Quem implementa |
 |----|------------------|------|------------|-------|-----------------|
 | m01-dias-uteis | Biblioteca pura de calendário: dia útil, feriados nacionais fixos, contagem de dias úteis num período (base de escalas e metas) | 3 | - | BAIXO | Worker |
-| m02-telas-cadastros | Telas de categorias, marcas e fornecedores sobre `src/server/catalog` (listar, criar, editar, ativar/desativar) | 2 | catálogo (existente) | BAIXO | Worker |
-| m03-telas-produtos | Telas de produtos, variações, preço e custo (custo só com `catalog.costs.read`) | 2 | m02 | SENSÍVEL (dinheiro, custo) | Arquiteto/Codex |
+| m02a-telas-categorias-marcas | Telas de categorias e marcas sobre `src/server/catalog` (listar, criar, editar, ativar/desativar) e seção "Catálogo" do menu | 2 | catálogo (existente) | BAIXO | Worker |
+| m02b-telas-fornecedores | Tela de fornecedores com busca por nome, situação e paginação | 2 | m02a | BAIXO | Worker |
+| m03-telas-produtos | Telas de produtos, variações, preço e custo (custo só com `catalog.costs.read`) | 2 | m02b | SENSÍVEL (dinheiro, custo) | Arquiteto/Codex |
 | m04-telas-estoque | Telas de saldos e movimentações; lançamento manual | 2 | m03 | SENSÍVEL (estoque) | Arquiteto/Codex |
 | m05-caixa | `cash_registers`, `cash_sessions`, `cash_movements`; abertura, sangria, suprimento, fechamento e divergência | 2 | m04 | SENSÍVEL (dinheiro, tabelas com RLS, migração) | Arquiteto/Codex |
 | m06-pdv | Venda, carrinho, descontos autorizados, suspensão, comprovante não fiscal; baixa de estoque na mesma transação | 2 | m05 | SENSÍVEL (dinheiro, estoque, idempotência) | Arquiteto/Codex |
@@ -81,7 +82,7 @@ O modelo geral e as camadas implementadas estão em [security.md](security.md#mo
 | Superfície | Ameaça | Mitigação obrigatória | Módulo |
 |------------|--------|-----------------------|--------|
 | Tabelas novas por empresa | Leitura/escrita entre empresas | `organization_id`, `tenantIsolationPolicy()`, `UNIQUE (organization_id, id)`, FKs compostas, `FORCE ROW LEVEL SECURITY`, teste de isolamento por módulo | m05, m06, m10, m11, m12, m13 |
-| Telas e Server Actions | IDOR e acesso sem permissão | `requireTenantContext()` na página e na ação; id fora do escopo = "não encontrado"; permissão checada no serviço | m02, m03, m04, m17, m22 |
+| Telas e Server Actions | IDOR e acesso sem permissão | `requireTenantContext()` na página e na ação; id fora do escopo = "não encontrado"; permissão checada no serviço | m02a, m02b, m03, m04, m17, m22 |
 | Custos de produto | Vazamento a quem não tem `catalog.costs.read` | Custo fora do DTO sem a permissão; tela só pede o campo quando autorizada | m03, m16 |
 | Finalização de venda e pagamento | Duplicidade por retentativa ou corrida | Chave de idempotência por finalização, transação única com baixa de estoque, sem retry automático de operação financeira | m06, m07, m08 |
 | Webhook de pagamento | Confirmação forjada ou repetida | Assinatura/autenticação do provedor verificada, idempotência por id do evento, confirmação só por webhook autenticado ou consulta ao provedor | m07 |
@@ -101,7 +102,9 @@ Um arquivo por módulo em `docs/contracts/<id>.md`, a partir de [_TEMPLATE.md](c
 | Contrato | Estado |
 |----------|--------|
 | [m01-dias-uteis](contracts/m01-dias-uteis.md) | Escrito (v2, ajustado após a revisão do Arquiteto); aguarda a reconfirmação do Arquiteto antes de delegar |
-| m02 a m25 | Não escritos; o Arquiteto escreve um por vez, na ordem do mapa |
+| [m02a-telas-categorias-marcas](contracts/m02a-telas-categorias-marcas.md) | Escrito (v1) pelo Maestro, após a revisão do Arquiteto do m02 original; aguarda a reconfirmação do Arquiteto antes de delegar |
+| [m02b-telas-fornecedores](contracts/m02b-telas-fornecedores.md) | Escrito (v1) pelo Maestro; depende do m02a integrado; aguarda a reconfirmação do Arquiteto |
+| m03 a m25 | Não escritos; o Arquiteto escreve um por vez, na ordem do mapa |
 
 ## 5. Definição de pronto global
 - Gate (`pwsh tools/gate/gate.ps1`) retorna PASS para o módulo (PASS+REVIEW só depois da revisão do checklist).
@@ -117,3 +120,5 @@ Um arquivo por módulo em `docs/contracts/<id>.md`, a partir de [_TEMPLATE.md](c
 | 1 | 20/10/2026 | SPEC, m01-dias-uteis | Mapa de módulos, ADRs, modelo de ameaças e primeiro contrato | Preenchimento inicial a pedido do usuário |
 | 2 | 21/10/2026 | m01-dias-uteis | Opções hostis com `RangeError`, `isValidCalendarDay(unknown)`, `MAX_EXTRA_HOLIDAYS`, `NaN`/`Infinity`, borda de 3660/3661 dias, comandos de fuso e motivo de `easterSunday` | Revisão do Arquiteto (Opus): sete ajustes |
 | 3 | 21/10/2026 | SPEC | Dados de referência dos feriados de Araruama/RJ (Corpus Christi como ponto facultativo, divergência com a Lei 2709/2025 registrada) | Pedido do usuário após pesquisa em fontes oficiais |
+| 4 | 21/10/2026 | m02-telas-cadastros | Primeiro contrato de módulo de telas (categorias, marcas e fornecedores) | Próximo módulo BAIXO do mapa |
+| 5 | 21/10/2026 | m02a, m02b | O contrato m02 foi dividido em m02a (categorias e marcas) e m02b (fornecedores); a pré-condição de integração do catálogo verde, o texto fixo, o `FormAction` do hook, as regras de `"use server"` e as interfaces dos diálogos de fornecedor foram especificados | Revisão do Arquiteto (Opus): ajustes 1 a 9 |
