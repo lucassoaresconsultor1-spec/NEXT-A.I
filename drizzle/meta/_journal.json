@@ -176,6 +176,20 @@
       "when": 1792601376301,
       "tag": "0024_force_rls_refunds",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1792616620381,
+      "tag": "0025_inventory_counts",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1792616624268,
+      "tag": "0026_force_rls_inventory_counts",
+      "breakpoints": true
     }
   ]
 }

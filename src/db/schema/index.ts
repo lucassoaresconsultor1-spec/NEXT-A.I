@@ -15,3 +15,4 @@ export * from "./sales";
 export * from "./payments";
 export * from "./fiscal";
 export * from "./refunds";
+export * from "./counts";

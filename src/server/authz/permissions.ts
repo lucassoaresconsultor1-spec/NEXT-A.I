@@ -44,6 +44,9 @@ export const PERMISSION_GROUPS = [
       { key: "inventory.transfer.request", label: "Solicitar transferências de estoque para lojas do escopo" },
       { key: "inventory.transfer.approve", label: "Aprovar e cancelar transferências que saem de lojas do escopo" },
       { key: "inventory.transfer.execute", label: "Despachar e receber transferências nas lojas do escopo" },
+      { key: "inventory.count.record", label: "Registrar quantidades em inventários abertos (contagem cega)" },
+      { key: "inventory.count.manage", label: "Abrir e cancelar inventários nas lojas do escopo" },
+      { key: "inventory.count.approve", label: "Revisar e aprovar inventários, ajustando o estoque" },
     ],
   },
   {

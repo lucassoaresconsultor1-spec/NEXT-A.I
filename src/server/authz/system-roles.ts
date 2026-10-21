@@ -101,6 +101,9 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
       "inventory.transfer.request",
       "inventory.transfer.approve",
       "inventory.transfer.execute",
+      "inventory.count.record",
+      "inventory.count.manage",
+      "inventory.count.approve",
       "purchases.read",
       "purchases.receive",
       "sales.create",
@@ -126,7 +129,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     description: "Monitora equipe, atendimento e indicadores da loja.",
     rank: 40,
     defaultStoreAccess: "stores",
-    permissions: ["stores.read", "departments.read", "members.read", "catalog.read", "inventory.read", "sales.read", "cash.read", "customers.read"],
+    permissions: ["stores.read", "departments.read", "members.read", "catalog.read", "inventory.read", "inventory.count.record", "sales.read", "cash.read", "customers.read"],
   },
   {
     key: "salesperson",
