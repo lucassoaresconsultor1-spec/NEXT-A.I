@@ -36,6 +36,7 @@ A aplicação **deve** conectar com um papel sem `SUPERUSER` e sem `BYPASSRLS` (
 - **Visibilidade de equipe:** quem tem acesso a todas as lojas vê todos os vínculos; os demais veem a si e os vínculos de lojas/regiões que alcançam lojas do seu escopo, e só gerenciam membros de "lojas específicas" totalmente dentro do seu escopo.
 - **Mudanças estruturais** (criar loja, regiões, departamentos, dados da empresa, perfis) exigem acesso a todas as lojas.
 - **Regras de operação** (cliente na venda, teto de desconto sem autorização, textos do comprovante): permissão `settings.operations.manage`, só de Dono e Administrador. O padrão da empresa exige acesso a todas as lojas; a exceção de uma loja exige a loja no escopo (fora dele = "não encontrada"). Toda alteração é auditada com valor anterior e novo; o teto é guardado em pontos-base inteiros. Textos do comprovante são exibidos como texto, sem HTML.
+- **Clientes:** cadastro da empresa, sem escopo de loja. `customers.read` vê a lista com o CPF mascarado; `customers.documents.read` (Dono, Administrador, Financeiro, Gerente de loja) vê o CPF completo; `customers.manage` cadastra e edita (também Vendedor e Operador de caixa, que identificam o comprador na venda). Sem a permissão de documento, editar um cliente com CPF mantém o CPF ao reenviar a máscara e não permite apagá-lo.
 - O contexto (vínculo, perfil, permissões, escopo, situação da empresa) é recarregado a cada requisição: suspensão de membro ou empresa vale imediatamente.
 
 ## Autenticação e sessão (implementado)
@@ -61,10 +62,10 @@ A aplicação **deve** conectar com um papel sem `SUPERUSER` e sem `BYPASSRLS` (
 
 ## LGPD — aplicação atual e pendências
 
-- **Minimização:** a Fase 1 trata nome e e-mail de usuários, CNPJ e contatos de lojas. Identificadores de autenticação ficam em HMAC.
+- **Minimização:** a Fase 1 trata nome e e-mail de usuários, CNPJ e contatos de lojas. Identificadores de autenticação ficam em HMAC. Clientes (Fase 2, `customers`) guardam só nome, CPF, e-mail e telefone opcionais e o consentimento de contato com data; o CPF é mascarado no servidor para quem não tem `customers.documents.read`, e CPF, e-mail e telefone entram mascarados na auditoria e nunca em log.
 - **Finalidade e base legal:** execução de contrato com a empresa cliente (operadora) — o enquadramento formal e o contrato de operador são **pendência jurídica**.
 - **Retenção (proposta, a validar):** sessões expiradas removíveis após 30 dias; `auth_rate_limits` com janela expirada removível; `auth_events` 12 meses; `audit_logs` 5 anos. A rotina de limpeza agendada entra com a infraestrutura de tarefas (Fase 6/7).
-- **Direitos do titular** (acesso, correção, eliminação) exigem fluxo administrativo: pendente.
+- **Direitos do titular** (acesso, correção, eliminação) exigem fluxo administrativo: pendente. Para clientes, a retenção e a anonimização a pedido do titular são **pendência de produto** (ADR-017); hoje o cadastro só pode ser corrigido ou desativado.
 - IA (Fase 5): enviar ao modelo apenas agregados e campos necessários, sem dados pessoais quando possível, conforme termos do provedor.
 
 ## Plano para as próximas fases

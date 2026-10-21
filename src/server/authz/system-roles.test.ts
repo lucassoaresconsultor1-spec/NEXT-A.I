@@ -19,7 +19,9 @@ describe("system roles", () => {
   it("give front-line roles no management or audit access", () => {
     for (const key of ["salesperson", "cashier"]) {
       const role = SYSTEM_ROLES.find((entry) => entry.key === key)!;
-      expect(role.permissions.some((permission) => permission.endsWith(".manage"))).toBe(false);
+      // Registering the buyer at the sale is the only management allowed (ADR-017).
+      expect(role.permissions.filter((permission) => permission.endsWith(".manage"))).toEqual(["customers.manage"]);
+      expect(role.permissions).not.toContain("customers.documents.read");
       expect(role.permissions).not.toContain("audit.read");
       expect(role.permissions).not.toContain("members.read");
     }

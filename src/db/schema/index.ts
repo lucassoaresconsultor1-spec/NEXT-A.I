@@ -6,3 +6,4 @@ export * from "./audit";
 export * from "./catalog";
 export * from "./inventory";
 export * from "./settings";
+export * from "./customers";

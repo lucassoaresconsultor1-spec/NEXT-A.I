@@ -37,6 +37,9 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "settings.operations_updated": "Regras de operação da empresa alteradas",
   "settings.store_operations_updated": "Regras de operação da loja alteradas",
   "settings.store_operations_cleared": "Loja voltou a seguir as regras da empresa",
+  "customer.created": "Cliente cadastrado",
+  "customer.updated": "Cliente alterado",
+  "customer.status_changed": "Situação de cliente alterada",
 };
 
 export const AUDIT_ENTITY_LABELS: Record<string, string> = {
@@ -53,6 +56,7 @@ export const AUDIT_ENTITY_LABELS: Record<string, string> = {
   product_variant: "Variação de produto",
   inventory_movement: "Movimentação de estoque",
   operational_settings: "Regras de operação",
+  customer: "Cliente",
 };
 
 export function auditActionLabel(action: string) {

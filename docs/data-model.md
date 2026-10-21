@@ -1,6 +1,6 @@
 # Modelo de dados
 
-Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação). Este documento explica o desenho; não repete colunas óbvias.
+Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes). Este documento explica o desenho; não repete colunas óbvias.
 
 ## Implementado (Fase 1)
 
@@ -91,6 +91,16 @@ Migrations `0007` (tabelas, políticas, FKs, checks) e `0008` (FORCE RLS).
 | `store_settings` | Exceção por loja, chave `(organization_id, store_id)` com FK composta para `stores` (cascata). Cada coluna nula herda da empresa; a linha é apagada quando as três colunas voltam a nulo |
 
 Leitura efetiva (`loadEffectiveSettings`): campo da loja não nulo vence; senão o da empresa; senão o padrão. Gravação: a linha é criada se faltar e travada com `SELECT … FOR UPDATE` antes da comparação, então a auditoria registra só os campos que mudaram.
+
+## Implementado (Fase 2 — clientes, módulo m28a)
+
+Migrations `0009` (tabela, política, índices, checks) e `0010` (FORCE RLS).
+
+| Tabela | Notas |
+|---|---|
+| `customers` | Clientes da **empresa** (sem escopo de loja), com dados mínimos (ADR-017): nome, CPF opcional (11 dígitos, único por empresa quando informado), e-mail (minúsculo) e telefone (só dígitos) opcionais, consentimento de contato com data (`consent_at` presente só com consentimento, garantido por check), ativo/inativo. `UNIQUE (organization_id, id)` para as FKs compostas de vendas e fila. Índices por nome (`lower`), e-mail e telefone. Sem exclusão física |
+
+O CPF completo só sai do serviço para quem tem `customers.documents.read`; os demais recebem `***.456.789-**`. A auditoria guarda CPF, e-mail e telefone sempre mascarados.
 
 ## Planejado (Fases 2–6)
 

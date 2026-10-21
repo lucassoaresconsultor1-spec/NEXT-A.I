@@ -41,7 +41,16 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     description: "Faturamento, recebimentos, conciliação, caixa e despesas das lojas autorizadas, sem configurações operacionais.",
     rank: 80,
     defaultStoreAccess: "stores",
-    permissions: ["organization.settings.read", "stores.read", "regions.read", "catalog.read", "catalog.costs.read", "inventory.read"],
+    permissions: [
+      "organization.settings.read",
+      "stores.read",
+      "regions.read",
+      "catalog.read",
+      "catalog.costs.read",
+      "inventory.read",
+      "customers.read",
+      "customers.documents.read",
+    ],
   },
   {
     key: "regional_manager",
@@ -60,6 +69,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
       "catalog.read",
       "catalog.costs.read",
       "inventory.read",
+      "customers.read",
     ],
   },
   {
@@ -77,6 +87,9 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
       "catalog.read",
       "inventory.read",
       "inventory.manage",
+      "customers.read",
+      "customers.manage",
+      "customers.documents.read",
     ],
   },
   {
@@ -85,7 +98,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     description: "Monitora equipe, atendimento e indicadores da loja.",
     rank: 40,
     defaultStoreAccess: "stores",
-    permissions: ["stores.read", "departments.read", "members.read", "catalog.read", "inventory.read"],
+    permissions: ["stores.read", "departments.read", "members.read", "catalog.read", "inventory.read", "customers.read"],
   },
   {
     key: "salesperson",
@@ -93,7 +106,8 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     description: "Consulta o próprio desempenho e os atendimentos atribuídos.",
     rank: 20,
     defaultStoreAccess: "stores",
-    permissions: ["stores.read", "catalog.read", "inventory.read"],
+    // Front-line roles register the buyer at the sale (ADR-017).
+    permissions: ["stores.read", "catalog.read", "inventory.read", "customers.read", "customers.manage"],
   },
   {
     key: "cashier",
@@ -101,7 +115,8 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     description: "Opera o PDV e o próprio caixa.",
     rank: 20,
     defaultStoreAccess: "stores",
-    permissions: ["stores.read", "catalog.read", "inventory.read"],
+    // Front-line roles register the buyer at the sale (ADR-017).
+    permissions: ["stores.read", "catalog.read", "inventory.read", "customers.read", "customers.manage"],
   },
 ];
 

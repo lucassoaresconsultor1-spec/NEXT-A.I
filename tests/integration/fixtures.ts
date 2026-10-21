@@ -2,6 +2,7 @@ import { randomInt, randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
+  customers,
   membershipRegions,
   membershipStores,
   organizationMemberships,
@@ -156,5 +157,25 @@ export async function createVariantFixture(
       .values({ organizationId, productId: product.id, name: "Única", sku: values.sku ?? `SKU-${suffix}`, isActive: values.variantActive ?? true })
       .returning({ id: productVariants.id });
     return { productId: product.id, variantId: variant.id };
+  });
+}
+
+export async function createCustomerFixture(
+  organizationId: string,
+  values: { name?: string; document?: string | null; email?: string | null; phone?: string | null; isActive?: boolean } = {},
+) {
+  return withScope({ organizationId }, async (tx) => {
+    const [customer] = await tx
+      .insert(customers)
+      .values({
+        organizationId,
+        name: values.name ?? `Cliente ${uniqueSuffix()}`,
+        document: values.document ?? null,
+        email: values.email ?? null,
+        phone: values.phone ?? null,
+        isActive: values.isActive ?? true,
+      })
+      .returning({ id: customers.id });
+    return customer.id;
   });
 }

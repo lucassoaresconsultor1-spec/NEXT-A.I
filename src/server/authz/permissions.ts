@@ -44,6 +44,15 @@ export const PERMISSION_GROUPS = [
     ],
   },
   {
+    key: "customers",
+    label: "Clientes",
+    permissions: [
+      { key: "customers.read", label: "Ver clientes (CPF mascarado)" },
+      { key: "customers.manage", label: "Cadastrar e editar clientes" },
+      { key: "customers.documents.read", label: "Ver o CPF completo dos clientes" },
+    ],
+  },
+  {
     key: "people",
     label: "Pessoas e acesso",
     permissions: [

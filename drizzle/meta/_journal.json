@@ -64,6 +64,20 @@
       "when": 1792559876868,
       "tag": "0008_force_rls_operational_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792581648648,
+      "tag": "0009_customers",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792581650555,
+      "tag": "0010_force_rls_customers",
+      "breakpoints": true
     }
   ]
 }
