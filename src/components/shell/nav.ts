@@ -12,6 +12,8 @@ import {
   Repeat,
   ReceiptText,
   CalendarDays,
+  ContactRound,
+  Target,
   ScrollText,
   ShoppingCart,
   Upload,
@@ -74,12 +76,14 @@ export const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
       { href: "/caixa", label: "Caixa", icon: Wallet },
       { href: "/caixa/sessoes", label: "Sessões de caixa", icon: ReceiptText },
       { href: "/clientes", label: "Clientes", icon: Contact },
+      { href: "/metas", label: "Metas", icon: Target },
     ],
   },
   {
     label: "Pessoas e acesso",
     items: [
       { href: "/equipe", label: "Equipe", icon: Users },
+      { href: "/vendedores", label: "Vendedores", icon: ContactRound },
       { href: "/perfis", label: "Perfis de acesso", icon: ShieldCheck },
     ],
   },

@@ -28,6 +28,8 @@ const NAV_PERMISSIONS: Record<string, Permission | readonly Permission[] | null>
   "/caixa/sessoes": "cash.read",
   "/importacoes": "imports.manage",
   "/calendario": "organization.settings.read",
+  "/metas": "targets.read",
+  "/vendedores": "salespeople.manage",
   "/clientes": "customers.read",
   "/pdv": "sales.create",
   "/vendas": ["sales.read", "sales.create"],
