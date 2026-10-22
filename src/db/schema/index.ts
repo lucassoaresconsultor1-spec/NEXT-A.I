@@ -20,6 +20,7 @@ export * from "./imports";
 export * from "./calendar";
 export * from "./salespeople";
 export * from "./targets";
+export * from "./campaigns";
 export * from "./commissions";
 export * from "./queue";
 export * from "./devices";

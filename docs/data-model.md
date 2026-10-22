@@ -248,7 +248,8 @@ Migrations `0035` e `0036` (FORCE RLS). Regras e linhas somente de inserção; t
 |---|---|
 | `commission_rules` / `commission_rule_rates` | Versão por empresa ou loja, início de vigência, taxa padrão e taxas por categoria (motivo a partir da versão 2) |
 | `commission_statements` | Apuração por vendedor × loja × mês: `calculated` → `approved` → `paid` (com referência), ou `cancelled`; uma não cancelada por chave |
-| `commission_statement_lines` | Itens vendidos no mês e estornos (cancelamentos e devoluções registrados no mês) com a taxa da venda original |
+| `commission_statement_lines` | Itens vendidos no mês e estornos (cancelamentos e devoluções registrados no mês) com a taxa da venda original e o bônus de campanha (`campaign_id`, `bonus_rate_bps`, 0 sem campanha) |
+| `commission_campaigns` / `commission_campaign_items` (m35a) | Campanha por empresa ou loja: período em dias locais, bônus em pontos-base somado à taxa da regra; itens por produto ou categoria (exatamente um). Começa hoje ou depois; encerrar antes do início cancela (`cancelled_at`), depois encurta `ends_on` para hoje. RLS forçada |
 
 ## Implementado (Fase 3 — fila de atendimento, módulo m13a)
 

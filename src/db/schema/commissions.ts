@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { bigint, check, date, foreignKey, index, integer, pgEnum, pgTable, primaryKey, timestamp, unique, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 import { users } from "./auth";
+import { commissionCampaigns } from "./campaigns";
 import { categories } from "./catalog";
 import { saleRefunds } from "./refunds";
 import { saleItems, sales } from "./sales";
@@ -114,6 +115,9 @@ export const commissionStatementLines = pgTable(
     rateBps: integer("rate_bps").notNull(),
     commissionCents: cents("commission_cents").notNull(),
     ruleId: uuid("rule_id"),
+    // Campaign bonus (m35a) added to the rule rate; 0 without a campaign.
+    campaignId: uuid("campaign_id"),
+    bonusRateBps: integer("bonus_rate_bps").notNull().default(0),
   },
   (t) => [
     unique("commission_statement_lines_org_id_key").on(t.organizationId, t.id),
@@ -122,9 +126,11 @@ export const commissionStatementLines = pgTable(
     foreignKey({ name: "commission_lines_item_fk", columns: [t.organizationId, t.saleItemId], foreignColumns: [saleItems.organizationId, saleItems.id] }),
     foreignKey({ name: "commission_lines_refund_fk", columns: [t.organizationId, t.refundId], foreignColumns: [saleRefunds.organizationId, saleRefunds.id] }),
     foreignKey({ name: "commission_lines_rule_fk", columns: [t.organizationId, t.ruleId], foreignColumns: [commissionRules.organizationId, commissionRules.id] }),
+    foreignKey({ name: "commission_lines_campaign_fk", columns: [t.organizationId, t.campaignId], foreignColumns: [commissionCampaigns.organizationId, commissionCampaigns.id] }),
     index("commission_lines_statement_idx").on(t.organizationId, t.statementId),
     check("commission_lines_kind", sql`(${t.kind} = 'refund') = (${t.refundId} is not null) and (${t.kind} = 'sale') = (${t.baseCents} >= 0)`),
     check("commission_lines_rate", sql`${t.rateBps} between 0 and 10000`),
+    check("commission_lines_bonus", sql`${t.bonusRateBps} between 0 and 10000 and (${t.campaignId} is null) = (${t.bonusRateBps} = 0)`),
     ...appendOnlyTenantPolicies(),
   ],
 );

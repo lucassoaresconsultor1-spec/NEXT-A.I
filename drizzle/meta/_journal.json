@@ -421,6 +421,20 @@
       "when": 1792644154373,
       "tag": "0059_force_rls_ops_events",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1792654621454,
+      "tag": "0060_commission_campaigns",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1792654624339,
+      "tag": "0061_force_rls_campaigns",
+      "breakpoints": true
     }
   ]
 }
