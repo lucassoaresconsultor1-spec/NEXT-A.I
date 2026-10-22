@@ -42,6 +42,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 80,
     defaultStoreAccess: "stores",
     permissions: [
+      "ai.use",
       "reports.read",
       "reports.schedule",
       "closings.read",
@@ -74,6 +75,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 70,
     defaultStoreAccess: "regions",
     permissions: [
+      "ai.use",
       "reports.read",
       "reports.schedule",
       "closings.read",
@@ -111,6 +113,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 50,
     defaultStoreAccess: "stores",
     permissions: [
+      "ai.use",
       "reports.read",
       "closings.read",
       "closings.manage",
@@ -162,7 +165,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     description: "Monitora equipe, atendimento e indicadores da loja.",
     rank: 40,
     defaultStoreAccess: "stores",
-    permissions: ["stores.read", "departments.read", "members.read", "catalog.read", "inventory.read", "inventory.count.record", "sales.read", "cash.read", "customers.read", "targets.read", "queue.read", "queue.operate", "queue.assign_manual"],
+    permissions: ["stores.read", "departments.read", "members.read", "catalog.read", "inventory.read", "inventory.count.record", "sales.read", "cash.read", "customers.read", "targets.read", "queue.read", "queue.operate", "queue.assign_manual", "ai.use"],
   },
   {
     key: "salesperson",

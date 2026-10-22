@@ -38,11 +38,12 @@ const LIMIT_MESSAGES: Record<PlanLimit, (max: number) => string> = {
 };
 
 /** Plan features checked by modules (keys seeded in plan_features by migration 0002). */
-export type PlanFeature = "inventory" | "pos";
+export type PlanFeature = "inventory" | "pos" | "ai_assistant";
 
 const FEATURE_MESSAGES: Record<PlanFeature, string> = {
   inventory: "O plano atual não inclui o controle de estoque. Fale com o suporte para alterar o plano.",
   pos: "O plano atual não inclui o PDV e o caixa. Fale com o suporte para alterar o plano.",
+  ai_assistant: "O plano atual não inclui o assistente de IA. Fale com o suporte para alterar o plano.",
 };
 
 export async function hasFeature(tx: Tx, organizationId: string, feature: PlanFeature) {

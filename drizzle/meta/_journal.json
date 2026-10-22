@@ -330,6 +330,20 @@
       "when": 1792639140868,
       "tag": "0046_force_rls_reports",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1792639812455,
+      "tag": "0047_ai_usage",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1792639815466,
+      "tag": "0048_force_rls_ai_usage",
+      "breakpoints": true
     }
   ]
 }
