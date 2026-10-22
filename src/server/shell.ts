@@ -24,6 +24,7 @@ const NAV_PERMISSIONS: Record<string, Permission | readonly Permission[] | null>
   "/estoque/transferencias": "inventory.read",
   "/estoque/inventarios": "inventory.read",
   "/compras": "purchases.read",
+  "/fila": "queue.read",
   "/caixa": "cash.operate",
   "/caixa/sessoes": "cash.read",
   "/importacoes": "imports.manage",

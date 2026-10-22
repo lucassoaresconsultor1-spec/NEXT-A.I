@@ -16,6 +16,7 @@ import {
   Target,
   HandCoins,
   Banknote,
+  ListOrdered,
   ScrollText,
   ShoppingCart,
   Upload,
@@ -75,6 +76,7 @@ export const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
     items: [
       { href: "/pdv", label: "PDV", icon: ShoppingCart },
       { href: "/vendas", label: "Histórico de vendas", icon: ScrollText },
+      { href: "/fila", label: "Fila de atendimento", icon: ListOrdered },
       { href: "/caixa", label: "Caixa", icon: Wallet },
       { href: "/caixa/sessoes", label: "Sessões de caixa", icon: ReceiptText },
       { href: "/clientes", label: "Clientes", icon: Contact },
