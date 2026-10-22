@@ -407,6 +407,20 @@
       "when": 1792643711373,
       "tag": "0057_plan_ai_limit",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1792644152261,
+      "tag": "0058_ops_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1792644154373,
+      "tag": "0059_force_rls_ops_events",
+      "breakpoints": true
     }
   ]
 }

@@ -60,7 +60,7 @@ export const requirePlatformAdmin = cache(async () => {
 });
 
 /** Defense in depth: the flag is read again inside the transaction that does the work. */
-async function assertPlatformAdmin(tx: Tx, actorId: string) {
+export async function assertPlatformAdmin(tx: Tx, actorId: string) {
   const [actor] = uuidSchema.safeParse(actorId).success
     ? await tx
         .select({ isPlatformAdmin: users.isPlatformAdmin, status: users.status })
@@ -72,7 +72,7 @@ async function assertPlatformAdmin(tx: Tx, actorId: string) {
   }
 }
 
-function platformScope(actorId: string) {
+export function platformScope(actorId: string) {
   return { userId: actorId, platform: true };
 }
 
