@@ -1,0 +1,64 @@
+# Daily backup with a restore drill (m41, docs/backup.md).
+# Repository secrets (owner): BACKUP_DATABASE_URL (read-only role WITH BYPASSRLS,
+# see docs/backup.md) and BACKUP_PASSPHRASE (encrypts the dump). Only the encrypted
+# dump leaves the job; it is kept as an artifact for 30 days (an offsite store is a
+# pending decision of the owner).
+name: Backup diário com ensaio de restauração
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # 03:00 em São Paulo
+  workflow_dispatch:
+
+concurrency: production-backup
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    services:
+      restore:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: restore
+          POSTGRES_DB: varejo_restore
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+    env:
+      BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+      RESTORE_DATABASE_URL: postgresql://postgres:restore@localhost:5432/varejo_restore
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Cliente PostgreSQL 17
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update && sudo apt-get install -y postgresql-client-17
+      - name: Impressão digital da origem
+        run: pnpm exec tsx tools/backup/fingerprint.ts collect BACKUP_DATABASE_URL source.json
+      - name: Dump
+        run: pg_dump --format=custom --no-owner --no-privileges --file=backup.dump "$BACKUP_DATABASE_URL"
+      - name: Ensaio de restauração
+        run: |
+          pg_restore --no-owner --no-privileges --exit-on-error --dbname="$RESTORE_DATABASE_URL" backup.dump
+          pnpm exec tsx tools/backup/fingerprint.ts collect RESTORE_DATABASE_URL restored.json
+          pnpm exec tsx tools/backup/fingerprint.ts compare source.json restored.json
+      - name: Criptografar
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          printf %s "$BACKUP_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --symmetric --cipher-algo AES256 --output backup.dump.gpg backup.dump
+          rm -f backup.dump
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backup-${{ github.run_id }}
+          path: |
+            backup.dump.gpg
+            source.json
+          retention-days: 30
