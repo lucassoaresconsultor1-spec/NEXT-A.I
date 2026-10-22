@@ -1,12 +1,12 @@
 # Progresso do desenvolvimento autônomo
 
-Resumo das etapas concluídas até **22/10/2026**, no commit `7d4adf6` da branch `build/fases-1-8` (enviada ao GitHub). **Nada foi mesclado na `main` nem publicado.** O plano completo é o [SPEC](SPEC.md) (61 módulos, 8 fases); o registro de decisões é o [DECISIONS](DECISIONS.md); o estado por fase continua no [roadmap](roadmap.md).
+Resumo das etapas concluídas até **22/10/2026**, no commit `f448b9b` da branch `build/fases-1-8` (enviada ao GitHub). **Nada foi mesclado na `main` nem publicado.** O plano completo é o [SPEC](SPEC.md) (61 módulos, 8 fases); o registro de decisões é o [DECISIONS](DECISIONS.md); o estado por fase continua no [roadmap](roadmap.md).
 
 ## 1. Resumo em números
-- **Módulos integrados nesta rodada:** 8 (m01, m02a, m02b, m27, m28a, m29a, m30a, m05a, m06a, m26 e o m44 de correção de teste), mais o back-end de catálogo e estoque e a infraestrutura de esteira.
-- **Migrações novas:** 0005 a 0018 (catálogo/estoque, configurações operacionais, clientes, compras, transferências e reservas, caixa, vendas), todas com RLS forçado.
-- **Testes verdes no último módulo integrado:** 280 unitários e **175 de integração** (PostgreSQL real, `varejo_test`).
-- **Contratos escritos:** 17 (m01, m02a, m02b, m03, m04, m05a, m06a, m14, m26, m27, m28a, m28b, m29a, m29b, m30a, m30b, m44).
+- **Módulos concluídos do SPEC:** 37 de 61.
+- **Migrações novas:** 0005 a 0046, todas com RLS forçado.
+- **Testes verdes do último módulo integrado (m18):** 375 unitários e **231 de integração** (PostgreSQL real, `varejo_test`).
+- **Contratos escritos:** um por módulo em `docs/contracts/`.
 - **Ainda sem verificação manual no navegador** (celular, perfis, acessibilidade): fica para o marco de cada fase.
 
 ## 2. Etapas concluídas
@@ -28,6 +28,32 @@ Resumo das etapas concluídas até **22/10/2026**, no commit `7d4adf6` da branch
 | **m05a caixa** (5ª migração) | `0065a87` | Caixas, sessões e livro de dinheiro só de inserção (0015/0016); uma sessão aberta por caixa e por operador; esperado sempre somado do livro no servidor; diferença exige justificativa; reabertura autorizada | PASS+REVIEW, 163 testes; revisão do livro e do ciclo da sessão |
 | **m06a PDV: vendas e vendas suspensas** (6ª migração) | `2bd28c2` | Venda completa numa transação: preço do servidor (conflito se mudou), desconto com teto e permissão, pagamentos que somam exato, estoque e caixa atômicos, numeração por loja, snapshot de preço e custo, idempotência por chave; suspensão com reserva de estoque, retomada por outro operador e descarte com motivo (0017/0018) | PASS+REVIEW, 175 testes; revisão de `complete.ts` e `suspend.ts` |
 | **m26 estados de interface** | `ff09b79` | Skeleton, tela de carregamento e limites de erro com tentar de novo e sem vazar detalhe | Gate PASS isolado; build compila |
+| m07 pagamentos | `c57e919` | Pagamentos por porta PaymentProvider, confirmação só por webhook assinado ou consulta ao provedor, sem provedor real nem simulação de confirmação. | gate PASS+REVIEW (185 testes de integração) |
+| m09 fiscal | `a07197d` | Interface fiscal com porta FiscalProvider: documento sem provedor fica como não configurado e nada fiscal é emitido ou inventado. | gate PASS+REVIEW (189 testes de integração) |
+| m03 produtos | `0eeb2ed` | Telas de produtos com variações, preço e custo, com custo renderizado só no servidor para quem tem permissão. | gate PASS, 193 testes de integração e build compila 4 rotas |
+| m04 estoque | `0a4015e` | Saldos por loja e produto, livro de movimentos e lançamentos manuais sobre o serviço de estoque. | gate PASS e build compila 3 rotas |
+| m08 cancelamentos | `07aaa2a` | Cancelamento de venda com estorno por método de pagamento, devolução por itens com limite de 90 dias e venda travada por idempotência. | gate PASS+REVIEW (203 testes de integração) |
+| m28b clientes | `374b8b3` | Telas de clientes com busca, filtro de situação, criação, edição e ativação/desativação, com CPF mascarado sem permissão de documentos. | gate PASS e build compila a rota |
+| m29b compras | `2ea3d47` | Telas de pedidos de compra com aprovação, cancelamento, fechamento e recebimento de mercadoria com chave de idempotência. | gate PASS e build compila 5 rotas |
+| m30b transferências | `392169f` | Telas de transferência entre lojas com solicitação, aprovação, despacho, recebimento com motivo de divergência e saldos reservado e em trânsito. | gate PASS e build compila 3 rotas |
+| m31 contagem | `3769972` | Contagem de estoque por lote (cega ou não), aprovação e ajuste em lote no livro, com tela de folha de contagem. | gate PASS, build e teste manual no navegador |
+| m06c histórico de vendas | `1fa40cf` | Telas de histórico de vendas com filtros, detalhe da venda, itens, pagamentos e devoluções, e reimpressão do comprovante. | gate PASS e build compila 2 rotas |
+| m14 manifesto PWA | `a216e91` | Manifesto da app instalável sem service worker, ícones da marca e cor do tema, nada autenticado em cache. | gate PASS e build de produção com rota estática |
+| m19 importação (etapa 1) | `00e8079` | Back end de importação CSV de produtos, clientes e saldo inicial com leitura restrita, prévia de linhas e confirmação em lotes. | gate PASS+REVIEW (213 testes de integração) |
+| m19 importação (etapa 2) | `6018ad8` | Telas de importação guiada com mapeamento de colunas, prévia com problemas por linha e histórico de importações. | gate PASS em árvore isolada e ações revisadas manualmente |
+| m05b caixa | `b41a569` | Telas de caixa: abertura com valor, suprimentos e sangrias, fechamento com cota cega, sessões e reabertura de gerente. | gate PASS em árvore isolada |
+| m06b PDV | `a30714a` | Tela de PDV de código de barras e teclado, carrinho, desconto autorizado, pagamento misto, vendas suspensas e comprovante de 80 mm. | gate PASS e tela e ações revisadas manualmente |
+| m32a calendário empresa | `b524ad4` | Feriados e dias úteis por empresa e loja, semana de trabalho da loja e opções de calendário para a biblioteca de dias úteis. | gate PASS+REVIEW (215 testes de integração) |
+| m32b telas calendário | `9a09258` | Visão anual do calendário de empresa e loja, feriados e dias opcionais e formulário de semana de trabalho da loja. | gate PASS e ações revisadas manualmente |
+| m10a vendedores | `3955db4` | Cadastro de vendedores, vínculo com lojas e escalas de trabalho; PDV só aceita vendedor ativo da loja quando há cadastro. | gate PASS+REVIEW (218 testes de integração) |
+| m11a metas | `0539765` | Metas por escopo e período com versões, progresso sobre faturamento líquido e projeção de dias úteis do mês. | gate PASS+REVIEW (223 testes de integração) |
+| m12a comissões | `5c94369` | Regras versionadas de comissão e apuração mensal com estados estimada, calculada, aprovada, paga e cancelada. | gate PASS+REVIEW (224 testes de integração) |
+| m13a fila | `ed4f836` | Fila de atendimento por loja com senha diária, distribuição por rodízio, atribuição manual e perfil de Recepção. | gate PASS+REVIEW (225 testes de integração) |
+| m33 pareamento tablet | `a2f51ef` | Pareamento de tablet da fila com código de uso único, token do aparelho como hash e PIN de seis dígitos com limite de tentativas. | gate PASS+REVIEW (227 testes de integração) |
+| m36a despesas | `e92f1bb` | Despesas por categoria, loja e mês de competência em centavos, abertas, pagas ou canceladas com motivo. | gate PASS+REVIEW (228 testes de integração) |
+| m37a conciliação e fechamento | `89ba93b` | Fechamento diário por loja e conciliação de pagamentos com o provedor, com divergências registradas e sem duplicar versão. | gate PASS+REVIEW (229 testes de integração) |
+| m16a métricas de vendas | `3a71081` | Serviço único de métricas de vendas: faturamento bruto/líquido, ticket, quantidade, séries e drill-down por loja, vendedor e período. | gate PASS (220 testes de integração) |
+| m16b métricas completas | `af0e010` | Métricas completas com margem pelo custo do snapshot, lucro com despesas, conversão pela fila e comissões do período, campos bloqueados como null. | gate PASS+REVIEW (230 testes de integração) |
 | Planejamento | `2eaf3b5`, `4a08335`, `fe7f9d6` | SPEC v8 com 61 módulos, ADR-008 a ADR-020, contratos dos lotes 1 e 2 e do m14 | Revisões do Arquiteto (Opus) |
 
 ## 3. Como a esteira funciona
@@ -42,10 +68,8 @@ Resumo das etapas concluídas até **22/10/2026**, no commit `7d4adf6` da branch
 4. Mudanças pedidas ao próprio gate (ignorar arquivos de outros módulos) foram recusadas: a verificação passou a ser isolada, sem enfraquecer o gate.
 
 ## 5. Em andamento e bloqueios
-- **Em andamento (Opus):** m07 pagamentos (7ª migração: porta de provedor, confirmação só por webhook autenticado ou consulta, sem provedor real), seguido de m09 (fiscal, só interface) e m08 (cancelamentos e devoluções). Contratos do lote 3 (m05b, m06b, m06c, m30b) e do lote 4 (m07, m08, m09) já commitados; faltam os de m31 e m19.
+- **Em andamento:** Opus faz a faixa de back-end A; Codex as telas; OpenCode documentação.
 - **Backlog do m06a (não bloqueia):** suspender não é idempotente; a lista de suspensas faz uma consulta por linha; vendas suspensas não expiram e seguram estoque reservado; venda sem saldo é recusada (regra de "vender sem saldo" é decisão de produto).
-- **Parados:** m26 (arquivos na árvore, não verificados), m14, m28b, m29b, m30b, m03 e m04. **Motivo:** o terminal "Codex — Apoio" está ocupado por uma sessão do Claude Code em somente leitura, não pelo Codex CLI. É preciso abrir o Codex CLI nele.
-- **Antigravity:** sem cota até cerca de 27/10/2026.
 
 ## 6. Riscos e pendências que dependem de você
 - **Feriados:** a lista nacional e os dados de Araruama precisam de confirmação contábil/jurídica antes de produção; Corpus Christi está como ponto facultativo no decreto de 2026, mas a Lei 2709/2025 o institui como feriado.
@@ -56,10 +80,8 @@ Resumo das etapas concluídas até **22/10/2026**, no commit `7d4adf6` da branch
 - **Verificação visual e de acessibilidade, e testes e2e**, ainda não executados nesta rodada.
 
 ## 7. Próximos passos
-1. Abrir o Codex CLI no terminal "Codex — Apoio"; então o Maestro entrega m26, m14, m28b, m29b, m03, m04 e m30b em sequência.
-2. Integrar o m05a (caixa) e escrever os contratos restantes do lote 3.
-3. m06a (PDV, vendas, pagamentos locais, idempotência) e as telas do PDV; fechar o **marco M2** (fase 2) com venda de pagamentos múltiplos, estoque e caixa atômicos, e e2e.
-4. Fases 3 a 8 conforme o SPEC.
+1. Telas: m10b (vendedores), m11b (metas), m12b (comissões), m13b (fila), m34 (app do vendedor), m18 (relatórios), m20 a m23 (IA), m38 (tarefas), m17 (dashboards), m24 (escritório virtual), m25 (observabilidade) e m39 a m43 (multiagente, consumo, backup, cargas, docs).
+2. Marco de verificação da Fase 2: navegador, e2e e revisão visual.
 
 ## 8. Como retomar
 - Estado real: `git log --oneline`, [SPEC](SPEC.md) (mapa e ADRs), [DECISIONS](DECISIONS.md) e `.maestri/progress.json` (não versionado).
