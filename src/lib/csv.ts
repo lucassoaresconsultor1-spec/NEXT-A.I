@@ -106,3 +106,34 @@ export function parseCsv(text: string): CsvResult {
   if (rows.length > CSV_LIMITS.maxRows) return fail(`O arquivo passa de ${CSV_LIMITS.maxRows} linhas.`);
   return { ok: true, separator, header: header.cells, rows };
 }
+
+// ---- Writing (m18 reports) ----
+
+/** Text (protected against formulas), integer, money in cents, or a decimal string ("1.75"). */
+export type CsvCell = string | number | { cents: number } | { decimal: string } | null;
+
+function centsText(cents: number) {
+  const sign = cents < 0 ? "-" : "";
+  const value = Math.abs(cents);
+  return `${sign}${Math.trunc(value / 100)},${String(value % 100).padStart(2, "0")}`;
+}
+
+function cellText(cell: CsvCell): string {
+  if (cell === null) return "";
+  if (typeof cell === "number") return String(cell);
+  if (typeof cell === "object") return "cents" in cell ? centsText(cell.cents) : cell.decimal.replace(".", ",");
+  // A spreadsheet would run text starting with these characters as a formula.
+  return /^[=+\-@\t\r]/.test(cell) ? `'${cell}` : cell;
+}
+
+/** UTF-8 CSV with BOM, ";" separator and CRLF, as Brazilian spreadsheets open it. */
+export function toCsv(header: string[], rows: CsvCell[][]): string {
+  const line = (cells: CsvCell[]) =>
+    cells
+      .map((cell) => {
+        const text = cellText(cell);
+        return /[;"\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+      })
+      .join(";");
+  return `﻿${[line(header), ...rows.map(line)].join("\r\n")}\r\n`;
+}

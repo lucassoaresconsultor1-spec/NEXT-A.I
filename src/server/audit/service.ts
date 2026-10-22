@@ -38,6 +38,7 @@ export const auditFiltersSchema = z.object({
       "queue_entry",
       "queue_device",
       "daily_closing",
+      "report",
       "expense",
       "expense_category",
       "cash_register",

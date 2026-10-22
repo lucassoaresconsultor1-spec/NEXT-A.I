@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CSV_LIMITS, decodeCsv, parseCsv } from "./csv";
+import { CSV_LIMITS, decodeCsv, parseCsv, toCsv } from "./csv";
 
 const encode = (text: string) => new TextEncoder().encode(text);
 
@@ -41,5 +41,15 @@ describe("parseCsv", () => {
     expect(parseCsv(`a\n${"x".repeat(1001)}`)).toMatchObject({ ok: false, message: expect.stringContaining("1000") });
     expect(parseCsv(`a\n${"1\n".repeat(5001)}`)).toMatchObject({ ok: false, message: expect.stringContaining("5000") });
     expect(parseCsv(`a\n${"1\n".repeat(5000)}`)).toMatchObject({ ok: true });
+  });
+});
+
+describe("toCsv", () => {
+  it("writes BOM, ; and CRLF, money with comma and blocks formulas only in text", () => {
+    const csv = toCsv(["Loja", "Valor", "Itens"], [
+      ["=HYPERLINK(\"x\")", { cents: -1250 }, { decimal: "1.75" }],
+      ["Loja; Centro", { cents: 5 }, 3],
+    ]);
+    expect(csv).toBe('﻿Loja;Valor;Itens\r\n"\'=HYPERLINK(""x"")";-12,50;1,75\r\n"Loja; Centro";0,05;3\r\n');
   });
 });
