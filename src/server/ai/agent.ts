@@ -5,20 +5,19 @@ import { aiConversations, aiMessages, aiToolRuns } from "@/db/schema";
 import { withScope } from "@/db/tenant";
 import { dbScope, type TenantContext } from "@/server/authz/context";
 import { assertCan } from "@/server/authz/guard";
-import { invalid, isDomainError, notFound } from "@/server/errors";
+import { invalid, notFound } from "@/server/errors";
 import { isUuid } from "@/server/stores/schemas";
-import type { ModelContentBlock, ModelMessage } from "./port";
-import { callModel } from "./service";
-import { AI_TOOLS, availableTools } from "./tools";
+import { runAgentLoop, type ToolRecorder } from "./loop";
+import type { ModelMessage } from "./port";
+import { consultSpecialistTool, enabledSpecialists, evaluateSpecialist, type SpecialistKey } from "./specialists";
+import { availableTools } from "./tools";
 
 // Central assistant agent (m21). The model only sees the tools the member may
 // use; every requested tool is looked up and authorized again here (and by the
 // service it calls); tool results go back as delimited data. The model never
 // runs SQL nor writes data.
 
-const MAX_ROUNDS = 4;
 const HISTORY = 10;
-const MAX_RESULT_CHARS = 20_000;
 
 const SYSTEM = [
   "Você é o assistente de gestão de uma rede de varejo e responde em português do Brasil.",
@@ -65,58 +64,19 @@ export async function askAssistant(context: TenantContext, rawInput: unknown) {
   }
   await withScope(dbScope(context), (tx) => tx.insert(aiMessages).values({ organizationId: orgId, conversationId: conversationId!, role: "user", text: question }));
 
-  const allowed = availableTools(context);
-  const allowedNames = new Set(allowed.map((entry) => entry.definition.name));
+  const record: ToolRecorder = async (tool, status, params, error, durationMs) => {
+    await withScope(dbScope(context), (tx) =>
+      tx.insert(aiToolRuns).values({ organizationId: orgId, conversationId: conversationId!, tool: tool.slice(0, 60), params: params === undefined ? null : JSON.stringify(params).slice(0, 2000), status, durationMs, error }),
+    );
+  };
+  // Specialists are offered only after an evaluation measured their benefit (m39).
+  const specialists = await enabledSpecialists(context);
+  const tools = [...availableTools(context), ...(specialists.length ? [consultSpecialistTool(specialists, record)] : [])];
   const messages: ModelMessage[] = [...history, { role: "user", content: [{ type: "text", text: question }] }];
-  const sources: { tool: string; params: unknown }[] = [];
-  const blocked: string[] = [];
-  let answer: string | null = null;
+  const { answer, sources, blocked } = await runAgentLoop(context, { system: SYSTEM, tools, messages, record });
 
-  for (let round = 0; round <= MAX_ROUNDS && answer === null; round += 1) {
-    const response = await callModel(context, { feature: "assistant", system: SYSTEM, messages, tools: allowed.map((entry) => entry.definition) });
-    const uses = response.content.filter((block): block is Extract<ModelContentBlock, { type: "tool_use" }> => block.type === "tool_use");
-    if (response.stopReason !== "tool_use" || uses.length === 0 || round === MAX_ROUNDS) {
-      answer = response.content.flatMap((block) => (block.type === "text" ? [block.text] : [])).join("\n").trim() || "Não consegui concluir a análise com as ferramentas disponíveis.";
-      break;
-    }
-    messages.push({ role: "assistant", content: response.content });
-    const results: ModelContentBlock[] = [];
-    for (const use of uses) {
-      const started = Date.now();
-      const record = (status: "ok" | "error" | "blocked", params: unknown, error: string | null) =>
-        withScope(dbScope(context), (tx) =>
-          tx.insert(aiToolRuns).values({ organizationId: orgId, conversationId: conversationId!, tool: use.name.slice(0, 60), params: params === undefined ? null : JSON.stringify(params).slice(0, 2000), status, durationMs: Date.now() - started, error }),
-        );
-      const entry = AI_TOOLS.find((candidate) => candidate.definition.name === use.name);
-      if (!entry || !allowedNames.has(use.name)) {
-        blocked.push(use.name);
-        await record("blocked", undefined, "Ferramenta não autorizada para este perfil.");
-        results.push({ type: "tool_result", toolUseId: use.id, content: "Ferramenta não autorizada para este perfil.", isError: true });
-        continue;
-      }
-      const input = entry.input.safeParse(use.input);
-      if (!input.success) {
-        await record("error", use.input, "Parâmetros inválidos.");
-        results.push({ type: "tool_result", toolUseId: use.id, content: "Parâmetros inválidos para esta ferramenta.", isError: true });
-        continue;
-      }
-      try {
-        // "<" escaped as < (still valid JSON), so stored text cannot close the <dados> delimiter.
-        const data = JSON.stringify(await entry.run(context, input.data as never)).replace(/</g, "\\u003c").slice(0, MAX_RESULT_CHARS);
-        await record("ok", input.data, null);
-        sources.push({ tool: use.name, params: input.data });
-        results.push({ type: "tool_result", toolUseId: use.id, content: `<dados ferramenta="${use.name}">${data}</dados>` });
-      } catch (error) {
-        if (!isDomainError(error)) throw error;
-        await record("error", input.data, error.message.slice(0, 240));
-        results.push({ type: "tool_result", toolUseId: use.id, content: error.message, isError: true });
-      }
-    }
-    messages.push({ role: "user", content: results });
-  }
-
-  await withScope(dbScope(context), (tx) => tx.insert(aiMessages).values({ organizationId: orgId, conversationId: conversationId!, role: "assistant", text: answer!.slice(0, 20_000) }));
-  return { conversationId: conversationId!, answer: answer!, sources, blocked };
+  await withScope(dbScope(context), (tx) => tx.insert(aiMessages).values({ organizationId: orgId, conversationId: conversationId!, role: "assistant", text: answer.slice(0, 20_000) }));
+  return { conversationId: conversationId!, answer, sources, blocked };
 }
 
 export async function listConversations(context: TenantContext) {
@@ -142,3 +102,6 @@ export async function getConversation(context: TenantContext, conversationId: st
     toolRuns: await tx.select({ tool: aiToolRuns.tool, params: aiToolRuns.params, status: aiToolRuns.status, error: aiToolRuns.error }).from(aiToolRuns).where(and(eq(aiToolRuns.organizationId, context.organization.id), eq(aiToolRuns.conversationId, conversationId))).orderBy(asc(aiToolRuns.createdAt)),
   }));
 }
+
+/** Measures a specialist against this central agent on the same cases (m39). */
+export const evaluateSpecialistAgainstCentral = (context: TenantContext, key: SpecialistKey, input: unknown) => evaluateSpecialist(context, key, input, SYSTEM);

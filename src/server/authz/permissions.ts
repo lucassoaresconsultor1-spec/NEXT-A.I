@@ -109,6 +109,7 @@ export const PERMISSION_GROUPS = [
       { key: "alerts.read", label: "Ver alertas das lojas do escopo" },
       { key: "alerts.manage", label: "Configurar regras de alerta e reconhecer, atribuir e resolver alertas" },
       { key: "ai.use", label: "Usar o assistente de IA (com as permissões do próprio perfil)" },
+      { key: "ai.manage", label: "Avaliar e habilitar especialistas do assistente" },
       { key: "reports.read", label: "Gerar e baixar relatórios (com as permissões de cada assunto)" },
       { key: "reports.schedule", label: "Agendar relatórios recorrentes" },
       { key: "closings.read", label: "Ver fechamentos diários e a conciliação das lojas do escopo" },

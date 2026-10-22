@@ -9,6 +9,7 @@ import { fullSalesSummary } from "@/server/metrics/complete";
 import { salesSeries } from "@/server/metrics/sales";
 import { queueStats } from "@/server/queue/service";
 import { targetProgress } from "@/server/targets/progress";
+import { getProcedure, listProcedures } from "@/server/tasks/procedures";
 import type { ModelToolDefinition } from "./port";
 
 // Assistant tools (m21): read-only contracts over the domain services. A tool is
@@ -95,6 +96,20 @@ export const AI_TOOLS: AiTool[] = [
     (context) => can(context, "expenses.read"),
     period,
     async (context, input) => ({ totalCents: (await listExpenses(context, { from: input.from, to: input.to, storeId: input.storeId, page: 1 })).totalCents }),
+  ),
+  tool(
+    {
+      name: "search_company_procedures",
+      description: "Procura nos procedimentos ativos da empresa e devolve título e trecho de cada um (até 5).",
+      inputSchema: { type: "object", properties: { query: { type: "string", description: "Palavras para procurar." } }, required: ["query"], additionalProperties: false },
+    },
+    (context) => can(context, "procedures.read"),
+    z.object({ query: z.string().trim().min(2).max(80) }).strict(),
+    async (context, input) => {
+      const found = (await listProcedures(context, { q: input.query })).slice(0, 5);
+      const full = await Promise.all(found.map((entry) => getProcedure(context, entry.id)));
+      return full.flatMap((entry) => (entry ? [{ title: entry.title, excerpt: entry.body.slice(0, 1000) }] : []));
+    },
   ),
 ];
 

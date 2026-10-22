@@ -41,6 +41,7 @@ export const auditFiltersSchema = z.object({
       "report",
       "alert",
       "task",
+      "ai_specialist",
       "procedure",
       "expense",
       "expense_category",

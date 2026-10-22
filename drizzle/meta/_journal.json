@@ -386,6 +386,20 @@
       "when": 1792641801439,
       "tag": "0054_force_rls_tasks",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1792642691902,
+      "tag": "0055_ai_specialist_evaluations",
+      "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1792642693845,
+      "tag": "0056_force_rls_ai_specialists",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { bigint, check, foreignKey, index, integer, pgEnum, pgTable, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
+import { bigint, boolean, check, foreignKey, index, integer, pgEnum, pgTable, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
 import { users } from "./auth";
 import { organizations } from "./structure";
 import { appendOnlyTenantPolicies, organizationIdColumn } from "./tenant";
@@ -90,6 +90,31 @@ export const aiToolRuns = pgTable(
     unique("ai_tool_runs_org_id_key").on(t.organizationId, t.id),
     foreignKey({ name: "ai_tool_runs_conversation_fk", columns: [t.organizationId, t.conversationId], foreignColumns: [aiConversations.organizationId, aiConversations.id] }).onDelete("cascade"),
     index("ai_tool_runs_conversation_idx").on(t.organizationId, t.conversationId),
+    ...appendOnlyTenantPolicies(),
+  ],
+);
+
+// Specialist evaluations (m39): the orchestrator consults a specialist only while
+// its latest evaluation in the organization measured a benefit.
+export const aiSpecialistEvaluations = pgTable(
+  "ai_specialist_evaluations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: organizationIdColumn().references(() => organizations.id, { onDelete: "cascade" }),
+    specialist: varchar("specialist", { length: 24 }).notNull(),
+    cases: integer("cases").notNull(),
+    centralPassed: integer("central_passed").notNull(),
+    specialistPassed: integer("specialist_passed").notNull(),
+    centralTokens: integer("central_tokens").notNull(),
+    specialistTokens: integer("specialist_tokens").notNull(),
+    enabled: boolean("enabled").notNull(),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().default(sql`clock_timestamp()`),
+  },
+  (t) => [
+    unique("ai_specialist_evaluations_org_id_key").on(t.organizationId, t.id),
+    index("ai_specialist_evaluations_latest_idx").on(t.organizationId, t.specialist, t.createdAt),
+    check("ai_specialist_evaluations_counts", sql`${t.cases} > 0 and ${t.centralPassed} between 0 and ${t.cases} and ${t.specialistPassed} between 0 and ${t.cases}`),
     ...appendOnlyTenantPolicies(),
   ],
 );
