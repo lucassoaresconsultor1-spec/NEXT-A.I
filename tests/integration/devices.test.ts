@@ -1,10 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { deviceCredentials } from "@/db/schema";
 import { withScope } from "@/db/tenant";
 import { setOwnQueuePin } from "@/server/devices/pin";
-import { createDevice, deviceActor, deviceFromToken, deviceMembers, pairDevice, revokeDevice } from "@/server/devices/service";
+import { createDevice, deviceActor, deviceDepartments, deviceFromToken, deviceMembers, pairDevice, revokeDevice } from "@/server/devices/service";
+import { actorFromTicket, issueActorTicket, TICKET_TTL_MS } from "@/server/devices/tickets";
 import { callNext, finishAttendance, registerArrival, setPresence } from "@/server/queue/service";
 import { saveSalesperson } from "@/server/salespeople/service";
 import { addMemberFixture, createOrganizationFixture, createStoreFixture } from "./fixtures";
@@ -61,5 +62,31 @@ describe("queue tablets", () => {
     await revokeDevice(manager.context, device.id);
     expect(await deviceFromToken(token)).toBeNull();
     await expect(deviceActor(token, { membershipId: reception.membershipId, pin: "482916" })).rejects.toMatchObject({ code: "unauthenticated" });
+  });
+
+  it("keeps a signed short-lived ticket after the PIN and cuts it on expiry, tampering or revocation", async () => {
+    const { organizationId } = await createOrganizationFixture();
+    const storeId = await createStoreFixture(organizationId);
+    const manager = await addMemberFixture(organizationId, { roleKey: "store_manager", storeIds: [storeId] });
+    const reception = await addMemberFixture(organizationId, { roleKey: "reception", storeIds: [storeId] });
+    await setOwnQueuePin(reception.context, { pin: "482916" });
+    const device = await createDevice(manager.context, { storeId, name: "Entrada" });
+    const { token } = await pairDevice(device.pairingCode, `198.19.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}`);
+    expect(await deviceDepartments(token)).toEqual([]);
+
+    await expect(issueActorTicket(token, { membershipId: reception.membershipId, pin: "000001" })).rejects.toMatchObject({ code: "invalid" });
+    const ticket = await issueActorTicket(token, { membershipId: reception.membershipId, pin: "482916" });
+    const actor = await actorFromTicket(token, ticket);
+    expect([...actor!.context.permissions].sort()).toEqual(["queue.operate", "queue.read"]);
+    expect(actor!.ticket).not.toBe("");
+    const [member, expires] = ticket.split(".");
+    expect(await actorFromTicket(token, `${member}.${Number(expires) + 60_000}.${ticket.split(".")[2]}`)).toBeNull();
+    expect(await actorFromTicket(token, `${manager.membershipId}.${expires}.${ticket.split(".")[2]}`)).toBeNull();
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(Date.now() + TICKET_TTL_MS + 1000);
+    expect(await actorFromTicket(token, ticket)).toBeNull();
+    vi.useRealTimers();
+    await revokeDevice(manager.context, device.id);
+    expect(await actorFromTicket(token, actor!.ticket)).toBeNull();
   });
 });

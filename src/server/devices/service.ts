@@ -2,7 +2,7 @@ import "server-only";
 import { randomInt } from "node:crypto";
 import { and, asc, eq, gt, sql } from "drizzle-orm";
 import { getDb } from "@/db";
-import { deviceCredentials, organizationMemberships, queueDevices, queuePins, stores, users } from "@/db/schema";
+import { departments, deviceCredentials, organizationMemberships, queueDevices, queuePins, stores, users } from "@/db/schema";
 import { withScope, type Tx } from "@/db/tenant";
 import { hitRateLimit, releaseRateLimit, type RateLimitRule } from "@/server/auth/rate-limit";
 import { generateSessionToken, hashSessionToken, keyedDigest } from "@/server/auth/tokens";
@@ -201,25 +201,30 @@ export async function deviceMembers(token: string | undefined): Promise<{ member
  * only their queue permissions and only the tablet's store. Failures count per
  * member and per device; a success gives back the attempts it counted.
  */
-export async function deviceActor(token: string | undefined, input: { membershipId: string; pin: string }): Promise<TenantContext> {
+/** Active departments of the tablet's organization, for the sector of an arrival. */
+export async function deviceDepartments(token: string | undefined): Promise<{ id: string; name: string }[]> {
   const device = await deviceFromToken(token);
   if (!device) throw unauthenticated();
-  const refused = () => invalid("Pessoa ou PIN incorretos.");
-  if (!isUuid(input?.membershipId) || typeof input.pin !== "string") throw refused();
-  const keys = [keyedDigest(`queue-pin:device:${device.id}`), keyedDigest(`queue-pin:member:${input.membershipId}`)];
-  const limits = [await hitRateLimit(keys[0], PIN_PER_DEVICE), await hitRateLimit(keys[1], PIN_PER_MEMBER)];
-  if (limits.some((limit) => !limit.allowed)) throw invalid("Muitas tentativas. Aguarde alguns minutos.");
-  const member = await withScope({ organizationId: device.organizationId }, async (tx) => {
-    const [row] = await tx
+  return withScope({ organizationId: device.organizationId }, (tx) =>
+    tx.select({ id: departments.id, name: departments.name }).from(departments).where(and(eq(departments.organizationId, device.organizationId), eq(departments.isActive, true))).orderBy(asc(departments.name)),
+  );
+}
+
+/**
+ * Context of a member on the tablet, for the queue services: only their queue
+ * permissions and only the tablet's store; null when the member is no longer active
+ * or does not reach the store with queue.read.
+ */
+export async function memberContext(device: QueueDevice, membershipId: string): Promise<TenantContext | null> {
+  if (!isUuid(membershipId)) return null;
+  const [member] = await withScope({ organizationId: device.organizationId }, (tx) =>
+    tx
       .select({ userId: users.id, email: users.email, name: users.name })
       .from(organizationMemberships)
       .innerJoin(users, eq(users.id, organizationMemberships.userId))
-      .where(and(eq(organizationMemberships.organizationId, device.organizationId), eq(organizationMemberships.id, input.membershipId), eq(organizationMemberships.status, "active"), eq(users.status, "active")));
-    const ok = await verifyMemberPin(tx, device.organizationId, input.membershipId, input.pin);
-    return ok && row ? row : null;
-  });
-  if (!member) throw refused();
-  for (const key of keys) await releaseRateLimit(key);
+      .where(and(eq(organizationMemberships.organizationId, device.organizationId), eq(organizationMemberships.id, membershipId), eq(organizationMemberships.status, "active"), eq(users.status, "active"))),
+  );
+  if (!member) return null;
   const context = await loadTenantContext(
     {
       id: `device:${device.id}`,
@@ -230,11 +235,30 @@ export async function deviceActor(token: string | undefined, input: { membership
     },
     device.organizationId,
   );
-  if (!context || !isStoreInScope(context.storeScope, device.storeId) || !context.permissions.has("queue.read")) throw refused();
+  if (!context || !isStoreInScope(context.storeScope, device.storeId) || !context.permissions.has("queue.read")) return null;
   return {
     ...context,
     permissions: new Set(QUEUE_PERMISSIONS.filter((permission) => context.permissions.has(permission))),
     storeScope: { all: false, storeIds: [device.storeId] },
     activeStoreId: device.storeId,
   };
+}
+
+/**
+ * Context of the member who typed their PIN on the tablet (see memberContext).
+ * Failures count per member and per device; a success gives back the attempts it counted.
+ */
+export async function deviceActor(token: string | undefined, input: { membershipId: string; pin: string }): Promise<TenantContext> {
+  const device = await deviceFromToken(token);
+  if (!device) throw unauthenticated();
+  const refused = () => invalid("Pessoa ou PIN incorretos.");
+  if (!isUuid(input?.membershipId) || typeof input.pin !== "string") throw refused();
+  const keys = [keyedDigest(`queue-pin:device:${device.id}`), keyedDigest(`queue-pin:member:${input.membershipId}`)];
+  const limits = [await hitRateLimit(keys[0], PIN_PER_DEVICE), await hitRateLimit(keys[1], PIN_PER_MEMBER)];
+  if (limits.some((limit) => !limit.allowed)) throw invalid("Muitas tentativas. Aguarde alguns minutos.");
+  const ok = await withScope({ organizationId: device.organizationId }, (tx) => verifyMemberPin(tx, device.organizationId, input.membershipId, input.pin));
+  const context = ok ? await memberContext(device, input.membershipId) : null;
+  if (!context) throw refused();
+  for (const key of keys) await releaseRateLimit(key);
+  return context;
 }
