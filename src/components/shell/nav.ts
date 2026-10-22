@@ -15,6 +15,7 @@ import {
   ContactRound,
   Target,
   HandCoins,
+  Banknote,
   ScrollText,
   ShoppingCart,
   Upload,
@@ -79,6 +80,7 @@ export const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
       { href: "/clientes", label: "Clientes", icon: Contact },
       { href: "/metas", label: "Metas", icon: Target },
       { href: "/comissoes", label: "Comissões", icon: HandCoins },
+      { href: "/despesas", label: "Despesas", icon: Banknote },
     ],
   },
   {
