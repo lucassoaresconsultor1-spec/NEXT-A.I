@@ -27,3 +27,10 @@ Usar filtros e schemas existentes (`metricsFiltersSchema`, `seriesSchema`, `dril
 ## Segurança e aceite
 - Toda página chama `requireTenantContext()`; respeitar permissões e escopo definidos pelos serviços. Não aceitar identidade de vendedor fornecida pelo cliente: derivá-la do contexto autenticado e do vínculo carregado no servidor. Nenhuma Server Action mutável.
 - Aceite: vendedor vê somente seus indicadores, metas, estimativa de comissão e atendimentos; navegação cabe em celular, com estados vazios/erro acessíveis; chamadas sem autorização não revelam dados de outra pessoa. Somente serviços listados, sem acesso direto ao banco.
+
+## v2 (Opus, 22/10/2026): desvios verificados no código
+- O papel Vendedor não tem `sales.read` nem `sales.create`: `salesSummary`/`salesSeries`/`salesDrillDown` o recusam, e sem `sales.read` a visibilidade filtra pelo operador do caixa, não pelo vendedor. Por isso entra `src/server/salespeople/self.ts`: `ownSalesperson(context)` (o vendedor sai só do usuário autenticado; lojas vinculadas dentro do acesso) e `ownSalesMetrics(context, período)` (`computeSalesMetrics` com `salespersonUserId` = eu e as lojas do meu acesso; exige o recurso `pos`). Teste: `tests/integration/salesperson-self.test.ts`.
+- `listStatements`/`getStatement` exigem `commissions.read`: o vendedor vê só `estimateCommission` própria por loja vinculada, marcada como estimativa.
+- Metas: `targetProgress` com `scope: "salesperson"`, filtrado no servidor pelo meu `salespersonId` (também para quem tem `sales.read`).
+- Fila: `getQueue` por loja vinculada, filtrada no servidor pelos meus atendimentos e minha presença.
+- Arquivos: `src/app/(app)/meu-desempenho/page.tsx`, `src/server/salespeople/self.ts`, o teste acima. Recurso fora do plano aparece como indisponível. Menu: `/meu-desempenho` sem permissão extra (a página mostra estado vazio a quem não é vendedor) — a cargo do Maestro.
