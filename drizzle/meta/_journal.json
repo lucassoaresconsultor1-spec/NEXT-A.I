@@ -288,6 +288,20 @@
       "when": 1792636611877,
       "tag": "0040_force_rls_queue_devices",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1792637061797,
+      "tag": "0041_expenses",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1792637065153,
+      "tag": "0042_force_rls_expenses",
+      "breakpoints": true
     }
   ]
 }
