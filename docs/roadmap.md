@@ -53,6 +53,10 @@ O PDV tem layout próprio para desktop, não depende da IA para vender e trata f
 
 Aceite: venda com múltiplos pagamentos atualiza estoque e caixa atomicamente; retentativa não duplica; fechamento aponta divergência; tudo auditado e isolado por empresa/loja.
 
+### Caminho mínimo das Fases 3 a 8 (aprovado em 22/10/2026)
+
+Entram: fila com perfil Recepção (m13a/m13b), telas de vendedores, metas, comissões e calendário, app do vendedor (m34), despesas (m36a/b), métricas completas (m16b), painéis (m17), relatórios em CSV com histórico (m18), porta de IA e ferramentas (m20, m21, m22), alertas e tarefas (m23a/b, m38a/b), backup com teste de restauração (m41) e documentação de implantação (m43). **Cortados ou adiados:** pareamento do tablet e PIN (m33), campanhas (m35a/b), agendamento de relatórios, conciliação com provedor (m37a), multiagente (m39), escritório virtual (m24a/b), consumo por plano (m40), observabilidade além dos logs (m25), carga (m42) e PWA offline (m15). **Pendentes com credencial do dono:** pagamento (m07), fiscal (m09), IA (m20), e-mail e deploy — portas prontas, nada simulado.
+
 ### Fase 3 — Pessoas e atendimento
 
 Vendedores (vínculo com membro), escalas para dias úteis, metas por escopo (rede, região, loja, equipe, pessoa) e período sem alteração silenciosa do histórico, regras de comissão versionadas com estados estimada → apurada → aprovada → paga e estorno por devolução. Fila (`service_tickets`, `service_events`) com status do prompt, distribuição por rodízio/especialidade/setor/manual com motivo registrado, e vínculo atendimento ↔ venda sem dupla contagem. Experiências móveis como PWA (`app/manifest.ts`): app do vendedor no celular (próprios dados por padrão; colegas, comissões de terceiros e relatórios gerenciais por permissão específica) e fila/vez no tablet da entrada da loja, integrada ao app do vendedor, ao PDV e ao dashboard sem cadastro duplicado. Como o tablet se identifica (aparelho vinculado à loja, PIN do vendedor) é proposta a validar com o usuário. Aceite: conversão com denominador documentado e reprodutível em teste.
