@@ -16,7 +16,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "platform:admin": "tsx --conditions=react-server scripts/platform-admin.ts",
-    "check": "pnpm lint && pnpm typecheck && pnpm lint:rules && pnpm test && pnpm build"
+    "check": "pnpm lint && pnpm typecheck && pnpm lint:rules && pnpm test && pnpm build",
+    "test:load": "pwsh -NoProfile -File tools/gate/with-test-db.ps1 corepack pnpm exec vitest run --config vitest.load.config.mts"
   },
   "dependencies": {
     "clsx": "2.1.1",
