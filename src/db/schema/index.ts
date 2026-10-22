@@ -27,3 +27,4 @@ export * from "./expenses";
 export * from "./closings";
 export * from "./reports";
 export * from "./ai";
+export * from "./alerts";

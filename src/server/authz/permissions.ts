@@ -102,6 +102,8 @@ export const PERMISSION_GROUPS = [
       { key: "salespeople.manage", label: "Cadastrar vendedores, lojas e escalas de membros de nível inferior" },
       { key: "targets.read", label: "Ver metas de venda e o progresso (vendedor: só as próprias)" },
       { key: "targets.manage", label: "Definir metas de venda da empresa, regiões, lojas e vendedores do escopo" },
+      { key: "alerts.read", label: "Ver alertas das lojas do escopo" },
+      { key: "alerts.manage", label: "Configurar regras de alerta e reconhecer, atribuir e resolver alertas" },
       { key: "ai.use", label: "Usar o assistente de IA (com as permissões do próprio perfil)" },
       { key: "reports.read", label: "Gerar e baixar relatórios (com as permissões de cada assunto)" },
       { key: "reports.schedule", label: "Agendar relatórios recorrentes" },
