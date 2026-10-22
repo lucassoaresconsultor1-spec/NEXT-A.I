@@ -42,6 +42,10 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 80,
     defaultStoreAccess: "stores",
     permissions: [
+      "commissions.read",
+      "commissions.manage",
+      "commissions.approve",
+      "commissions.pay",
       "targets.read",
       "organization.settings.read",
       "stores.read",
@@ -64,6 +68,8 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 70,
     defaultStoreAccess: "regions",
     permissions: [
+      "commissions.read",
+      "commissions.manage",
       "targets.read",
       "targets.manage",
       "organization.settings.read",
@@ -94,6 +100,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 50,
     defaultStoreAccess: "stores",
     permissions: [
+      "commissions.read",
       "targets.read",
       "targets.manage",
       "stores.read",

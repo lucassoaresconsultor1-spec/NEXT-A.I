@@ -33,6 +33,8 @@ export const auditFiltersSchema = z.object({
       "calendar",
       "salesperson",
       "sales_target",
+      "commission_rule",
+      "commission_statement",
       "cash_register",
       "cash_session",
       "sale",

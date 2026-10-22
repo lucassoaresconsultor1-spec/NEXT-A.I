@@ -246,6 +246,20 @@
       "when": 1792621097873,
       "tag": "0034_force_rls_sales_targets",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1792621864130,
+      "tag": "0035_commissions",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1792621866087,
+      "tag": "0036_force_rls_commissions",
+      "breakpoints": true
     }
   ]
 }
