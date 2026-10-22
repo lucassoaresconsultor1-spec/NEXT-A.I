@@ -42,6 +42,8 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 80,
     defaultStoreAccess: "stores",
     permissions: [
+      "closings.read",
+      "closings.manage",
       "expenses.read",
       "expenses.manage",
       "commissions.read",
@@ -70,6 +72,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 70,
     defaultStoreAccess: "regions",
     permissions: [
+      "closings.read",
       "expenses.read",
       "queue.read",
       "commissions.read",
@@ -104,6 +107,8 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 50,
     defaultStoreAccess: "stores",
     permissions: [
+      "closings.read",
+      "closings.manage",
       "expenses.read",
       "queue.devices.manage",
       "queue.read",

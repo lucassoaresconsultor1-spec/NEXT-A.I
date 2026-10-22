@@ -13,6 +13,8 @@ import { addMemberFixture, createOrganizationFixture, createStoreFixture, create
 const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
 const shift = (day: string, days: number) => new Date(Date.parse(`${day}T00:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
 const D1 = shift(today, -5);
+// Store B is in Manaus (one hour behind): right after midnight in São Paulo its local day is still yesterday.
+const todayManaus = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Manaus" }).format(new Date());
 
 async function setup() {
   const org = await createOrganizationFixture();
@@ -86,7 +88,12 @@ describe("sales metrics", () => {
     const byDay = await salesSeries(s.owner, { ...period, groupBy: "day" });
     expect(byDay.map((row) => [row.key, row.metrics.grossRevenueCents, row.metrics.saleCount, row.metrics.cancelledCents, row.metrics.returnedCents])).toEqual([
       [D1, 7050, 4, 0, 0],
-      [today, 1000, 0, 1000, 1950],
+      ...(todayManaus === today
+        ? [[today, 1000, 0, 1000, 1950]]
+        : [
+            [todayManaus, 0, 0, 0, 1000],
+            [today, 1000, 0, 1000, 950],
+          ]),
     ]);
     const byStore = new Map((await salesSeries(s.owner, { ...period, groupBy: "store" })).map((row) => [row.key, row.metrics]));
     expect(byStore.get(s.storeA)).toMatchObject({ grossRevenueCents: 4050, discountCents: 100, cancelledCents: 1000, returnedCents: 950, saleCount: 2 });

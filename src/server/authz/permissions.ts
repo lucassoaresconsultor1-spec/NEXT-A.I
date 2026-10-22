@@ -102,6 +102,8 @@ export const PERMISSION_GROUPS = [
       { key: "salespeople.manage", label: "Cadastrar vendedores, lojas e escalas de membros de nível inferior" },
       { key: "targets.read", label: "Ver metas de venda e o progresso (vendedor: só as próprias)" },
       { key: "targets.manage", label: "Definir metas de venda da empresa, regiões, lojas e vendedores do escopo" },
+      { key: "closings.read", label: "Ver fechamentos diários e a conciliação das lojas do escopo" },
+      { key: "closings.manage", label: "Fechar o dia da loja e conciliar os pagamentos integrados" },
       { key: "expenses.read", label: "Ver despesas das lojas do escopo" },
       { key: "expenses.manage", label: "Lançar, pagar e cancelar despesas e manter as categorias" },
       { key: "commissions.read", label: "Ver regras, estimativas e apurações de comissão das lojas do escopo" },

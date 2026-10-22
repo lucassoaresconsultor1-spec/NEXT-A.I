@@ -24,3 +24,4 @@ export * from "./commissions";
 export * from "./queue";
 export * from "./devices";
 export * from "./expenses";
+export * from "./closings";
