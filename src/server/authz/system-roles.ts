@@ -42,6 +42,8 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 80,
     defaultStoreAccess: "stores",
     permissions: [
+      "tasks.read",
+      "procedures.read",
       "alerts.read",
       "ai.use",
       "reports.read",
@@ -76,6 +78,10 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 70,
     defaultStoreAccess: "regions",
     permissions: [
+      "tasks.read",
+      "tasks.manage",
+      "procedures.read",
+      "procedures.manage",
       "alerts.read",
       "alerts.manage",
       "ai.use",
@@ -116,6 +122,9 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 50,
     defaultStoreAccess: "stores",
     permissions: [
+      "tasks.read",
+      "tasks.manage",
+      "procedures.read",
       "alerts.read",
       "alerts.manage",
       "ai.use",
@@ -170,7 +179,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     description: "Monitora equipe, atendimento e indicadores da loja.",
     rank: 40,
     defaultStoreAccess: "stores",
-    permissions: ["stores.read", "departments.read", "members.read", "catalog.read", "inventory.read", "inventory.count.record", "sales.read", "cash.read", "customers.read", "targets.read", "queue.read", "queue.operate", "queue.assign_manual", "ai.use", "alerts.read"],
+    permissions: ["stores.read", "departments.read", "members.read", "catalog.read", "inventory.read", "inventory.count.record", "sales.read", "cash.read", "customers.read", "targets.read", "queue.read", "queue.operate", "queue.assign_manual", "ai.use", "alerts.read", "tasks.read", "tasks.manage", "procedures.read"],
   },
   {
     key: "salesperson",
@@ -179,7 +188,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 20,
     defaultStoreAccess: "stores",
     // Front-line roles register the buyer at the sale (ADR-017).
-    permissions: ["stores.read", "catalog.read", "inventory.read", "customers.read", "customers.manage", "targets.read", "queue.read"],
+    permissions: ["stores.read", "catalog.read", "inventory.read", "customers.read", "customers.manage", "targets.read", "queue.read", "tasks.read", "procedures.read"],
   },
   {
     key: "cashier",
@@ -188,7 +197,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 20,
     defaultStoreAccess: "stores",
     // Front-line roles register the buyer at the sale (ADR-017).
-    permissions: ["stores.read", "catalog.read", "inventory.read", "sales.create", "sales.discount", "sales.cancel", "cash.operate", "customers.read", "customers.manage"],
+    permissions: ["stores.read", "catalog.read", "inventory.read", "sales.create", "sales.discount", "sales.cancel", "cash.operate", "customers.read", "customers.manage", "tasks.read", "procedures.read"],
   },
   {
     key: "reception",
@@ -197,7 +206,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 20,
     defaultStoreAccess: "stores",
     // The entrance tablet runs a regular session of this role (m33 pairing was cut).
-    permissions: ["stores.read", "queue.read", "queue.operate"],
+    permissions: ["stores.read", "queue.read", "queue.operate", "tasks.read", "procedures.read"],
   },
 ];
 
