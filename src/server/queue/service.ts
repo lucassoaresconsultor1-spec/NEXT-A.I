@@ -290,28 +290,30 @@ export async function getQueue(context: TenantContext, storeId: string) {
   });
 }
 
-/** Attendance results by local arrival day; conversion = with sale ÷ finished, one decimal. */
+/** Attendance results by local arrival day in the caller's transaction; `storeIds` undefined = every store. Conversion = with sale ÷ finished, one decimal. */
+export async function queueCountsInTx(tx: Tx, organizationId: string, filters: { from: string; to: string; storeIds?: readonly string[] }) {
+  const rows = await tx
+    .select({ status: queueEntries.status, outcome: queueEntries.outcome, value: count() })
+    .from(queueEntries)
+    .where(
+      and(
+        eq(queueEntries.organizationId, organizationId),
+        filters.storeIds ? (filters.storeIds.length ? inArray(queueEntries.storeId, [...filters.storeIds]) : sql`false`) : undefined,
+        between(queueEntries.day, filters.from, filters.to),
+      ),
+    )
+    .groupBy(queueEntries.status, queueEntries.outcome);
+  const sum = (match: (row: (typeof rows)[number]) => boolean) => rows.filter(match).reduce((total, row) => total + row.value, 0);
+  const finished = sum((row) => row.status === "finished");
+  const withSale = sum((row) => row.status === "finished" && row.outcome === "sale");
+  return { finished, withSale, noSale: finished - withSale, abandoned: sum((row) => row.status === "abandoned"), conversion: finished ? percentOf(withSale, finished) : "0.0" };
+}
+
 export async function queueStats(context: TenantContext, rawFilters: unknown) {
   assertCan(context, "queue.read");
   const filters = parse(statsSchema, rawFilters);
   if (filters.storeId) assertStoreInScope(context, filters.storeId);
-  const orgId = context.organization.id;
-  return withScope(dbScope(context), async (tx) => {
-    const rows = await tx
-      .select({ status: queueEntries.status, outcome: queueEntries.outcome, value: count() })
-      .from(queueEntries)
-      .where(
-        and(
-          eq(queueEntries.organizationId, orgId),
-          storeScopeCondition(context.storeScope, queueEntries.storeId),
-          filters.storeId ? eq(queueEntries.storeId, filters.storeId) : undefined,
-          between(queueEntries.day, filters.from, filters.to),
-        ),
-      )
-      .groupBy(queueEntries.status, queueEntries.outcome);
-    const sum = (match: (row: (typeof rows)[number]) => boolean) => rows.filter(match).reduce((total, row) => total + row.value, 0);
-    const finished = sum((row) => row.status === "finished");
-    const withSale = sum((row) => row.status === "finished" && row.outcome === "sale");
-    return { finished, withSale, noSale: finished - withSale, abandoned: sum((row) => row.status === "abandoned"), conversion: finished ? percentOf(withSale, finished) : "0.0" };
-  });
+  const scope = context.storeScope;
+  const storeIds = filters.storeId ? [filters.storeId] : scope.all ? undefined : scope.storeIds;
+  return withScope(dbScope(context), (tx) => queueCountsInTx(tx, context.organization.id, { from: filters.from, to: filters.to, storeIds }));
 }

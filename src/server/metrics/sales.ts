@@ -1,6 +1,6 @@
 import "server-only";
 import { and, eq, inArray, sql, type SQL } from "drizzle-orm";
-import { saleItems, saleRefunds, sales, stores, users } from "@/db/schema";
+import { saleItems, saleRefundItems, saleRefunds, sales, stores, users } from "@/db/schema";
 import { withScope, type Tx } from "@/db/tenant";
 import { dbScope, type TenantContext } from "@/server/authz/context";
 import { can } from "@/server/authz/guard";
@@ -72,11 +72,23 @@ function contributions(context: TenantContext, filters: Filters, groupBy: Metric
       case when ${completed} then 1 else 0 end as sale_count,
       case when ${completed} then (select coalesce(sum(${saleItems.quantity}), 0) from ${saleItems}
         where ${saleItems.organizationId} = ${sales.organizationId} and ${saleItems.saleId} = ${sales.id}) else 0 end as items,
-      0 as cancelled, 0 as returned
+      0 as cancelled, 0 as returned,
+      -- Margin (m16b): revenue share of items with a cost snapshot, their cost, and items without cost.
+      (select coalesce(sum(floor(i.total_cents::numeric * ${sales.totalCents} / nullif(n.nets, 0))), 0) from ${saleItems} i,
+        (select sum(total_cents) as nets from ${saleItems} where organization_id = ${sales.organizationId} and sale_id = ${sales.id}) n
+        where i.organization_id = ${sales.organizationId} and i.sale_id = ${sales.id} and i.unit_cost_cents is not null) as costed_revenue,
+      (select coalesce(sum(round(i.unit_cost_cents * i.quantity)), 0) from ${saleItems} i
+        where i.organization_id = ${sales.organizationId} and i.sale_id = ${sales.id} and i.unit_cost_cents is not null) as cogs,
+      (select count(*) from ${saleItems} i where i.organization_id = ${sales.organizationId} and i.sale_id = ${sales.id} and i.unit_cost_cents is null) as uncosted
     from ${sales} inner join ${stores} on ${storeJoin}
     where ${common(sales.completedAt)} and ${sales.status} in ('completed', 'cancelled')`;
   const refundPart = (kind: "cancellation" | "return", amount: SQL) => sql`select ${sales.id}, ${keyOf(context, groupBy, sql`${saleRefunds.createdAt}`)},
-      0, 0, 0, 0, ${kind === "cancellation" ? amount : sql`0`}, ${kind === "return" ? amount : sql`0`}
+      0, 0, 0, 0, ${kind === "cancellation" ? amount : sql`0`}, ${kind === "return" ? amount : sql`0`},
+      -(select coalesce(sum(ri.amount_cents), 0) from ${saleRefundItems} ri inner join ${saleItems} i on i.organization_id = ri.organization_id and i.id = ri.sale_item_id
+        where ri.organization_id = ${saleRefunds.organizationId} and ri.refund_id = ${saleRefunds.id} and i.unit_cost_cents is not null),
+      -(select coalesce(sum(round(i.unit_cost_cents * ri.quantity)), 0) from ${saleRefundItems} ri inner join ${saleItems} i on i.organization_id = ri.organization_id and i.id = ri.sale_item_id
+        where ri.organization_id = ${saleRefunds.organizationId} and ri.refund_id = ${saleRefunds.id} and i.unit_cost_cents is not null),
+      0
     from ${saleRefunds}
     inner join ${sales} on ${sales.organizationId} = ${saleRefunds.organizationId} and ${sales.id} = ${saleRefunds.saleId}
     inner join ${stores} on ${storeJoin}
@@ -92,6 +104,9 @@ interface SumRow {
   items: string;
   cancelled: string;
   returned: string;
+  costed_revenue: string;
+  cogs: string;
+  uncosted: string;
 }
 
 function toSums(row: SumRow | undefined): MetricSums {
@@ -109,7 +124,8 @@ function toSums(row: SumRow | undefined): MetricSums {
 
 async function aggregate(tx: Tx, context: TenantContext, filters: Filters, groupBy: MetricsGroupBy | "all", withVisibility = true) {
   const result = await tx.execute<SumRow & Record<string, unknown>>(sql`select key, sum(gross)::text as gross, sum(discount)::text as discount,
-      sum(sale_count)::text as sale_count, sum(items)::numeric(20, 3)::text as items, sum(cancelled)::text as cancelled, sum(returned)::text as returned
+      sum(sale_count)::text as sale_count, sum(items)::numeric(20, 3)::text as items, sum(cancelled)::text as cancelled, sum(returned)::text as returned,
+      sum(costed_revenue)::text as costed_revenue, sum(cogs)::text as cogs, sum(uncosted)::text as uncosted
     from (${contributions(context, filters, groupBy, withVisibility)}) as c group by key order by key`);
   return result.rows;
 }
@@ -122,6 +138,17 @@ async function aggregate(tx: Tx, context: TenantContext, filters: Filters, group
 export async function computeSalesMetrics(tx: Tx, context: TenantContext, rawFilters: MetricsFilters): Promise<SalesMetrics> {
   const [row] = await aggregate(tx, context, parse(metricsFiltersSchema, rawFilters), "all", false);
   return buildMetrics(toSums(row));
+}
+
+/** Metrics plus the margin sums of m16b, in the caller's transaction, with the member's visibility. */
+export async function salesSumsInTx(tx: Tx, context: TenantContext, filters: Filters) {
+  const [row] = await aggregate(tx, context, filters, "all");
+  return {
+    metrics: buildMetrics(toSums(row)),
+    costedRevenueCents: Number(row?.costed_revenue ?? 0),
+    cogsCents: Number(row?.cogs ?? 0),
+    uncostedItems: Number(row?.uncosted ?? 0),
+  };
 }
 
 export async function salesSummary(context: TenantContext, rawFilters: MetricsFilters): Promise<SalesMetrics & { period: { from: string; to: string } }> {

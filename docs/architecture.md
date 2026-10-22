@@ -105,6 +105,17 @@ Schema em `src/db/schema/`, explicado em [data-model.md](data-model.md). `getDb(
 
 O detalhamento (`salesDrillDown`) usa as mesmas parcelas por venda; a soma das contribuições é igual à métrica.
 
+Métricas completas (m16b, `fullSalesSummary`), das mesmas fontes:
+
+| Métrica | Fórmula |
+|---|---|
+| `grossMarginCents` | receita dos itens com custo (rateio do total líquido da venda) − custo do snapshot × quantidade; estornos pelos itens devolvidos; itens sem custo contados à parte |
+| `netProfitCents` | margem − despesas não canceladas do período (só com despesas lançadas) |
+| `conversion` | atendimentos encerrados com venda ÷ atendimentos encerrados (fila) |
+| `commissionsCents` | Σ das apurações não canceladas dos meses do período |
+
+Cada bloco só aparece para quem tem a permissão correspondente (custos, despesas, comissões).
+
 ## Decisões
 
 | Decisão | Motivo | Alternativa considerada | Revisar quando |
