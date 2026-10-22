@@ -344,6 +344,20 @@
       "when": 1792639815466,
       "tag": "0048_force_rls_ai_usage",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1792640283266,
+      "tag": "0049_ai_conversations",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1792640286126,
+      "tag": "0050_force_rls_ai_conversations",
+      "breakpoints": true
     }
   ]
 }
