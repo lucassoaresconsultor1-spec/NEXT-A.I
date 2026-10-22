@@ -31,6 +31,7 @@ const NAV_PERMISSIONS: Record<string, Permission | readonly Permission[] | null>
   "/calendario": "organization.settings.read",
   "/despesas": "expenses.read",
   "/comissoes": "commissions.read",
+  "/meu-desempenho": null,
   "/metas": "targets.read",
   "/vendedores": "salespeople.manage",
   "/clientes": "customers.read",
