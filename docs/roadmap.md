@@ -55,7 +55,7 @@ Aceite: venda com múltiplos pagamentos atualiza estoque e caixa atomicamente; r
 
 ### Escopo das Fases 3 a 8 (22/10/2026)
 
-O caminho mínimo aprovado mais cedo foi **revogado** pelo dono: todos os 61 módulos do SPEC continuam no plano, na ordem do mapa. A diretriz é não criar código, testes, relatórios ou documentos desnecessários. Integrações que dependem de credencial real do dono (pagamento, fiscal, e-mail, IA, deploy) têm a porta implementada e testada e aparecem como "pendente" na tela, sem nada simulado.
+O caminho mínimo aprovado mais cedo foi **revogado** pelo dono: todos os 61 módulos do SPEC continuam no plano, na ordem do mapa. A diretriz é não criar código, testes, relatórios ou documentos desnecessários. O m15 (PWA offline) foi avaliado e registrado como não feito (PDV e fila exigem o servidor; ver `docs/contracts/m15-pwa-offline-cache.md`). Integrações que dependem de credencial real do dono (pagamento, fiscal, e-mail, IA, deploy) têm a porta implementada e testada e aparecem como "pendente" na tela, sem nada simulado.
 
 ### Fase 3 — Pessoas e atendimento
 
