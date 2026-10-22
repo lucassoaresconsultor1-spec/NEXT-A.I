@@ -17,6 +17,7 @@ import {
   HandCoins,
   Banknote,
   ListOrdered,
+  FileSpreadsheet,
   ScrollText,
   Trophy,
   ShoppingCart,
@@ -85,6 +86,7 @@ export const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
       { href: "/meu-desempenho", label: "Meu desempenho", icon: Trophy },
       { href: "/comissoes", label: "Comissões", icon: HandCoins },
       { href: "/despesas", label: "Despesas", icon: Banknote },
+      { href: "/relatorios", label: "Relatórios", icon: FileSpreadsheet },
     ],
   },
   {
