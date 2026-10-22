@@ -38,6 +38,21 @@ Ao concluir um ciclo de implementação ou correção, sugira de 3 a 8 ciclos po
 
 Cada ciclo verifica o estado atual e o código conectado, registra achados com severidade, local e evidência e reavalia correções autorizadas com os checks afetados. Correções da mesma rodada não reiniciam a contagem. Termine com verificação integrada e riscos residuais, sem criar ciclos artificiais ou afirmar que uma quantidade de revisões prova ausência de bugs.
 
+## Testes de carga (m42)
+
+Fluxos críticos sob concorrência no banco descartável, com o mesmo pool da aplicação (5 conexões): `pwsh -NoProfile -File tools/gate/with-test-db.ps1 corepack pnpm exec vitest run --config vitest.load.config.mts`. Primeiro a correção (exatamente 100 vendas para 100 unidades, números de venda sem buracos, saldo zero; nenhum cliente ou vendedor repetido na fila), depois as medidas, impressas em linhas `LOAD`.
+
+Medição local de 22/10/2026 (Windows, PostgreSQL 17 local; referência, não meta):
+
+| Fluxo | Operações | p50 | p95 | Por segundo |
+|---|---|---|---|---|
+| PDV `completeSale` (8 caixas, 120 tentativas, 100 unidades) | 120 | 521 ms | 843 ms | 138 |
+| Métricas `salesSummary` (dia com 100 vendas) | 20 | 9 ms | 16 ms | 111 |
+| Fila `registerArrival` | 60 | 77 ms | 125 ms | 458 |
+| Fila `callNext` (10 vendedores) | 15 | 27 ms | 37 ms | 397 |
+
+Carga HTTP de ponta a ponta (com sessão, proxy e Server Actions) fica para o ambiente de homologação do dono.
+
 ## Gate modular
 
 Portão sem LLM para módulos entregues por workers ([PROTOCOLO-MODULAR-V2.md](PROTOCOLO-MODULAR-V2.md)). Rode na raiz do repositório, com PowerShell 7:
