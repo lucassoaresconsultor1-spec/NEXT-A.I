@@ -4,7 +4,7 @@ import { withScope } from "@/db/tenant";
 import { dbScope, type TenantContext } from "@/server/authz/context";
 import { assertCan } from "@/server/authz/guard";
 import { DomainError, limitReached } from "@/server/errors";
-import { assertFeature } from "@/server/plans/entitlements";
+import { assertAiQuota, assertFeature } from "@/server/plans/entitlements";
 import { ModelProviderError, type ModelMessage, type ModelResponse, type ModelToolDefinition } from "./port";
 import { getModelProvider } from "./registry";
 
@@ -39,7 +39,11 @@ export interface ModelCall {
 export async function callModel(context: TenantContext, call: ModelCall): Promise<ModelResponse> {
   assertCan(context, "ai.use");
   const orgId = context.organization.id;
-  await withScope(dbScope(context), (tx) => assertFeature(tx, orgId, "ai_assistant"));
+  await withScope(dbScope(context), async (tx) => {
+    await assertFeature(tx, orgId, "ai_assistant");
+    // Monthly AI token limit of the plan, when configured (m40).
+    await assertAiQuota(tx, orgId, context.organization.timezone);
+  });
   const provider = getModelProvider();
   if (!provider) throw limitReached("Assistente de IA pendente: nenhum provedor configurado.");
 

@@ -1,0 +1,1 @@
+ALTER TABLE "plans" ADD COLUMN "max_ai_tokens_per_month" integer;

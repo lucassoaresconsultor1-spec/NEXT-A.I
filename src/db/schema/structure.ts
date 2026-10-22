@@ -31,6 +31,8 @@ export const plans = pgTable("plans", {
   // NULL means "no limit configured".
   maxStores: integer("max_stores"),
   maxMembers: integer("max_members"),
+  // AI tokens (input + output) per calendar month; NULL = no limit configured (m40).
+  maxAiTokensPerMonth: integer("max_ai_tokens_per_month"),
   isActive: boolean("is_active").notNull().default(true),
   ...timestamps,
 });

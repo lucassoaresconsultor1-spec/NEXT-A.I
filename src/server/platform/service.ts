@@ -123,6 +123,7 @@ export async function listPlans(actorId: string) {
         description: plans.description,
         maxStores: plans.maxStores,
         maxMembers: plans.maxMembers,
+        maxAiTokensPerMonth: plans.maxAiTokensPerMonth,
       })
       .from(plans)
       .leftJoin(planFeatures, eq(planFeatures.planKey, plans.key))
@@ -130,6 +131,21 @@ export async function listPlans(actorId: string) {
       .groupBy(plans.key)
       .orderBy(asc(featureCount), asc(plans.name));
   });
+}
+
+/** Monthly AI token limit of a plan (m40); null removes the limit. Commercial value decided by the owner. */
+export async function setPlanAiLimit(actorId: string, planKey: string, maxTokens: number | null) {
+  const key = planKeySchema.safeParse(planKey);
+  if (maxTokens !== null && (!Number.isInteger(maxTokens) || maxTokens < 0 || maxTokens > 2_000_000_000)) {
+    throw invalid("Revise os campos destacados.", { maxAiTokensPerMonth: ["Informe um número inteiro de tokens, ou deixe sem limite."] });
+  }
+  await withScope(platformScope(actorId), async (tx) => {
+    await assertPlatformAdmin(tx, actorId);
+    const [updated] = key.success ? await tx.update(plans).set({ maxAiTokensPerMonth: maxTokens, updatedAt: new Date() }).where(eq(plans.key, key.data)).returning({ key: plans.key }) : [];
+    if (!updated) throw notFound("Plano não encontrado.");
+  });
+  // Plans are a global catalog without an organization audit trail; the change goes to the server log.
+  logger.info({ actorId, planKey, maxAiTokensPerMonth: maxTokens }, "Plan AI limit changed");
 }
 
 /** A malformed id answers "not found", but only after the actor is confirmed as an administrator. */
