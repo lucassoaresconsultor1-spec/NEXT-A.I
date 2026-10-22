@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { recordMovement } from "@/server/inventory/service";
+import { departments } from "@/db/schema";
+import { withScope } from "@/db/tenant";
+import { setSalespersonDepartments } from "@/server/queue/departments";
 import { abandonEntry, assignManual, callNext, finishAttendance, getQueue, queueStats, registerArrival, setPresence } from "@/server/queue/service";
 import { completeSale } from "@/server/sales/complete";
 import { saveSalesperson } from "@/server/salespeople/service";
@@ -81,5 +84,21 @@ describe("service queue", () => {
     const other = await createOrganizationFixture();
     await expect(getQueue(other.owner, storeId)).rejects.toMatchObject({ code: "not_found" });
     await expect(abandonEntry(other.owner, c.id, { reason: "Invasão" })).rejects.toMatchObject({ code: "not_found" });
+  });
+
+  it("calls only salespeople of the requested sector, even before others waiting longer", async () => {
+    const { organizationId, owner } = await createOrganizationFixture();
+    const storeId = await createStoreFixture(organizationId);
+    const reception = (await addMemberFixture(organizationId, { roleKey: "reception", storeIds: [storeId] })).context;
+    const sellers = [await addMemberFixture(organizationId, { roleKey: "salesperson", storeIds: [storeId] }), await addMemberFixture(organizationId, { roleKey: "salesperson", storeIds: [storeId] })];
+    const [ana, beto] = await Promise.all(sellers.map((seller, index) => saveSalesperson(owner, { membershipId: seller.membershipId, code: `S0${index + 1}`, nickname: `S${index}`, storeIds: [storeId] })));
+    const [shoes] = await withScope({ organizationId }, (tx) => tx.insert(departments).values({ organizationId, name: "Calçados" }).returning({ id: departments.id }));
+    await setSalespersonDepartments(owner, beto.id, { departmentIds: [shoes.id] });
+    await setPresence(owner, { storeId, salespersonId: ana.id, status: "available" });
+    await setPresence(owner, { storeId, salespersonId: beto.id, status: "available" });
+    const first = await registerArrival(reception, { storeId, requestKey: randomUUID(), departmentId: shoes.id });
+    expect(await callNext(reception, { storeId })).toEqual({ entryId: first.id, salespersonId: beto.id });
+    await registerArrival(reception, { storeId, requestKey: randomUUID(), departmentId: shoes.id });
+    await expect(callNext(reception, { storeId })).rejects.toMatchObject({ message: "Nenhum vendedor deste setor disponível." });
   });
 });

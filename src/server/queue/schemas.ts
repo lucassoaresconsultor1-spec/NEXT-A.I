@@ -7,6 +7,7 @@ export const arrivalSchema = z.object({
   storeId: z.uuid({ error: "Selecione a loja." }),
   requestKey: z.uuid({ error: "Chave da chegada inválida." }),
   note: optionalText(80),
+  departmentId: z.preprocess((value) => (value === "" ? undefined : value), z.uuid({ error: "Setor inválido." }).optional()),
 });
 
 export const presenceSchema = z.object({

@@ -101,6 +101,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 50,
     defaultStoreAccess: "stores",
     permissions: [
+      "queue.devices.manage",
       "queue.read",
       "queue.operate",
       "queue.assign_manual",

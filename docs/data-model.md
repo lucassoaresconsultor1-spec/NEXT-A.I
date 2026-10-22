@@ -1,6 +1,6 @@
 # Modelo de dados
 
-Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes, `0011` compras e contador de documentos, `0012` FORCE RLS de compras, `0013` transferências e reservas, `0014` FORCE RLS de transferências e reservas, `0015` caixa, `0016` FORCE RLS do caixa, `0017` vendas, `0018` FORCE RLS de vendas, `0019` pagamentos integrados, `0020` FORCE RLS de pagamentos, `0021` documentos fiscais, `0022` FORCE RLS de documentos fiscais, `0023` cancelamentos, devoluções e chave da suspensão, `0024` FORCE RLS das devoluções, `0025` inventários por lote, `0026` FORCE RLS dos inventários, `0027` importações CSV, `0028` FORCE RLS das importações, `0029` calendário da empresa, `0030` FORCE RLS do calendário, `0031` vendedores e escalas, `0032` FORCE RLS dos vendedores, `0033` metas de venda, `0034` FORCE RLS das metas, `0035` comissões, `0036` FORCE RLS das comissões, `0037` fila de atendimento, `0038` FORCE RLS da fila e perfil Recepção). Este documento explica o desenho; não repete colunas óbvias.
+Fonte de verdade: `src/db/schema/*.ts` e SQL versionado em `drizzle/` (`0000` schema, `0001` FORCE RLS, `0002` catálogo de planos, `0003` dono da conta e FK de região restritiva, `0004` nomes de perfis e Financeiro, `0005` catálogo e estoque, `0006` FORCE RLS do catálogo e estoque, `0007` regras de operação, `0008` FORCE RLS das regras de operação, `0009` clientes, `0010` FORCE RLS de clientes, `0011` compras e contador de documentos, `0012` FORCE RLS de compras, `0013` transferências e reservas, `0014` FORCE RLS de transferências e reservas, `0015` caixa, `0016` FORCE RLS do caixa, `0017` vendas, `0018` FORCE RLS de vendas, `0019` pagamentos integrados, `0020` FORCE RLS de pagamentos, `0021` documentos fiscais, `0022` FORCE RLS de documentos fiscais, `0023` cancelamentos, devoluções e chave da suspensão, `0024` FORCE RLS das devoluções, `0025` inventários por lote, `0026` FORCE RLS dos inventários, `0027` importações CSV, `0028` FORCE RLS das importações, `0029` calendário da empresa, `0030` FORCE RLS do calendário, `0031` vendedores e escalas, `0032` FORCE RLS dos vendedores, `0033` metas de venda, `0034` FORCE RLS das metas, `0035` comissões, `0036` FORCE RLS das comissões, `0037` fila de atendimento, `0038` FORCE RLS da fila e perfil Recepção, `0039` tablets da fila, PIN e setores do vendedor, `0040` FORCE RLS). Este documento explica o desenho; não repete colunas óbvias.
 
 ## Implementado (Fase 1)
 
@@ -260,6 +260,17 @@ Migrations `0037` e `0038` (FORCE RLS; a `0038` cria o perfil Recepção nas emp
 | `queue_entries` | Senha por loja e dia local, nota curta opcional (sem dado pessoal), situação `waiting` → `in_service` → `finished` ou `abandoned`, vendedor e modo (rodízio ou manual com motivo), resultado com venda (única por empresa) ou motivo; chave da chegada única |
 
 **Conversão** = atendimentos encerrados com venda ÷ atendimentos encerrados no período (dia local da chegada); desistências ficam fora do denominador.
+
+## Implementado (Fase 3 — tablets da fila e setores, módulos m33 e m13a v2)
+
+Migrations `0039` e `0040`.
+
+| Tabela | Notas |
+|---|---|
+| `queue_devices` | Tablet de uma loja: `pending` → `active` (pareado) → `revoked`; último uso. FORCE RLS |
+| `queue_pins` | PIN de fila do membro (hash scrypt). FORCE RLS |
+| `device_credentials` | Global, sem RLS e sem dado de negócio (como `sessions`): hash do código de pareamento (HMAC, 10 min, uso único) ou do token do aparelho (SHA-256) → empresa e aparelho |
+| `salesperson_departments` | Setores/especialidades do vendedor (departamentos). FORCE RLS. `queue_entries.department_id` = setor pedido na chegada |
 
 ## Planejado (Fases 2–6)
 

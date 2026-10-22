@@ -274,6 +274,20 @@
       "when": 1792635742328,
       "tag": "0038_force_rls_queue_and_reception",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1792636608762,
+      "tag": "0039_queue_devices_and_departments",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1792636611877,
+      "tag": "0040_force_rls_queue_devices",
+      "breakpoints": true
     }
   ]
 }

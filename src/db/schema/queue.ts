@@ -3,7 +3,7 @@ import { check, foreignKey, index, integer, pgEnum, pgTable, primaryKey, timesta
 import { users } from "./auth";
 import { sales } from "./sales";
 import { salespeople, salespersonStores } from "./salespeople";
-import { organizations, stores } from "./structure";
+import { departments, organizations, stores } from "./structure";
 import { organizationIdColumn, tenantIsolationPolicy, timestamps } from "./tenant";
 
 // Store service queue (m13a): salesperson presence for the rotation and the
@@ -47,6 +47,8 @@ export const queueEntries = pgTable(
     day: varchar("day", { length: 10 }).notNull(),
     status: queueEntryStatus("status").notNull().default("waiting"),
     note: varchar("note", { length: 80 }),
+    // Requested sector/specialty: the rotation then only calls salespeople of that department.
+    departmentId: uuid("department_id"),
     requestKey: uuid("request_key").notNull(),
     arrivedAt: timestamp("arrived_at", { withTimezone: true }).notNull().default(sql`clock_timestamp()`),
     salespersonId: uuid("salesperson_id"),
@@ -68,6 +70,7 @@ export const queueEntries = pgTable(
     foreignKey({ name: "queue_entries_store_fk", columns: [t.organizationId, t.storeId], foreignColumns: [stores.organizationId, stores.id] }),
     foreignKey({ name: "queue_entries_salesperson_fk", columns: [t.organizationId, t.salespersonId], foreignColumns: [salespeople.organizationId, salespeople.id] }),
     foreignKey({ name: "queue_entries_sale_fk", columns: [t.organizationId, t.saleId], foreignColumns: [sales.organizationId, sales.id] }),
+    foreignKey({ name: "queue_entries_department_fk", columns: [t.organizationId, t.departmentId], foreignColumns: [departments.organizationId, departments.id] }),
     index("queue_entries_store_status_idx").on(t.organizationId, t.storeId, t.status, t.arrivedAt),
     index("queue_entries_store_day_idx").on(t.organizationId, t.storeId, t.day),
     check(
@@ -79,6 +82,22 @@ export const queueEntries = pgTable(
     ),
     check("queue_entries_assignment", sql`(${t.salespersonId} is null) = (${t.assignment} is null) and (${t.assignment} <> 'manual' or ${t.assignmentReason} is not null)`),
     check("queue_entries_outcome", sql`(${t.outcome} = 'sale') = (${t.saleId} is not null) and (${t.outcome} <> 'no_sale' or ${t.closingReason} is not null)`),
+    tenantIsolationPolicy(),
+  ],
+);
+
+/** Sectors/specialties of a salesperson (departments of the organization) for the queue rotation. */
+export const salespersonDepartments = pgTable(
+  "salesperson_departments",
+  {
+    organizationId: organizationIdColumn().references(() => organizations.id, { onDelete: "cascade" }),
+    salespersonId: uuid("salesperson_id").notNull(),
+    departmentId: uuid("department_id").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.organizationId, t.salespersonId, t.departmentId] }),
+    foreignKey({ name: "salesperson_departments_salesperson_fk", columns: [t.organizationId, t.salespersonId], foreignColumns: [salespeople.organizationId, salespeople.id] }).onDelete("cascade"),
+    foreignKey({ name: "salesperson_departments_department_fk", columns: [t.organizationId, t.departmentId], foreignColumns: [departments.organizationId, departments.id] }).onDelete("cascade"),
     tenantIsolationPolicy(),
   ],
 );

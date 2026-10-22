@@ -109,6 +109,7 @@ export const PERMISSION_GROUPS = [
       { key: "queue.read", label: "Ver a fila de atendimento das lojas do escopo" },
       { key: "queue.operate", label: "Registrar chegadas, chamar pelo rodízio e encerrar atendimentos" },
       { key: "queue.assign_manual", label: "Atribuir atendimento manualmente, com motivo" },
+      { key: "queue.devices.manage", label: "Parear e revogar tablets da fila e limpar PINs de fila de nível inferior" },
       { key: "roles.read", label: "Ver perfis de acesso" },
       { key: "roles.manage", label: "Criar e editar perfis personalizados" },
     ],

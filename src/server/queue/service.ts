@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, between, count, eq, inArray, sql } from "drizzle-orm";
 import type { z } from "zod";
-import { organizationMemberships, queueEntries, queuePresence, sales, salespeople, salespersonStores, stores } from "@/db/schema";
+import { departments, organizationMemberships, queueEntries, queuePresence, sales, salespeople, salespersonDepartments, salespersonStores, stores } from "@/db/schema";
 import { withScope, type Tx } from "@/db/tenant";
 import { recordAudit } from "@/server/audit/record";
 import { dbScope, storeScopeCondition, type TenantContext } from "@/server/authz/context";
@@ -83,10 +83,17 @@ export async function registerArrival(context: TenantContext, rawInput: unknown)
       const [previous] = await replay(tx);
       if (previous) return answer(previous);
       const day = await activeStoreDay(tx, context, input.storeId);
+      if (input.departmentId) {
+        const [department] = await tx
+          .select({ id: departments.id })
+          .from(departments)
+          .where(and(eq(departments.organizationId, orgId), eq(departments.id, input.departmentId), eq(departments.isActive, true)));
+        if (!department) throw invalid("Revise os campos destacados.", { departmentId: ["Setor não encontrado."] });
+      }
       const ticket = await nextDocumentNumber(tx, orgId, `queue:${input.storeId}:${day}`);
       const [created] = await tx
         .insert(queueEntries)
-        .values({ organizationId: orgId, storeId: input.storeId, ticket, day, note: input.note ?? null, requestKey: input.requestKey, createdBy: context.user.id })
+        .values({ organizationId: orgId, storeId: input.storeId, ticket, day, note: input.note ?? null, departmentId: input.departmentId ?? null, requestKey: input.requestKey, createdBy: context.user.id })
         .returning({ id: queueEntries.id });
       await audit(tx, context, "arrival", created.id, input.storeId, { ticket, day });
       return { id: created.id, ticket, replayed: false };
@@ -132,7 +139,7 @@ export async function callNext(context: TenantContext, rawInput: { storeId: stri
   return withScope(dbScope(context), async (tx) => {
     await activeStoreDay(tx, context, storeId);
     const [entry] = await tx
-      .select({ id: queueEntries.id, ticket: queueEntries.ticket })
+      .select({ id: queueEntries.id, ticket: queueEntries.ticket, departmentId: queueEntries.departmentId })
       .from(queueEntries)
       .where(and(eq(queueEntries.organizationId, orgId), eq(queueEntries.storeId, storeId), eq(queueEntries.status, "waiting")))
       .orderBy(asc(queueEntries.arrivedAt), asc(queueEntries.ticket))
@@ -145,11 +152,24 @@ export async function callNext(context: TenantContext, rawInput: { storeId: stri
       .from(queuePresence)
       .innerJoin(salespeople, and(eq(salespeople.organizationId, queuePresence.organizationId), eq(salespeople.id, queuePresence.salespersonId)))
       .innerJoin(organizationMemberships, and(eq(organizationMemberships.organizationId, salespeople.organizationId), eq(organizationMemberships.id, salespeople.membershipId)))
-      .where(and(eq(queuePresence.organizationId, orgId), eq(queuePresence.storeId, storeId), eq(queuePresence.status, "available"), eq(salespeople.isActive, true), eq(organizationMemberships.status, "active")))
+      .where(
+        and(
+          eq(queuePresence.organizationId, orgId),
+          eq(queuePresence.storeId, storeId),
+          eq(queuePresence.status, "available"),
+          eq(salespeople.isActive, true),
+          eq(organizationMemberships.status, "active"),
+          // A requested sector/specialty only calls salespeople of that department.
+          entry.departmentId
+            ? sql`exists (select 1 from ${salespersonDepartments} where ${salespersonDepartments.organizationId} = ${queuePresence.organizationId}
+                and ${salespersonDepartments.salespersonId} = ${queuePresence.salespersonId} and ${salespersonDepartments.departmentId} = ${entry.departmentId})`
+            : undefined,
+        ),
+      )
       .orderBy(asc(queuePresence.since), asc(queuePresence.salespersonId))
       .for("update", { of: queuePresence });
     const next = available[0];
-    if (!next) throw invalid("Nenhum vendedor disponível na fila.");
+    if (!next) throw invalid(entry.departmentId ? "Nenhum vendedor deste setor disponível." : "Nenhum vendedor disponível na fila.");
     await setBusy(tx, orgId, storeId, next.salespersonId, "busy");
     await tx
       .update(queueEntries)
@@ -255,7 +275,7 @@ export async function getQueue(context: TenantContext, storeId: string) {
     const [store] = await tx.select({ id: stores.id }).from(stores).where(and(eq(stores.organizationId, orgId), eq(stores.id, storeId)));
     if (!store) throw notFound("Loja não encontrada.");
     const entries = await tx
-      .select({ id: queueEntries.id, ticket: queueEntries.ticket, status: queueEntries.status, note: queueEntries.note, arrivedAt: queueEntries.arrivedAt, startedAt: queueEntries.startedAt, salespersonId: queueEntries.salespersonId, nickname: salespeople.nickname })
+      .select({ id: queueEntries.id, ticket: queueEntries.ticket, status: queueEntries.status, note: queueEntries.note, departmentId: queueEntries.departmentId, arrivedAt: queueEntries.arrivedAt, startedAt: queueEntries.startedAt, salespersonId: queueEntries.salespersonId, nickname: salespeople.nickname })
       .from(queueEntries)
       .leftJoin(salespeople, and(eq(salespeople.organizationId, queueEntries.organizationId), eq(salespeople.id, queueEntries.salespersonId)))
       .where(and(eq(queueEntries.organizationId, orgId), eq(queueEntries.storeId, storeId), inArray(queueEntries.status, ["waiting", "in_service"])))
