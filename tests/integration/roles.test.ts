@@ -89,7 +89,7 @@ describe("roles service: custom roles", () => {
     const custom = await createRole(owner, { name: "Estoquista", rank: 25, permissions: ["stores.read"] });
     await addMemberFixture(organizationId, { roleKey: "admin" });
     const list = await listRoles(owner);
-    expect(list.map((role) => role.key)).toEqual(["owner", "admin", "finance", "regional_manager", "store_manager", "supervisor", custom.key, "cashier", "salesperson"]);
+    expect(list.map((role) => role.key)).toEqual(["owner", "admin", "finance", "regional_manager", "store_manager", "supervisor", custom.key, "cashier", "reception", "salesperson"]);
     const byKey = new Map(list.map((role) => [role.key, role]));
     expect(byKey.get("owner")?.memberCount).toBe(1);
     expect(byKey.get("admin")?.memberCount).toBe(1);
@@ -224,7 +224,7 @@ describe("roles service: hierarchy and grants", () => {
       message: "Perfis do sistema não podem ser alterados.",
     });
     await expect(deleteRole(owner, salesperson)).rejects.toMatchObject({ code: "forbidden" });
-    expect(await getRole(owner, salesperson)).toMatchObject({ isSystem: true, name: "Vendedor", permissions: ["stores.read", "catalog.read", "inventory.read", "customers.read", "customers.manage", "targets.read"] });
+    expect(await getRole(owner, salesperson)).toMatchObject({ isSystem: true, name: "Vendedor", permissions: ["stores.read", "catalog.read", "inventory.read", "customers.read", "customers.manage", "targets.read", "queue.read"] });
     expect(await storedPermissions(organizationId, salesperson)).toEqual([]);
   });
 });

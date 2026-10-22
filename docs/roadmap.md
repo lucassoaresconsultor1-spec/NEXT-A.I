@@ -53,9 +53,9 @@ O PDV tem layout próprio para desktop, não depende da IA para vender e trata f
 
 Aceite: venda com múltiplos pagamentos atualiza estoque e caixa atomicamente; retentativa não duplica; fechamento aponta divergência; tudo auditado e isolado por empresa/loja.
 
-### Caminho mínimo das Fases 3 a 8 (aprovado em 22/10/2026)
+### Escopo das Fases 3 a 8 (22/10/2026)
 
-Entram: fila com perfil Recepção (m13a/m13b), telas de vendedores, metas, comissões e calendário, app do vendedor (m34), despesas (m36a/b), métricas completas (m16b), painéis (m17), relatórios em CSV com histórico (m18), porta de IA e ferramentas (m20, m21, m22), alertas e tarefas (m23a/b, m38a/b), backup com teste de restauração (m41) e documentação de implantação (m43). **Cortados ou adiados:** pareamento do tablet e PIN (m33), campanhas (m35a/b), agendamento de relatórios, conciliação com provedor (m37a), multiagente (m39), escritório virtual (m24a/b), consumo por plano (m40), observabilidade além dos logs (m25), carga (m42) e PWA offline (m15). **Pendentes com credencial do dono:** pagamento (m07), fiscal (m09), IA (m20), e-mail e deploy — portas prontas, nada simulado.
+O caminho mínimo aprovado mais cedo foi **revogado** pelo dono: todos os 61 módulos do SPEC continuam no plano, na ordem do mapa. A diretriz é não criar código, testes, relatórios ou documentos desnecessários. Integrações que dependem de credencial real do dono (pagamento, fiscal, e-mail, IA, deploy) têm a porta implementada e testada e aparecem como "pendente" na tela, sem nada simulado.
 
 ### Fase 3 — Pessoas e atendimento
 

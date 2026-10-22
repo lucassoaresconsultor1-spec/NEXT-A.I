@@ -1,15 +1,15 @@
 # Contrato do módulo `m13a-fila` — v1
 
-> Arquiteto (Opus), 22/10/2026. Risco **SENSÍVEL**, nível **A**. Migração **16ª** (`0037`/`0038`). Substitui o m33 (cortado): o tablet da entrada usa a sessão normal de um membro com o perfil **Recepção**.
+> Arquiteto (Opus), 22/10/2026. Risco **SENSÍVEL**, nível **A**. Migração **16ª** (`0037`/`0038`). A fila funciona com a sessão normal de um membro com o perfil **Recepção**; o m33 acrescenta o pareamento do tablet e o PIN do vendedor sobre os mesmos serviços.
 
 ## 1. Objetivo
 Fila de atendimento da loja: chegada do cliente, presença dos vendedores, distribuição por **rodízio** (quem está disponível há mais tempo) ou **manual com motivo**, encerramento **com venda vinculada** ou **sem venda com motivo**, desistência, e a **conversão** com denominador documentado.
 
 ## 2. Fora de escopo
-Telas (m13b), pareamento do aparelho e PIN (m33, cortado), distribuição por especialidade/setor (adiada), dados pessoais do cliente na fila (só uma nota curta opcional).
+Telas (m13b), pareamento do aparelho e PIN (m33), distribuição por especialidade/setor (adiada para depois do m33; registrado no relatório), dados pessoais do cliente na fila (só uma nota curta opcional).
 
 ## 3. Allowlist
-`src/db/schema/queue.ts`, `src/db/schema/index.ts`, `drizzle/**`, `src/server/queue/schemas.ts`, `src/server/queue/service.ts`, `src/server/authz/permissions.ts`, `src/server/authz/system-roles.ts`, `src/server/audit/labels.ts`, `src/server/audit/service.ts`, `tests/integration/queue.test.ts`, `tests/integration/roles.test.ts` (listas fixas de perfis), `docs/data-model.md`, `docs/security.md`, `docs/contracts/m13a-fila.md`.
+`src/db/schema/queue.ts`, `src/db/schema/index.ts`, `drizzle/**`, `src/server/queue/schemas.ts`, `src/server/queue/service.ts`, `src/server/authz/permissions.ts`, `src/server/authz/system-roles.ts`, `src/server/audit/labels.ts`, `src/server/audit/service.ts`, `tests/integration/queue.test.ts`, `tests/integration/roles.test.ts` e `tests/integration/members.test.ts` (listas fixas de perfis), `docs/data-model.md`, `docs/security.md`, `docs/contracts/m13a-fila.md`.
 
 ## 4. Interface (`src/server/queue/service.ts`)
 ```ts

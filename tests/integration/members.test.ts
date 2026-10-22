@@ -188,7 +188,7 @@ describe("members privilege escalation", () => {
     expect(sharedRow).toMatchObject({ scopeCount: 1 });
 
     const options = await getMemberFormOptions(manager.context);
-    expect(options.roles.map((role) => role.key).sort()).toEqual(["cashier", "salesperson", "supervisor"]);
+    expect(options.roles.map((role) => role.key).sort()).toEqual(["cashier", "reception", "salesperson", "supervisor"]);
     expect(options.stores.map((store) => store.id)).toEqual([storeA]);
     expect(options.regions).toEqual([]);
 

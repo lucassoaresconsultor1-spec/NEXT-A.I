@@ -68,6 +68,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 70,
     defaultStoreAccess: "regions",
     permissions: [
+      "queue.read",
       "commissions.read",
       "commissions.manage",
       "targets.read",
@@ -100,6 +101,9 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 50,
     defaultStoreAccess: "stores",
     permissions: [
+      "queue.read",
+      "queue.operate",
+      "queue.assign_manual",
       "commissions.read",
       "targets.read",
       "targets.manage",
@@ -143,7 +147,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     description: "Monitora equipe, atendimento e indicadores da loja.",
     rank: 40,
     defaultStoreAccess: "stores",
-    permissions: ["stores.read", "departments.read", "members.read", "catalog.read", "inventory.read", "inventory.count.record", "sales.read", "cash.read", "customers.read", "targets.read"],
+    permissions: ["stores.read", "departments.read", "members.read", "catalog.read", "inventory.read", "inventory.count.record", "sales.read", "cash.read", "customers.read", "targets.read", "queue.read", "queue.operate", "queue.assign_manual"],
   },
   {
     key: "salesperson",
@@ -152,7 +156,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     rank: 20,
     defaultStoreAccess: "stores",
     // Front-line roles register the buyer at the sale (ADR-017).
-    permissions: ["stores.read", "catalog.read", "inventory.read", "customers.read", "customers.manage", "targets.read"],
+    permissions: ["stores.read", "catalog.read", "inventory.read", "customers.read", "customers.manage", "targets.read", "queue.read"],
   },
   {
     key: "cashier",
@@ -162,6 +166,15 @@ export const SYSTEM_ROLES: readonly SystemRoleDefinition[] = [
     defaultStoreAccess: "stores",
     // Front-line roles register the buyer at the sale (ADR-017).
     permissions: ["stores.read", "catalog.read", "inventory.read", "sales.create", "sales.discount", "sales.cancel", "cash.operate", "customers.read", "customers.manage"],
+  },
+  {
+    key: "reception",
+    name: "Recepção",
+    description: "Recebe os clientes na entrada e opera a fila de atendimento da loja.",
+    rank: 20,
+    defaultStoreAccess: "stores",
+    // The entrance tablet runs a regular session of this role (m33 pairing was cut).
+    permissions: ["stores.read", "queue.read", "queue.operate"],
   },
 ];
 
