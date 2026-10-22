@@ -11,6 +11,7 @@ import {
   Map,
   Repeat,
   ReceiptText,
+  CalendarDays,
   ScrollText,
   ShoppingCart,
   Upload,
@@ -86,6 +87,7 @@ export const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
     label: "Administração",
     items: [
       { href: "/auditoria", label: "Auditoria", icon: History },
+      { href: "/calendario", label: "Calendário", icon: CalendarDays },
       { href: "/configuracoes", label: "Configurações", icon: Settings },
     ],
   },
